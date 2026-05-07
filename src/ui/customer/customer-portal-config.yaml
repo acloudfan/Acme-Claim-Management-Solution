@@ -1,0 +1,16 @@
+api:
+  base_url: "http://localhost:8000/api/v1"
+  timeout: 30000  # milliseconds
+
+mock:
+  customer_id: 100
+  auth_password: "password123"
+
+app:
+  name: "Insurance Claims Portal"
+  version: "1.0.0"
+
+features:
+  enable_appeal: true
+  max_images_per_claim: 20
+  max_image_size_mb: 10

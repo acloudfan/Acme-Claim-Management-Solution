@@ -1,0 +1,28 @@
+flowchart TD
+    A([Accident Occurs]):::start --> B[Policyholder Reports Claim]:::process
+    B --> C{Claim Intake & Registration}:::decision
+    C --> D[Assign Claim Adjuster]:::process
+    D --> E[Policyholder Submits<br/>Damage Photos/Docs]:::manual
+    E --> F[Manual Photo Review<br/>& Damage Assessment]:::manual
+    F --> G[Estimate Repair Cost<br/>via Estimatics System]:::process
+    G --> H{Adjuster Validation<br/>& Approval}:::decision
+    H -- Approved --> I[Generate Claim Estimate]:::doc
+    H -- Questioned --> J[Re-inspection or<br/>Supplemental Review]:::review
+    J --> F
+    I --> K[Claim Approval<br/>Notification to Policyholder]:::process
+    K --> L{Policyholder<br/>Accepts Estimate?}:::decision
+    L -- Accept --> M[Issue Payment to<br/>Policyholder/Repair Shop]:::payment
+    L -- Decline --> N[Claim Escalation or<br/>Dispute Process]:::escalation
+    N --> O[Manual Negotiation or<br/>Arbitration]:::manual
+    O --> L
+    M --> P([Claim Closed]):::end
+
+    classDef start fill:#2e7d32,stroke:#1b5e20,stroke-width:2px,color:#fff
+    classDef process fill:#1976d2,stroke:#0d47a1,stroke-width:2px,color:#fff
+    classDef decision fill:#f57c00,stroke:#e65100,stroke-width:2px,color:#fff
+    classDef manual fill:#d32f2f,stroke:#b71c1c,stroke-width:2px,color:#fff
+    classDef doc fill:#7b1fa2,stroke:#4a148c,stroke-width:2px,color:#fff
+    classDef review fill:#c2185b,stroke:#880e4f,stroke-width:2px,color:#fff
+    classDef payment fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
+    classDef escalation fill:#e64a19,stroke:#bf360c,stroke-width:2px,color:#fff
+    classDef end fill:#455a64,stroke:#263238,stroke-width:2px,color:#fff

@@ -1,0 +1,45 @@
+stateDiagram-v2
+    [*] --> FNOL
+    FNOL : Customer reports loss (FNOL)
+    FNOL --> UploadImages
+
+    UploadImages --> AI_Estimate
+
+    state AI_Estimate {
+        [*] --> CheckRiskFraud
+        CheckRiskFraud --> HighRiskFraud : risk>0.1 or fraud>0.9
+        CheckRiskFraud --> CheckConfidence : else
+        
+        CheckConfidence --> HighConf : conf > 0.55
+        CheckConfidence --> MedConf : 0.35 < conf ≤ 0.55
+        CheckConfidence --> LowConf : conf ≤ 0.35
+    }
+
+    HighRiskFraud --> HumanReview
+    MedConf --> HumanReview
+
+    HighConf --> CustomerChoice
+    CustomerChoice --> Approve : accept
+    CustomerChoice --> Decline : reject
+
+    Approve --> Payment
+    Payment --> [*]
+
+    Decline --> HumanReview
+
+    HumanReview --> AdjusterOverride
+    AdjusterOverride --> CustomerChoice2
+
+    CustomerChoice2 --> Approve2 : accept
+    CustomerChoice2 --> Decline2 : reject
+    Approve2 --> Payment
+
+    Decline2 --> TraditionalProcess
+
+    LowConf --> TraditionalProcess
+
+    TraditionalProcess --> Drivable
+    Drivable --> Garage : if drivable
+    Drivable --> Visit : if not drivable
+    Garage --> [*]
+    Visit --> [*]

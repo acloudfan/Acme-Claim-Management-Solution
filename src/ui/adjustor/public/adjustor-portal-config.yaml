@@ -1,0 +1,14 @@
+api:
+  base_url: "http://localhost:8000/api/v1"
+  timeout: 30000
+
+auth:
+  mock_password: "adjustor123"
+
+features:
+  enable_zoom: true
+  enable_manual_damages: true
+
+branding:
+  company_name: "ACME Insurance"
+  logo_path: "/assets/ACME-logo.png"

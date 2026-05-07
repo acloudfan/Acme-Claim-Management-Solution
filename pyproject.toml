@@ -1,0 +1,56 @@
+[project]
+name = "insurance-claims-api"
+version = "0.1.0"
+description = "AI-Powered Auto Insurance Claims API"
+authors = [{name = "Insurance Team"}]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "sqlalchemy>=2.0.0",
+    "pydantic[email]>=2.0.0",
+    "python-multipart>=0.0.6",
+    "pyyaml>=6.0.0",
+    # AI/CV Dependencies (YOLO Integration)
+    "ultralytics>=8.3.0",
+    "huggingface-hub>=0.20.0",
+    "pillow>=10.2.0",
+    "opencv-python>=4.9.0",
+    "numpy>=1.26.0",
+    "anthropic>=0.100.0",
+    "openai>=2.35.1",
+    "boto3>=1.43.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.25.0",
+    "faker>=19.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/api"]
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["src/api/tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --cov=src/api --cov-report=term-missing"

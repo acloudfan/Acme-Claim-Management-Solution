@@ -1,0 +1,112 @@
+%% Claims State Machine Diagram
+%% Color Palette: color-palette-dark.css
+%% This diagram uses the standardized dark theme color palette defined in color-palette-dark.css
+
+stateDiagram-v2
+    [*] --> draft
+
+    draft --> FNOL : Customer submits claim for processing
+
+    FNOL --> image_uploaded : Customer uploads damage photos
+    FNOL --> loss_estimated_ai : AI generates estimate directly
+
+    image_uploaded --> loss_estimated_ai : AI processes images
+
+    loss_estimated_ai --> customer_decision_pending : High confidence (conf >= 0.55)
+    loss_estimated_ai --> human_review_pending : Low confidence (conf < 0.55)
+
+    customer_decision_pending --> loss_approved : Customer accepts estimate
+    customer_decision_pending --> loss_appealed : Customer rejects estimate
+
+    loss_approved --> sent_for_payment : Process payment
+
+    loss_appealed --> human_review_pending : First appeal - escalate for adjuster review
+    loss_appealed --> routed_to_traditional : Second appeal - route to traditional
+
+    human_review_pending --> human_review_completed : Adjuster reviews claim
+
+    human_review_completed --> customer_decision_pending : Present revised estimate
+    human_review_completed --> routed_to_traditional : Requires traditional process
+
+    sent_for_payment --> claim_paid : Payment issued
+    claim_paid --> claim_closed : Payment confirmed
+
+    routed_to_traditional --> traditional_processing_active : Begin traditional workflow
+
+    state traditional_processing_active {
+        [*] --> TraditionalClaimProcessing
+        TraditionalClaimProcessing : Traditional claim processing
+        TraditionalClaimProcessing : Manual assessment and estimation
+    }
+
+    traditional_processing_active --> claim_closed : Processing complete
+
+    claim_closed --> [*]
+
+    note right of traditional_processing_active
+        This involves physical inspection
+        of the damage by an adjustor.
+    end note
+
+    note right of draft
+        Draft state
+        Initial claim creation
+        Customer can edit details
+    end note
+
+    note right of FNOL
+        First Notice of Loss
+        Claim submitted for processing
+        No further edits allowed
+    end note
+
+    note right of loss_estimated_ai
+        AI damage detection
+        Confidence scoring
+        Fraud/risk assessment
+    end note
+
+    note right of human_review_pending
+        Triggered by:
+        - Low AI confidence (< 0.55)
+        - High fraud risk (>0.1)
+        - Customer appeal/rejection
+    end note
+
+    note left of human_review_completed
+        Routed to traditional when:
+        (a) Technical difficulties in gauging the loss
+        (b) Customer rejected both AI generated, and human-reviewed claim
+        
+    end note
+
+    %% note right of traditional_claim_processing
+    %%     Traditional processing includes:
+    %%     - Physical inspection
+    %%     - Scheduling coordination
+    %%     - Manual estimation
+    %% end note
+
+    %% Color coding for state categories
+    classDef draftState fill:#6C757D,stroke:#545B62,stroke-width:2px,color:#fff
+    classDef initialState fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef aiProcessing fill:#7B68EE,stroke:#5A4DB3,stroke-width:2px,color:#fff
+    classDef customerAction fill:#50C878,stroke:#3A9B5C,stroke-width:2px,color:#fff
+    classDef humanReview fill:#FF8C42,stroke:#CC6F35,stroke-width:2px,color:#fff
+    classDef approved fill:#28A745,stroke:#1E7E34,stroke-width:2px,color:#fff
+    classDef appealed fill:#FFC107,stroke:#E0A800,stroke-width:2px,color:#000
+    classDef payment fill:#20C997,stroke:#17A673,stroke-width:2px,color:#fff
+    classDef traditional fill:#6C757D,stroke:#545B62,stroke-width:2px,color:#fff
+    classDef scheduling fill:#9C88B5,stroke:#7A6A92,stroke-width:2px,color:#fff
+    classDef terminal fill:#DC3545,stroke:#BD2130,stroke-width:2px,color:#fff
+
+    class draft draftState
+    class FNOL,image_uploaded initialState
+    class loss_estimated_ai aiProcessing
+    class customer_decision_pending customerAction
+    class loss_approved approved
+    class loss_appealed appealed
+    class human_review_pending,human_review_completed humanReview
+    class sent_for_payment,claim_paid payment
+    class routed_to_traditional,traditional_processing_active traditional
+    class claim_closed terminal

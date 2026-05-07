@@ -1,0 +1,101 @@
+flowchart TB
+    %% Styling - Using color-palette-dark.css
+    classDef inputClass fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef processClass fill:#50C878,stroke:#3A9B5C,stroke-width:2px,color:#fff
+    classDef agentClass fill:#7B68EE,stroke:#5A4DB3,stroke-width:2px,color:#fff
+    classDef llmClass fill:#9C88B5,stroke:#7A6A92,stroke-width:2px,color:#fff
+    classDef decisionClass fill:#FFC107,stroke:#E0A800,stroke-width:2px,color:#000
+    classDef outputClass fill:#DC3545,stroke:#BD2130,stroke-width:2px,color:#fff
+    classDef dbClass fill:#20C997,stroke:#17A673,stroke-width:2px,color:#fff
+
+    %% Start
+    Start([Claim Submitted with Images]):::inputClass
+
+    %% Initialize Supervisor
+    Start --> InitSupervisor[Initialize Fraud Detection Supervisor<br/>AI AGENTS FIRST STRATEGY]:::agentClass
+
+    %% PHASE 1: AI VISION AGENTS (SHOWCASE AI VALUE!)
+    InitSupervisor --> Phase1[PHASE 1: AI VISION AGENTS<br/>Run in Parallel - SHOWCASE AI!]:::llmClass
+
+    Phase1 --> VisionAgent1[Color Verification Agent<br/>Vision LLM analyzes images]:::llmClass
+    Phase1 --> VisionAgent2[Make/Model Verification Agent<br/>Vision LLM identifies vehicle]:::llmClass
+    Phase1 --> VisionAgent3[AI-Generated Image Detector<br/>Vision LLM detects deepfakes]:::llmClass
+    Phase1 --> VisionAgent4[Image Manipulation Detector<br/>EXIF + Vision LLM]:::llmClass
+
+    VisionAgent1 --> Check1[Does vehicle COLOR in images<br/>match policy records?]:::agentClass
+    VisionAgent2 --> Check2[Does vehicle MAKE/MODEL in images<br/>match policy records?]:::agentClass
+    VisionAgent3 --> Check3[Are damage images<br/>AI-generated synthetic?]:::agentClass
+    VisionAgent4 --> Check4[Are images edited with<br/>Photoshop or manipulation tools?]:::agentClass
+
+    Check1 --> AggregateVision[Aggregate AI Vision Signals]:::agentClass
+    Check2 --> AggregateVision
+    Check3 --> AggregateVision
+    Check4 --> AggregateVision
+
+    AggregateVision --> CalcVisionRisk[Calculate Vision Risk Score]:::processClass
+
+    %% PHASE 2: STATIC VALIDATION (Backup layer)
+    CalcVisionRisk --> Phase2[PHASE 2: Static Validation<br/>Deterministic Backup Checks]:::processClass
+
+    Phase2 --> StaticCheck1[VIN Format Validation<br/>regex 17 chars]:::processClass
+    Phase2 --> StaticCheck2[VIN-Year Consistency<br/>decode 10th char]:::processClass
+    Phase2 --> StaticCheck3[Claim Frequency<br/>threshold calc]:::processClass
+    Phase2 --> StaticCheck4[Claim Velocity<br/>30-day count]:::processClass
+
+    StaticCheck1 --> CalcStaticRisk[Calculate Static Risk Score]:::processClass
+    StaticCheck2 --> CalcStaticRisk
+    StaticCheck3 --> CalcStaticRisk
+    StaticCheck4 --> CalcStaticRisk
+
+    %% Combine Phase 1 & 2
+    CalcStaticRisk --> CombinePhase12[Combine Vision + Static Signals]:::processClass
+
+    CombinePhase12 --> CheckCombinedRisk{Combined Risk<br/>Score?}:::decisionClass
+
+    %% Decision: Skip Phase 3 if clear result
+    CheckCombinedRisk -->|0.8+ High Risk| SkipPhase3High[Skip Phase 3<br/>Clear High Risk]:::outputClass
+    CheckCombinedRisk -->|under 0.3 Low Risk| SkipPhase3Low[Skip Phase 3<br/>Clear Low Risk]:::outputClass
+    CheckCombinedRisk -->|0.3-0.8 Borderline| Phase3[PHASE 3: Behavioral Synthesis<br/>LLM Pattern Analysis]:::llmClass
+
+    %% PHASE 3: Behavioral Analysis (only for borderline cases)
+    Phase3 --> BehaviorAgent[Behavior Pattern Analyzer<br/>LLM reasoning]:::llmClass
+
+    BehaviorAgent --> BehaviorChecks[Synthesize:<br/>- All fraud signals<br/>- Damage pattern coherence<br/>- Story consistency<br/>- Location reasonableness]:::agentClass
+
+    %% Final Risk Calculation
+    SkipPhase3High --> FinalRisk[Calculate Final Risk Score]:::processClass
+    SkipPhase3Low --> FinalRisk
+    BehaviorChecks --> FinalRisk
+
+    FinalRisk --> RiskDecision{Final Risk<br/>Score?}:::decisionClass
+
+    %% Risk Outcomes
+    RiskDecision -->|0.7+| HighRisk[HIGH RISK<br/>AI detected sophisticated fraud<br/>Recommend: REJECT]:::outputClass
+    RiskDecision -->|0.4-0.7| MediumRisk[MEDIUM RISK<br/>AI flagged concerns<br/>Recommend: Human Review]:::outputClass
+    RiskDecision -->|under 0.4| LowRisk[LOW RISK<br/>AI verified legitimacy<br/>Recommend: APPROVE]:::outputClass
+
+    %% Store Results
+    HighRisk --> StoreResults[Store Fraud Detection Results<br/>with AI Evidence]:::dbClass
+    MediumRisk --> StoreResults
+    LowRisk --> StoreResults
+
+    StoreResults --> LogUsage[Log AI Agent Performance<br/>Token Usage, Detection Quality]:::dbClass
+
+    %% Return to Main Supervisor
+    LogUsage --> ReturnResult[Return to Main Supervisor<br/>with AI Fraud Analysis]:::agentClass
+
+    ReturnResult --> MainSupervisor{Main Supervisor<br/>Review AI Findings}:::decisionClass
+
+    %% Final Actions
+    MainSupervisor -->|High Fraud| BlockClaim[Block Auto-Approval<br/>AI detected fraud indicators]:::outputClass
+    MainSupervisor -->|Medium Fraud| FlagClaim[Flag for Human Review<br/>AI recommends investigation]:::outputClass
+    MainSupervisor -->|Low Fraud| ProceedClaim[Proceed with Processing<br/>AI verified claim legitimacy]:::outputClass
+
+    %% End States
+    BlockClaim --> End1([Manual Review Required<br/>AI Evidence Provided]):::outputClass
+    FlagClaim --> End2([Flagged for Review<br/>AI Concerns Noted]):::outputClass
+    ProceedClaim --> End3([Continue Processing<br/>AI Verification Passed]):::outputClass
+
+    %% Highlight AI Value
+    note1[AI VALUE DEMONSTRATED:<br/>Vision agents catch sophisticated fraud<br/>that static rules cannot detect]:::llmClass
+    AggregateVision -.-> note1

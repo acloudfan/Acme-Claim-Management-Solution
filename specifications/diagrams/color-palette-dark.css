@@ -1,0 +1,126 @@
+/**
+ * Dark Theme Color Palette for Claims State Machine Diagrams
+ *
+ * This file defines the color scheme for all Mermaid state diagrams.
+ * Colors are organized by state category for consistency across diagrams.
+ *
+ * Usage: Copy the Mermaid classDef section below into your .mmd files
+ */
+
+/* ============================================================================
+   CSS VARIABLES (for web applications)
+   ========================================================================= */
+
+:root {
+  /* Initial States - Blue theme */
+  --color-initial-fill: #4A90E2;
+  --color-initial-stroke: #2E5C8A;
+  --color-initial-text: #fff;
+
+  /* AI Processing - Purple theme */
+  --color-ai-fill: #7B68EE;
+  --color-ai-stroke: #5A4DB3;
+  --color-ai-text: #fff;
+
+  /* Customer Action - Light Green theme */
+  --color-customer-fill: #50C878;
+  --color-customer-stroke: #3A9B5C;
+  --color-customer-text: #fff;
+
+  /* Approved - Dark Green theme */
+  --color-approved-fill: #28A745;
+  --color-approved-stroke: #1E7E34;
+  --color-approved-text: #fff;
+
+  /* Appealed - Yellow/Amber theme */
+  --color-appealed-fill: #FFC107;
+  --color-appealed-stroke: #E0A800;
+  --color-appealed-text: #000;
+
+  /* Human Review - Orange theme */
+  --color-human-fill: #FF8C42;
+  --color-human-stroke: #CC6F35;
+  --color-human-text: #fff;
+
+  /* Payment - Teal theme */
+  --color-payment-fill: #20C997;
+  --color-payment-stroke: #17A673;
+  --color-payment-text: #fff;
+
+  /* Traditional Workflow - Gray theme */
+  --color-traditional-fill: #6C757D;
+  --color-traditional-stroke: #545B62;
+  --color-traditional-text: #fff;
+
+  /* Scheduling - Lavender theme */
+  --color-scheduling-fill: #9C88B5;
+  --color-scheduling-stroke: #7A6A92;
+  --color-scheduling-text: #fff;
+
+  /* Terminal State - Red theme */
+  --color-terminal-fill: #DC3545;
+  --color-terminal-stroke: #BD2130;
+  --color-terminal-text: #fff;
+
+  /* Common properties */
+  --stroke-width: 2px;
+}
+
+/* ============================================================================
+   MERMAID CLASSDEF DEFINITIONS
+   Copy this section into your .mmd files after the diagram definition
+   ========================================================================= */
+
+/*
+    %% Color coding for state categories
+    classDef initialState fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef aiProcessing fill:#7B68EE,stroke:#5A4DB3,stroke-width:2px,color:#fff
+    classDef customerAction fill:#50C878,stroke:#3A9B5C,stroke-width:2px,color:#fff
+    classDef approved fill:#28A745,stroke:#1E7E34,stroke-width:2px,color:#fff
+    classDef appealed fill:#FFC107,stroke:#E0A800,stroke-width:2px,color:#000
+    classDef humanReview fill:#FF8C42,stroke:#CC6F35,stroke-width:2px,color:#fff
+    classDef payment fill:#20C997,stroke:#17A673,stroke-width:2px,color:#fff
+    classDef traditional fill:#6C757D,stroke:#545B62,stroke-width:2px,color:#fff
+    classDef scheduling fill:#9C88B5,stroke:#7A6A92,stroke-width:2px,color:#fff
+    classDef terminal fill:#DC3545,stroke:#BD2130,stroke-width:2px,color:#fff
+*/
+
+/* ============================================================================
+   COLOR LEGEND
+   ========================================================================= */
+
+/*
+   🔵 initialState   - Claim intake and data collection
+   🟣 aiProcessing   - Automated damage detection and estimation
+   🟢 customerAction - Customer reviewing and making decisions
+   🟢 approved       - Customer accepted estimate
+   🟡 appealed       - Customer rejected/disputed estimate
+   🟠 humanReview    - Manual adjuster intervention
+   🟢 payment        - Payment processing
+   ⚫ traditional    - Legacy workflow path
+   🟣 scheduling     - Appointment coordination
+   🔴 terminal       - Final claim closure state
+*/
+
+/* ============================================================================
+   USAGE INSTRUCTIONS
+   ========================================================================= */
+
+/*
+   To use this color palette in a Mermaid diagram:
+
+   1. Copy the classDef definitions (from the comment block above)
+   2. Paste them at the END of your .mmd file, after all state definitions
+   3. Add class assignments for your states, for example:
+
+      class FNOL,image_uploaded initialState
+      class loss_estimated_ai aiProcessing
+      class customer_decision_pending customerAction
+      class loss_approved approved
+      class loss_appealed appealed
+      class human_review_pending,human_review_completed humanReview
+      class sent_for_payment payment
+      class routed_to_traditional,traditional_claim_processing traditional
+      class garage_scheduling_pending,adjustor_scheduling_pending scheduling
+      class claim_closed terminal
+*/

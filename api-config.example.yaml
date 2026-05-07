@@ -1,0 +1,84 @@
+# ============================================================================
+# Insurance Claims API - Configuration File
+# ============================================================================
+# Copy this file to api-config.yaml and customize for your environment
+# DO NOT commit api-config.yaml with sensitive data (database passwords, etc.)
+
+# API Configuration
+api:
+  title: "Insurance Claims API"
+  version: "v1"
+  debug: true              # Set to false in production
+  host: "0.0.0.0"         # Use "localhost" for local development only
+  port: 8000
+
+# Database Configuration
+database:
+  # SQLAnywhere connection string
+  # Format: sqlanywhere://user:password@host:port/database
+  url: "sqlanywhere://user:password@localhost:2638/insurance_db"
+  pool_size: 5            # Connection pool size
+  max_overflow: 10        # Max overflow connections
+  echo: false             # Set to true to log all SQL queries (debug only)
+
+# Image Storage Configuration
+storage:
+  # Root directory for storing claim images
+  # Structure: {images_root_folder}/{claim_id}/{filename}
+  images_root_folder: "uploads"
+
+  # File upload limits
+  max_upload_size_mb: 10
+  allowed_image_types:
+    - "jpg"
+    - "jpeg"
+    - "png"
+    - "heic"
+  max_images_per_claim: 20
+
+# AI and State Machine Configuration
+ai:
+  # Path to Standard Operating Procedures (SOP) document
+  # Contains instructions for AI agent decision-making
+  sop_claims_document: "policies/damage_triage.md"
+
+  # Path to claims rules YAML file
+  # Contains all business rules and thresholds
+  claims_rules_yaml: "policies/rules.yaml"
+
+  # Inline thresholds (can be overridden by claims_rules_yaml)
+  confidence:
+    high_threshold: 0.55   # Above: auto-present to customer
+    low_threshold: 0.35    # Below: route to traditional
+
+  fraud:
+    risk_threshold: 0.1    # Above: flag for human review
+
+  estimate:
+    human_review_threshold: 5000.00  # Dollar amount threshold
+
+# Logging Configuration
+logging:
+  level: "INFO"           # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  file: "logs/api.log"
+  max_bytes: 10485760     # 10MB per log file
+  backup_count: 5         # Keep 5 backup files
+  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+
+# CORS Configuration (Cross-Origin Resource Sharing)
+cors:
+  allow_origins:
+    - "*"                 # Allow all origins (prototype only!)
+  allow_credentials: true
+  allow_methods:
+    - "*"
+  allow_headers:
+    - "*"
+
+# ============================================================================
+# Notes:
+# - This is a PROTOTYPE configuration with NO SECURITY
+# - Do NOT use in production
+# - All endpoints are publicly accessible
+# - Use only in isolated development/demo environments
+# ============================================================================

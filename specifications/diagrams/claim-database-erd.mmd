@@ -1,0 +1,172 @@
+%% Claims Database ERD Diagram
+%% Color Palette: color-palette-dark.css
+%% Entity Relationship Diagram for Auto Insurance Claims System
+
+%%{init: {
+  'theme': 'dark',
+  'themeVariables': {
+    'darkMode': 'true',
+    'background': '#1e1e1e',
+    'primaryColor': '#4A90E2',
+    'primaryTextColor': '#fff',
+    'primaryBorderColor': '#2E5C8A',
+    'lineColor': '#6c757d',
+    'secondaryColor': '#7B68EE',
+    'tertiaryColor': '#50C878',
+    'entityBorderColor': '#2E5C8A',
+    'entityBkgColor': '#4A90E2',
+    'attributeBackgroundColorOdd': '#2d3748',
+    'attributeBackgroundColorEven': '#1a202c'
+  }
+}}%%
+
+erDiagram
+    customers ||--o{ customer_policy : "has"
+    policies ||--o{ customer_policy : "includes"
+    customers ||--o{ vehicles : "owns"
+    policies ||--o{ policy_vehicle : "covers"
+    vehicles ||--o{ policy_vehicle : "covered_by"
+    customers ||--o{ claims : "files"
+    vehicles ||--o{ claims : "involved_in"
+    claims ||--o{ claim_images : "contains"
+    claims ||--o{ damages : "has"
+    claims ||--o| damages : "active_estimate"
+    claim_images ||--o{ damages : "analyzed_for"
+    claims ||--o{ claims_events : "tracks"
+    adjustors ||--o{ claims : "reviews (optional)"
+
+    adjustors {
+        string adjustor_id PK "Adjustor identifier (ADJ-001)"
+        string name "Adjustor full name"
+        string email "Email address (unique)"
+        string role "Senior Adjustor, Specialist, etc"
+        string status "active or inactive"
+    }
+
+    customers {
+        int customer_id PK "Sequential, starts from 100"
+        string fname "First name"
+        string lname "Last name"
+        string address "Customer address"
+        string phone "Contact phone number"
+        string email "Email address"
+        string state "NEW: 2-letter state code (CA, TX, NY, etc)"
+    }
+
+    customer_policy {
+        int customer_id FK "References customers"
+        string policy_number FK "References policies"
+    }
+
+    policies {
+        string policy_number PK "Policy identifier"
+        int customer_id FK "References customers"
+        date effective_date "Policy start date"
+        date expiration_date "Policy end date"
+        string insured_name "Primary insured name"
+        string driver_1 "First driver"
+        string driver_2 "Second driver"
+        string driver_3 "Third driver"
+        string driver_4 "Fourth driver"
+        int liability_limit "Liability coverage limit"
+        int collision_deductible "Collision deductible"
+        int comprehensive_deductible "Comprehensive deductible"
+        decimal premium_total "Total premium amount"
+    }
+
+    policy_vehicle {
+        string policy_number FK "References policies"
+        string vin FK "References vehicles"
+    }
+
+    vehicles {
+        string vin PK "Vehicle Identification Number"
+        int customer_id FK "References customers"
+        int year "Model year"
+        string make "Manufacturer"
+        string model "Model name"
+        string color "Vehicle color"
+    }
+
+    claims {
+        int claim_id PK "Sequential, starts from 1000"
+        int customer_id FK "References customers"
+        string vin FK "References vehicles"
+        string policy_number FK "References policies"
+        date fnol_date "First Notice of Loss date"
+        time fnol_time "First Notice of Loss time"
+        date date_of_damage "Date when damage occurred"
+        boolean is_drivable "Is vehicle drivable"
+        text incident_description "NEW: Customer description of what happened"
+        date claim_closed_date "Claim closure date"
+        boolean claim_closed "Claim closed indicator"
+        boolean ai_estimate_accepted "AI estimate accepted flag"
+        boolean routed_to_traditional "Traditional routing flag"
+        string reason_routing_to_traditional "Reason for traditional routing"
+        string assigned_adjustor_id FK "Assigned adjustor (nullable)"
+        string active_estimate_id FK "Current active estimate"
+        decimal claim_amount "Approved claim amount"
+        decimal actual_claim_amount "Actual repair amount"
+        string current_status "Current claim state"
+        decimal state_avg_labor_cost "Labor rate in $/hour for all damages"
+        string labor_rate_state "State code used (CA, TX, NY, etc)"
+        string labor_rate_source "customer_state or adjustor_override"
+        int appeal_count "NEW: Number of appeals (0, 1, or 2)"
+        text first_appeal_reason "NEW: Customer reason for first appeal"
+        date first_appeal_date "NEW: Date of first appeal"
+        text second_appeal_reason "NEW: Customer reason for second appeal"
+        date second_appeal_date "NEW: Date of second appeal"
+    }
+
+    claim_images {
+        string image_id PK "Image filename (serves as unique ID)"
+        int claim_id FK "References claims"
+        datetime uploaded_at "Upload timestamp"
+        string uploaded_by "Customer or adjustor ID"
+    }
+
+    damages {
+        int damage_id PK "Auto-increment damage ID"
+        int claim_id FK "References claims"
+        string estimate_id "claim_id + timestamp"
+        string estimate_type "ai or human"
+        int estimate_version "Version number, default 1"
+        string image_id FK "References claim_images, ON DELETE CASCADE"
+        date generated_on_date "Damage report generation date"
+        time generated_on_time "Damage report generation time"
+        int damage_class "YOLO class ID (0-13)"
+        decimal damage_confidence "YOLO confidence score (0.0-1.0)"
+        string damage_part "Damaged part name from YOLO"
+        int bounding_box_x "Bounding box X coordinate"
+        int bounding_box_y "Bounding box Y coordinate"
+        int bounding_box_width "Bounding box width in pixels"
+        int bounding_box_height "Bounding box height in pixels"
+        decimal internal_damage_probability "Probability of internal damage (0.0-1.0)"
+        decimal severity "Damage severity score (0.0-1.0)"
+        string recommended_action "repaint|de-dent|replace|de-dent-and-paint"
+        text reasoning "AI assessment reasoning"
+        string car_side "front|back|driver_side|passenger_side"
+        decimal assessment_confidence "VLM confidence (0.0-1.0)"
+        decimal ai_labor_hours "AI-estimated labor hours (IMMUTABLE)"
+        decimal ai_parts_cost "AI-estimated parts cost (IMMUTABLE)"
+        decimal ai_total_cost "AI total cost (IMMUTABLE)"
+        decimal adjustor_labor_hours "Adjustor-revised labor hours (NULLABLE)"
+        decimal adjustor_parts_cost "Adjustor-revised parts cost (NULLABLE)"
+        decimal adjustor_total_cost "Adjustor total cost (NULLABLE)"
+        boolean reviewed_by_adjustor "Flag if adjustor modified this damage"
+        datetime reviewed_at "Timestamp of adjustor review"
+        text adjustor_note "Adjustor notes for manual review/edits"
+        string annotated_image_id "Filename of annotated image (BB-prefix)"
+    }
+
+    claims_events {
+        int claim_id FK "References claims, part of composite PK"
+        int event_id "Part of composite PK with claim_id"
+        date event_date "Event date"
+        time event_time "Event time"
+        string status "Claim status"
+        string action "Action taken"
+        string action_by "Actor type"
+        string action_by_identity "Actor identifier"
+        string comments "Free text comments"
+    }
