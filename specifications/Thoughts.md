@@ -310,7 +310,26 @@ The idea of this Portal is to provide the "human reviewer" capability to review 
         - Human reviewer provides a final internal_note that tells what changes were made - this will not be shown to customer
 
 
-The reviewer will 
+### Admin front end for configuration management
+
+* The idea of this portal is to provide a consolidated way of managing the API configurations. Not all configs will be editable.
+* Portal home screen will have the configuration on left 80% of the screen, the right 20% will be a convience panel with 3 buttons that will open (Customer, Adjustor, Executive portal in separate window)
+* Following are some of the editable fields 
+    * Risk thresholds
+    * Enable/disable fraud detection
+    * Confidence thresholds
+    * <OPEN to suggestions on other fields that >
+* Admin screen
+    * Divided into 2 section
+    * Section 1 "Claim processing rules"
+    * Section 2 "Technical parameter"
+    * Each section will be divided into subsections
+        * Each subsection will show related set of parameters
+* Each parameter on the screen will have a brief description and example
+* When the parameters are adjusted/edited - user will hit the save button
+    * Configuration will overwrite the YAML file (backup the old YAML with extension .datetime.bak)
+    * Ask the user to restart the user to either manually restart the API server or automatically restart API the server
+
 
 * An admin front-end for (Refer: policies sub folder for example)
     - manage the system rules such as auto-payment thresholds, human-review, human-handover etc

@@ -199,10 +199,10 @@ class BedrockClient(BaseLLMClient):
         temperature: float = 0.2,
         max_tokens: int = 4096
     ) -> ChatResponse:
-        """Chat with vision support (Claude 3 models on Bedrock)"""
+        """Chat with vision support (Claude 3+ models on Bedrock)"""
         try:
-            if 'anthropic.claude-3' not in self.model:
-                raise NotImplementedError("Vision only supported for Claude 3 models")
+            if not self._is_vision_model():
+                raise NotImplementedError(f"Vision not supported for model: {self.model}")
 
             # Encode image to base64
             image_base64 = base64.standard_b64encode(image_data).decode('utf-8')
@@ -277,4 +277,19 @@ class BedrockClient(BaseLLMClient):
 
     def supports_vision(self) -> bool:
         """Check if model supports vision"""
-        return 'anthropic.claude-3' in self.model
+        return self._is_vision_model()
+
+    def _is_vision_model(self) -> bool:
+        """Check if the model supports vision capabilities"""
+        # Claude 3.x models (legacy format)
+        if 'anthropic.claude-3' in self.model:
+            return True
+        # Claude 4+ models (new format: us.anthropic.claude-sonnet-4-5-...)
+        if 'anthropic.claude-sonnet-4' in self.model:
+            return True
+        if 'anthropic.claude-opus-4' in self.model:
+            return True
+        # All anthropic claude models support vision except legacy Claude 2
+        if 'anthropic.claude' in self.model and 'claude-v2' not in self.model and 'claude-2' not in self.model:
+            return True
+        return False

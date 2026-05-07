@@ -142,6 +142,11 @@ class ClaimResponse(BaseModel):
     second_appeal_reason: Optional[str] = None  # Customer's reason for second appeal
     second_appeal_date: Optional[date] = None  # Date of second appeal
 
+    # Agent-Enhanced Fields (AI Analysis Results)
+    overall_fraud_risk_score: Optional[Decimal] = None  # Fraud risk score (0.0-1.0)
+    overall_risk_score: Optional[Decimal] = None  # Actuarial risk score (0.0-1.0)
+    agent_flags: Optional[str] = None  # JSON string of agent flags/warnings
+
     damage_assessment: Optional[DamageAssessment] = None
 
     class Config:

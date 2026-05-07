@@ -7,11 +7,13 @@ import { fetchCustomer } from '../api/customers';
 
 const AuthContext = createContext();
 
-// Mock customer data (similar to adjustor portal pattern)
+// Mock customer data (matches seed_data.py)
 const MOCK_CUSTOMERS = [
-  { customer_id: 100, name: 'Jane Doe', email: 'jane.doe@example.com' },
-  { customer_id: 101, name: 'John Smith', email: 'john.smith@example.com' },
-  { customer_id: 102, name: 'Alice Johnson', email: 'alice.johnson@example.com' }
+  { customer_id: 100, name: 'John Doe', email: 'john.doe@example.com' },
+  { customer_id: 101, name: 'Jane Smith', email: 'jane.smith@example.com' },
+  { customer_id: 102, name: 'Bob Johnson', email: 'bob.johnson@example.com' },
+  { customer_id: 103, name: 'Alice Williams', email: 'alice.williams@example.com' },
+  { customer_id: 104, name: 'Charlie Brown', email: 'charlie.brown@example.com' }
 ];
 
 const MOCK_PASSWORD = 'password123';

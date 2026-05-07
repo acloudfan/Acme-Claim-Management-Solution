@@ -1,10 +1,17 @@
 # API Backend Design Document
 ## AI-Powered Auto Insurance Claims System - Implementation Guide
 
-**Version:** 1.0 (Prototype)  
-**Last Updated:** 2026-05-03  
+**Version:** 1.1 (Prototype)  
+**Last Updated:** 2026-05-07  
 **Status:** Design Document  
 **Security:** ⚠️ **NO AUTHENTICATION - PROTOTYPE ONLY**
+
+**Changes in v1.1:**
+- Added Section 17: Admin Portal API Endpoints
+- Configuration management endpoints (GET/POST /admin/config)
+- Backup list and restore endpoints
+- Complete validation rules and schemas
+- Security considerations for admin operations
 
 ---
 
@@ -4298,6 +4305,682 @@ def complete_review(self, claim_id: int, review_data: dict):
 
 ---
 
+---
+
+## 17. Admin Portal API Endpoints
+
+### 17.1 Overview
+
+The Admin Portal requires API endpoints for managing the system configuration (`api-config.yaml`). These endpoints allow the admin UI to:
+- Read current configuration
+- Save configuration with automatic backup
+- List available backups
+- Restore from backup
+
+**Router:** `src/api/routers/admin.py`  
+**Base Path:** `/api/v1/admin`  
+**Authentication:** None (prototype only - X-Admin-ID header for tracking)
+
+### 17.2 Configuration Management Endpoints
+
+#### 17.2.1 GET `/api/v1/admin/config`
+
+**Description:** Retrieve current API configuration from `api-config.yaml`
+
+**Request Headers:**
+```
+X-Admin-ID: admin_001
+```
+
+**Response (200 OK):**
+```json
+{
+  "config": {
+    "api": {
+      "title": "Insurance Claims API",
+      "version": "v1",
+      "debug": true,
+      "host": "0.0.0.0",
+      "port": 8000
+    },
+    "database": {
+      "url": "sqlanywhere://****@localhost:2638/insurance_db",
+      "pool_size": 5,
+      "max_overflow": 10,
+      "echo": false
+    },
+    "ai": {
+      "confidence": {
+        "high_threshold": 0.55,
+        "low_threshold": 0.35
+      },
+      "fraud": {
+        "risk_threshold": 0.1
+      },
+      "estimate": {
+        "human_review_threshold": 5000.00
+      }
+    },
+    "llm": {
+      "default_provider": "bedrock",
+      "default_vision_model": "bedrock",
+      "providers": {
+        "bedrock": {
+          "enabled": true,
+          "aws_region": "us-east-1",
+          "default_model": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "timeout_s": 60,
+          "max_tokens": 4096,
+          "temperature": 0.2
+        }
+      }
+    },
+    "agents": {
+      "fraud_detector": {
+        "enabled": true,
+        "high_risk_threshold": 0.7,
+        "medium_risk_threshold": 0.4,
+        "phase1_vision": {
+          "color_verification": { "enabled": true },
+          "make_model_verification": { "enabled": true },
+          "ai_generated_detection": { "enabled": true },
+          "manipulation_detection": { "enabled": true }
+        }
+      },
+      "damage_analyzer": {
+        "enabled": true,
+        "enhance_all_damages": true
+      },
+      "chatbot": {
+        "enabled": true
+      }
+    },
+    "storage": {
+      "images_root_folder": "uploads",
+      "max_upload_size_mb": 10,
+      "max_images_per_claim": 20
+    }
+  },
+  "file_path": "/home/raj/workspace2026/Acme-Claim-Management-Solution/api-config.yaml",
+  "last_modified": "2026-05-07T14:30:45Z"
+}
+```
+
+**Response Notes:**
+- `database.url` is masked (show `****` for credentials)
+- `last_modified` is ISO 8601 timestamp of file modification time
+- Full config structure returned (no filtering)
+
+**Error Responses:**
+
+```json
+// 500 - File not found or read error
+{
+  "detail": "Failed to load configuration: [Errno 2] No such file or directory: 'api-config.yaml'"
+}
+```
+
+**Implementation Notes:**
+```python
+import yaml
+from pathlib import Path
+from datetime import datetime
+
+@router.get("/config")
+def get_config(admin_id: str = Header(..., alias="X-Admin-ID")):
+    config_path = Path("api-config.yaml")
+    
+    if not config_path.exists():
+        raise HTTPException(status_code=500, detail="Configuration file not found")
+    
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    
+    # Mask sensitive fields
+    if 'database' in config and 'url' in config['database']:
+        config['database']['url'] = mask_credentials(config['database']['url'])
+    
+    last_modified = datetime.fromtimestamp(config_path.stat().st_mtime)
+    
+    return {
+        "config": config,
+        "file_path": str(config_path.absolute()),
+        "last_modified": last_modified.isoformat()
+    }
+```
+
+---
+
+#### 17.2.2 POST `/api/v1/admin/config`
+
+**Description:** Save updated configuration with automatic backup
+
+**Request Headers:**
+```
+X-Admin-ID: admin_001
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "config": {
+    "api": { ... },
+    "database": { ... },
+    "ai": { ... },
+    "llm": { ... },
+    "agents": { ... },
+    "storage": { ... }
+  }
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Configuration saved successfully",
+  "backup_file": "api-config.2026-05-07-14-30-45.bak",
+  "config_path": "/home/raj/workspace2026/Acme-Claim-Management-Solution/api-config.yaml",
+  "restart_required": true
+}
+```
+
+**Error Response (400 - Validation Error):**
+```json
+{
+  "success": false,
+  "message": "Configuration validation failed",
+  "errors": {
+    "ai.confidence.high_threshold": "Must be between 0 and 1",
+    "database.pool_size": "Must be a positive integer",
+    "llm.providers.bedrock.timeout_s": "Must be between 1 and 600"
+  }
+}
+```
+
+**Error Response (500 - Write Error):**
+```json
+{
+  "detail": "Failed to save configuration: [Errno 13] Permission denied: 'api-config.yaml'"
+}
+```
+
+**Backend Logic:**
+1. **Validate config** (types, ranges, required fields)
+2. **Create backup** with timestamp: `api-config.2026-05-07-14-30-45.bak`
+3. **Write new config** to `api-config.yaml`
+4. **Return success** with backup filename
+
+**Validation Rules:**
+
+| Field | Type | Constraints | Error Message |
+|-------|------|-------------|---------------|
+| `ai.confidence.high_threshold` | float | 0.0 - 1.0 | "Must be between 0 and 1" |
+| `ai.confidence.low_threshold` | float | 0.0 - 1.0 | "Must be between 0 and 1" |
+| `ai.fraud.risk_threshold` | float | 0.0 - 1.0 | "Must be between 0 and 1" |
+| `ai.estimate.human_review_threshold` | float | ≥ 0 | "Must be non-negative" |
+| `agents.*.enabled` | boolean | true/false | "Must be boolean" |
+| `database.pool_size` | int | 1 - 100 | "Must be between 1 and 100" |
+| `database.max_overflow` | int | 0 - 100 | "Must be between 0 and 100" |
+| `llm.default_provider` | string | anthropic, openai, bedrock | "Invalid provider" |
+| `llm.providers.*.timeout_s` | int | 1 - 600 | "Must be between 1 and 600 seconds" |
+| `llm.providers.*.max_tokens` | int | 1 - 100000 | "Must be between 1 and 100000" |
+| `llm.providers.*.temperature` | float | 0.0 - 2.0 | "Must be between 0 and 2" |
+| `storage.max_upload_size_mb` | int | 1 - 100 | "Must be between 1 and 100 MB" |
+| `storage.max_images_per_claim` | int | 1 - 100 | "Must be between 1 and 100" |
+| `api.port` | int | 1 - 65535 | "Must be valid port number" |
+
+**Consistency Checks:**
+- `low_threshold` < `high_threshold` (AI confidence)
+- `medium_risk_threshold` < `high_risk_threshold` (fraud detection)
+
+**Implementation Notes:**
+```python
+from datetime import datetime
+import yaml
+import shutil
+from pathlib import Path
+
+@router.post("/config")
+def save_config(
+    request: ConfigUpdateRequest,
+    admin_id: str = Header(..., alias="X-Admin-ID")
+):
+    config_path = Path("api-config.yaml")
+    
+    # 1. Validate configuration
+    errors = validate_config(request.config)
+    if errors:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "message": "Configuration validation failed",
+                "errors": errors
+            }
+        )
+    
+    # 2. Create backup
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    backup_filename = f"api-config.{timestamp}.bak"
+    backup_path = config_path.parent / backup_filename
+    
+    if config_path.exists():
+        shutil.copy2(config_path, backup_path)
+    
+    # 3. Write new configuration
+    try:
+        with open(config_path, 'w') as f:
+            yaml.safe_dump(request.config, f, default_flow_style=False, sort_keys=False)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save configuration: {str(e)}")
+    
+    # 4. Return success
+    return {
+        "success": True,
+        "message": "Configuration saved successfully",
+        "backup_file": backup_filename,
+        "config_path": str(config_path.absolute()),
+        "restart_required": True
+    }
+```
+
+---
+
+#### 17.2.3 GET `/api/v1/admin/config/backups`
+
+**Description:** List all available backup files in the config directory
+
+**Request Headers:**
+```
+X-Admin-ID: admin_001
+```
+
+**Response (200 OK):**
+```json
+{
+  "backups": [
+    {
+      "filename": "api-config.2026-05-07-14-30-45.bak",
+      "timestamp": "2026-05-07T14:30:45Z",
+      "size_bytes": 12345,
+      "size_formatted": "12.1 KB"
+    },
+    {
+      "filename": "api-config.2026-05-06-10-15-22.bak",
+      "timestamp": "2026-05-06T10:15:22Z",
+      "size_bytes": 12289,
+      "size_formatted": "12.0 KB"
+    }
+  ],
+  "total_count": 2,
+  "total_size_bytes": 24634
+}
+```
+
+**Response Notes:**
+- Sorted by timestamp (newest first)
+- `timestamp` parsed from filename (format: `YYYY-MM-DD-HH-MM-SS`)
+- `size_bytes` from filesystem
+- `size_formatted` human-readable (KB, MB)
+
+**Implementation Notes:**
+```python
+import re
+from pathlib import Path
+from datetime import datetime
+
+@router.get("/config/backups")
+def list_backups(admin_id: str = Header(..., alias="X-Admin-ID")):
+    config_dir = Path(".")
+    backup_pattern = re.compile(r"api-config\.(\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})\.bak")
+    
+    backups = []
+    for file in config_dir.glob("api-config.*.bak"):
+        match = backup_pattern.match(file.name)
+        if match:
+            timestamp_str = match.group(1)
+            timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d-%H-%M-%S")
+            size_bytes = file.stat().st_size
+            
+            backups.append({
+                "filename": file.name,
+                "timestamp": timestamp.isoformat(),
+                "size_bytes": size_bytes,
+                "size_formatted": format_bytes(size_bytes)
+            })
+    
+    # Sort by timestamp (newest first)
+    backups.sort(key=lambda x: x["timestamp"], reverse=True)
+    
+    return {
+        "backups": backups,
+        "total_count": len(backups),
+        "total_size_bytes": sum(b["size_bytes"] for b in backups)
+    }
+```
+
+---
+
+#### 17.2.4 POST `/api/v1/admin/config/restore`
+
+**Description:** Restore configuration from a backup file
+
+**Request Headers:**
+```
+X-Admin-ID: admin_001
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "backup_filename": "api-config.2026-05-07-14-30-45.bak"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Configuration restored from api-config.2026-05-07-14-30-45.bak",
+  "backup_of_current": "api-config.2026-05-07-15-45-12.bak",
+  "restart_required": true
+}
+```
+
+**Error Response (404 - Backup Not Found):**
+```json
+{
+  "detail": "Backup file not found: api-config.2026-05-07-14-30-45.bak"
+}
+```
+
+**Error Response (400 - Invalid Filename):**
+```json
+{
+  "detail": "Invalid backup filename format"
+}
+```
+
+**Backend Logic:**
+1. **Validate backup filename** (security: prevent path traversal)
+2. **Check backup exists**
+3. **Create backup of current config** (before overwriting)
+4. **Copy backup file to `api-config.yaml`**
+5. **Return success** with backup-of-current filename
+
+**Security Notes:**
+- **Path traversal prevention**: Only allow `api-config.*.bak` pattern
+- **Reject**: `../api-config.bak`, `/etc/passwd`, etc.
+
+**Implementation Notes:**
+```python
+import re
+import shutil
+from pathlib import Path
+from datetime import datetime
+
+@router.post("/config/restore")
+def restore_config(
+    request: RestoreRequest,
+    admin_id: str = Header(..., alias="X-Admin-ID")
+):
+    # 1. Validate filename (prevent path traversal)
+    backup_pattern = re.compile(r"^api-config\.\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.bak$")
+    if not backup_pattern.match(request.backup_filename):
+        raise HTTPException(status_code=400, detail="Invalid backup filename format")
+    
+    # 2. Check backup exists
+    backup_path = Path(request.backup_filename)
+    if not backup_path.exists():
+        raise HTTPException(status_code=404, detail=f"Backup file not found: {request.backup_filename}")
+    
+    # 3. Create backup of current config
+    config_path = Path("api-config.yaml")
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    current_backup = f"api-config.{timestamp}.bak"
+    
+    if config_path.exists():
+        shutil.copy2(config_path, current_backup)
+    
+    # 4. Restore from backup
+    shutil.copy2(backup_path, config_path)
+    
+    return {
+        "success": True,
+        "message": f"Configuration restored from {request.backup_filename}",
+        "backup_of_current": current_backup,
+        "restart_required": True
+    }
+```
+
+---
+
+### 17.3 Configuration Schema & Validation
+
+#### 17.3.1 Editable Fields
+
+The following fields from `api-config.yaml` are editable via the admin portal:
+
+| YAML Path | Type | Default | Constraints | UI Section |
+|-----------|------|---------|-------------|------------|
+| `ai.confidence.high_threshold` | float | 0.55 | 0.0 - 1.0 | Claim Processing Rules |
+| `ai.confidence.low_threshold` | float | 0.35 | 0.0 - 1.0 | Claim Processing Rules |
+| `ai.fraud.risk_threshold` | float | 0.1 | 0.0 - 1.0 | Claim Processing Rules |
+| `ai.estimate.human_review_threshold` | float | 5000.00 | ≥ 0 | Claim Processing Rules |
+| `agents.fraud_detector.enabled` | boolean | true | - | Claim Processing Rules |
+| `agents.fraud_detector.high_risk_threshold` | float | 0.7 | 0.0 - 1.0 | Claim Processing Rules |
+| `agents.fraud_detector.medium_risk_threshold` | float | 0.4 | 0.0 - 1.0 | Claim Processing Rules |
+| `agents.fraud_detector.phase1_vision.color_verification.enabled` | boolean | true | - | Claim Processing Rules |
+| `agents.fraud_detector.phase1_vision.make_model_verification.enabled` | boolean | true | - | Claim Processing Rules |
+| `agents.fraud_detector.phase1_vision.ai_generated_detection.enabled` | boolean | true | - | Claim Processing Rules |
+| `agents.fraud_detector.phase1_vision.manipulation_detection.enabled` | boolean | true | - | Claim Processing Rules |
+| `agents.risk_estimator.enabled` | boolean | true | - | Claim Processing Rules |
+| `agents.ai_image_detector.enabled` | boolean | true | - | Claim Processing Rules |
+| `agents.damage_analyzer.enabled` | boolean | true | - | Claim Processing Rules |
+| `agents.damage_analyzer.enhance_all_damages` | boolean | true | - | Claim Processing Rules |
+| `agents.chatbot.enabled` | boolean | true | - | Claim Processing Rules |
+| `llm.default_provider` | string | "bedrock" | anthropic, openai, bedrock | Technical Parameters |
+| `llm.default_vision_model` | string | "bedrock" | anthropic, openai, bedrock | Technical Parameters |
+| `llm.providers.bedrock.aws_region` | string | "us-east-1" | - | Technical Parameters |
+| `llm.providers.bedrock.default_model` | string | "claude-3-5-sonnet-v2" | - | Technical Parameters |
+| `llm.providers.bedrock.timeout_s` | int | 60 | 1 - 600 | Technical Parameters |
+| `llm.providers.bedrock.max_tokens` | int | 4096 | 1 - 100000 | Technical Parameters |
+| `llm.providers.bedrock.temperature` | float | 0.2 | 0.0 - 2.0 | Technical Parameters |
+| `database.pool_size` | int | 5 | 1 - 100 | Technical Parameters |
+| `database.max_overflow` | int | 10 | 0 - 100 | Technical Parameters |
+| `database.echo` | boolean | false | - | Technical Parameters |
+| `storage.images_root_folder` | string | "uploads" | - | Technical Parameters |
+| `storage.max_upload_size_mb` | int | 10 | 1 - 100 | Technical Parameters |
+| `storage.max_images_per_claim` | int | 20 | 1 - 100 | Technical Parameters |
+| `api.debug` | boolean | true | - | Technical Parameters |
+| `api.host` | string | "0.0.0.0" | - | Technical Parameters |
+| `api.port` | int | 8000 | 1 - 65535 | Technical Parameters |
+
+#### 17.3.2 Read-Only Fields (Security)
+
+The following fields are **NOT editable** via the admin portal:
+
+- `database.url` - Contains credentials (show masked: `sqlanywhere://****@localhost:2638/insurance_db`)
+- `llm.providers.*.api_key_env` - API key environment variable names
+- `logging.*` - Logging configuration
+- `cors.*` - CORS settings (security risk)
+- `api.title`, `api.version` - API metadata
+
+#### 17.3.3 Validation Utility
+
+**File:** `src/api/utils/config_validator.py`
+
+```python
+from typing import Dict, Any, List
+
+def validate_config(config: Dict[str, Any]) -> Dict[str, str]:
+    """
+    Validate configuration dictionary.
+    Returns dict of field_path -> error_message.
+    Empty dict = valid.
+    """
+    errors = {}
+    
+    # Validate AI confidence thresholds
+    if not validate_range(config, "ai.confidence.high_threshold", 0.0, 1.0):
+        errors["ai.confidence.high_threshold"] = "Must be between 0 and 1"
+    
+    if not validate_range(config, "ai.confidence.low_threshold", 0.0, 1.0):
+        errors["ai.confidence.low_threshold"] = "Must be between 0 and 1"
+    
+    # Consistency check: low < high
+    low = get_nested(config, "ai.confidence.low_threshold")
+    high = get_nested(config, "ai.confidence.high_threshold")
+    if low is not None and high is not None and low >= high:
+        errors["ai.confidence.low_threshold"] = "Must be less than high threshold"
+    
+    # Validate fraud thresholds
+    if not validate_range(config, "ai.fraud.risk_threshold", 0.0, 1.0):
+        errors["ai.fraud.risk_threshold"] = "Must be between 0 and 1"
+    
+    # Validate database settings
+    if not validate_range(config, "database.pool_size", 1, 100):
+        errors["database.pool_size"] = "Must be between 1 and 100"
+    
+    if not validate_range(config, "database.max_overflow", 0, 100):
+        errors["database.max_overflow"] = "Must be between 0 and 100"
+    
+    # Validate LLM settings
+    if not validate_enum(config, "llm.default_provider", ["anthropic", "openai", "bedrock"]):
+        errors["llm.default_provider"] = "Must be anthropic, openai, or bedrock"
+    
+    if not validate_range(config, "llm.providers.bedrock.timeout_s", 1, 600):
+        errors["llm.providers.bedrock.timeout_s"] = "Must be between 1 and 600 seconds"
+    
+    if not validate_range(config, "llm.providers.bedrock.max_tokens", 1, 100000):
+        errors["llm.providers.bedrock.max_tokens"] = "Must be between 1 and 100000"
+    
+    if not validate_range(config, "llm.providers.bedrock.temperature", 0.0, 2.0):
+        errors["llm.providers.bedrock.temperature"] = "Must be between 0 and 2"
+    
+    # Validate storage settings
+    if not validate_range(config, "storage.max_upload_size_mb", 1, 100):
+        errors["storage.max_upload_size_mb"] = "Must be between 1 and 100 MB"
+    
+    if not validate_range(config, "storage.max_images_per_claim", 1, 100):
+        errors["storage.max_images_per_claim"] = "Must be between 1 and 100"
+    
+    # Validate API settings
+    if not validate_range(config, "api.port", 1, 65535):
+        errors["api.port"] = "Must be a valid port number (1-65535)"
+    
+    return errors
+```
+
+---
+
+### 17.4 Request/Response Models
+
+**File:** `src/api/schemas/admin.py`
+
+```python
+from pydantic import BaseModel, Field
+from typing import Dict, Any, List, Optional
+from datetime import datetime
+
+class ConfigUpdateRequest(BaseModel):
+    config: Dict[str, Any] = Field(..., description="Full configuration object")
+
+class ConfigResponse(BaseModel):
+    config: Dict[str, Any]
+    file_path: str
+    last_modified: datetime
+
+class ConfigSaveResponse(BaseModel):
+    success: bool
+    message: str
+    backup_file: str
+    config_path: str
+    restart_required: bool = True
+
+class ConfigValidationErrorResponse(BaseModel):
+    success: bool = False
+    message: str
+    errors: Dict[str, str]
+
+class BackupInfo(BaseModel):
+    filename: str
+    timestamp: datetime
+    size_bytes: int
+    size_formatted: str
+
+class BackupListResponse(BaseModel):
+    backups: List[BackupInfo]
+    total_count: int
+    total_size_bytes: int
+
+class RestoreRequest(BaseModel):
+    backup_filename: str = Field(..., pattern=r"^api-config\.\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.bak$")
+
+class RestoreResponse(BaseModel):
+    success: bool
+    message: str
+    backup_of_current: str
+    restart_required: bool = True
+```
+
+---
+
+### 17.5 Integration with Main API
+
+**File:** `src/api/main.py`
+
+```python
+from fastapi import FastAPI
+from src.api.routers import admin
+
+app = FastAPI(title="Insurance Claims API")
+
+# Register admin router
+app.include_router(
+    admin.router,
+    prefix="/api/v1/admin",
+    tags=["Admin"]
+)
+```
+
+---
+
+### 17.6 Backup Retention Policy
+
+**Decision:** Keep all backups indefinitely (no auto-cleanup)
+
+- Every save creates a new `.bak` file with timestamp
+- No automatic deletion
+- Manual cleanup by admin if needed
+- Rationale: Simple, safe, disk space not a concern for prototype
+
+**Future Enhancement:** Add cleanup endpoint or cron job to delete backups older than N days
+
+---
+
+### 17.7 Security Considerations
+
+**⚠️ Prototype Only - No Production Security**
+
+- **No authentication**: Admin endpoints are open (X-Admin-ID header for tracking only)
+- **No authorization**: Any user can modify configuration
+- **No rate limiting**: Vulnerable to abuse
+- **Credential masking**: `database.url` masked in GET response, but can be overwritten via POST
+- **Path traversal protection**: Restore endpoint validates filename pattern
+
+**Production Requirements:**
+- Add JWT/OAuth authentication
+- Role-based access control (admin, viewer)
+- Audit log of all config changes
+- Rate limiting on POST endpoints
+- Encrypt sensitive config values at rest
+
+---
+
 ## Summary
 
 This design document provides a complete blueprint for implementing the FastAPI backend with:
@@ -4313,5 +4996,6 @@ This design document provides a complete blueprint for implementing the FastAPI 
 ✅ **Structured logging** for debugging  
 ✅ **Core test coverage** (~50-60%) with pytest  
 ✅ **Database seeding** with SQL + Faker  
+✅ **Admin configuration API** with backup/restore functionality  
 
 The design follows FastAPI best practices while maintaining simplicity appropriate for a prototype system.

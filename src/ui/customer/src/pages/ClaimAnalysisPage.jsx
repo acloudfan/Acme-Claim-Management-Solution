@@ -72,31 +72,13 @@ const ClaimAnalysisPage = () => {
       }
 
       // 2. Damages found! Now submit the claim (draft -> FNOL)
-      console.log('Damages found, submitting claim to FNOL...');
-      await submitClaim(customerId, claimId);
-      console.log('Claim submitted to FNOL');
-
-      console.log('Generating estimate with image IDs:', imageIds);
-
-      // 3. Trigger AI damage estimate generation
+      // Submit handles: fraud detection + claim state transition
+      console.log('Damages found, submitting claim (will run fraud detection)...');
       updateStepStatus(2, 'completed'); // Damage detection already done in Phase 4
-      updateStepStatus(3, 'in_progress');
+      updateStepStatus(3, 'in_progress'); // Fraud detection + estimate
 
-      try {
-        const estimateResponse = await generateEstimate(claimId, {
-          claim_id: parseInt(claimId), // Include claim_id in body (API requirement)
-          image_ids: imageIds,
-          state: 'CA' // Default state for labor rates
-        });
-        console.log('Estimate generation response:', estimateResponse);
-      } catch (estimateError) {
-        console.error('Failed to generate estimate:', estimateError);
-        console.error('Error response:', estimateError.response?.data);
-        setError(`Failed to generate estimate: ${estimateError.response?.data?.detail || estimateError.message}`);
-        return;
-      }
-
-      console.log('Estimate generation completed successfully');
+      await submitClaim(customerId, claimId);
+      console.log('Claim submitted - fraud detection completed, estimate ready');
 
       // 4. Start polling for estimate completion
       let pollCount = 0;

@@ -91,15 +91,72 @@ def get_pending_claims(
         # Calculate time in queue
         time_in_queue = _calculate_time_in_queue(claim.fnol_date, claim.fnol_time)
 
-        # Determine reason for review
-        # Check if customer appealed (appeal_count > 0 or first_appeal_reason exists)
-        if claim.appeal_count and claim.appeal_count > 0:
+        # Calculate AI estimate total from damages (more reliable than claim_amount)
+        from src.api.models.damage import Damage
+        ai_estimate_total = 0.0
+
+        if claim.active_estimate_id:
+            # Get all damages for the active estimate
+            damages = db.query(Damage).filter(
+                Damage.claim_id == claim.claim_id,
+                Damage.estimate_id == claim.active_estimate_id
+            ).all()
+
+            # Sum up AI total costs
+            for damage in damages:
+                if damage.ai_total_cost:
+                    ai_estimate_total += float(damage.ai_total_cost)
+
+        # Fallback to claim_amount if no damages found
+        if ai_estimate_total == 0.0 and claim.claim_amount:
+            ai_estimate_total = float(claim.claim_amount)
+
+        # Determine reason for review (PRIORITY ORDER)
+        # 1. Fraud signals (highest priority)
+        # Check if claim was routed due to fraud (score > 0.7 OR fraud event recommendation)
+        fraud_score = float(claim.overall_fraud_risk_score) if claim.overall_fraud_risk_score else 0.0
+        is_fraud_routed = False
+
+        if fraud_score > 0.7:
+            is_fraud_routed = True
+        elif fraud_score > 0:
+            # Check if fraud detection recommended human review
+            from src.api.models.claim_event import ClaimEvent
+            from src.api.constants import ClaimAction
+
+            fraud_event = db.query(ClaimEvent).filter(
+                ClaimEvent.claim_id == claim.claim_id,
+                ClaimEvent.action == ClaimAction.ASSESS_FRAUD_RISK.value
+            ).first()
+
+            if fraud_event and fraud_event.comments and 'HUMAN_REVIEW' in fraud_event.comments:
+                is_fraud_routed = True
+
+        if is_fraud_routed:
+            reason_for_review = "fraud_signals"
+        # 2. Customer appeal (check both appeal_count field and events as fallback)
+        elif claim.appeal_count and claim.appeal_count > 0:
+            reason_for_review = "customer_appeal"
+        elif claim.first_appeal_reason or claim.first_appeal_date:
+            # Fallback: appeal fields are set but appeal_count wasn't updated
             reason_for_review = "customer_appeal"
         else:
-            # Low confidence or no damage detected by AI
-            reason_for_review = "low_confidence"
+            # Final fallback: Check claim events for appeal action
+            from src.api.models.claim_event import ClaimEvent
+            from src.api.constants import ClaimAction
 
-        claims.append({
+            appeal_event = db.query(ClaimEvent).filter(
+                ClaimEvent.claim_id == claim.claim_id,
+                ClaimEvent.action == ClaimAction.APPEAL_ESTIMATE.value
+            ).first()
+
+            if appeal_event:
+                reason_for_review = "customer_appeal"
+            else:
+                # 3. Low confidence or no damage detected by AI (default)
+                reason_for_review = "low_confidence"
+
+        claim_data = {
             "claim_id": claim.claim_id,
             "customer_id": customer.customer_id,
             "customer_name": f"{customer.fname} {customer.lname}",
@@ -107,11 +164,23 @@ def get_pending_claims(
             "vehicle": f"{vehicle.year} {vehicle.make} {vehicle.model} {vehicle.color}",
             "policy_number": claim.policy_number,
             "fnol_date": claim.fnol_date,
-            "ai_estimate_total": float(claim.claim_amount) if claim.claim_amount else 0.0,
-            "reason_for_review": reason_for_review,
+            "ai_estimate_total": ai_estimate_total,
+            "reason_for_review": reason_for_review,  # Changed from review_reason to match frontend expectation
             "time_in_queue": time_in_queue,
             "current_status": claim.current_status
-        })
+        }
+
+        # Add fraud data if fraud signals exist
+        if reason_for_review == "fraud_signals":
+            claim_data["fraud_risk_score"] = fraud_score
+            # Get top 3 fraud signals for queue display
+            from src.api.models.fraud_signal import FraudSignal
+            top_signals = db.query(FraudSignal).filter(
+                FraudSignal.claim_id == claim.claim_id
+            ).order_by(FraudSignal.severity.desc()).limit(3).all()
+            claim_data["fraud_signals"] = [s.description for s in top_signals]
+
+        claims.append(claim_data)
 
     return {
         "total": total_count,

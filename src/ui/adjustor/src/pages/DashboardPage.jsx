@@ -194,8 +194,12 @@ const DashboardPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={claim.reason_for_review === 'customer_appeal' ? 'warning' : 'default'}>
-                        {claim.reason_for_review === 'customer_appeal' ? 'Appeal' : 'Low Confidence'}
+                      <Badge variant={
+                        claim.reason_for_review === 'fraud_signals' ? 'danger' :
+                        claim.reason_for_review === 'customer_appeal' ? 'warning' :
+                        'default'
+                      }>
+                        {REVIEW_REASON_LABELS[claim.reason_for_review] || claim.reason_for_review}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

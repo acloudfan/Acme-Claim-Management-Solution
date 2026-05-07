@@ -5,12 +5,21 @@ from pydantic import BaseModel, Field
 from typing import Literal, Optional, List
 
 
+from typing import Union
+
 class DamageUpdate(BaseModel):
     """Schema for damage updates during review"""
-    damage_id: int
+    damage_id: Union[int, str]  # Allow string IDs for manual damages not yet saved
     labor_hours: Optional[float] = None
     parts_cost: Optional[float] = None
     adjustor_note: Optional[str] = None
+    # Fields for manual damages (when damage_id is a string starting with "manual_")
+    damage_part: Optional[str] = None
+    damage_type: Optional[str] = None
+    location: Optional[str] = None
+    description: Optional[str] = None
+    severity: Optional[str] = None
+    image_id: Optional[str] = None
 
 
 class ReviewCompleteRequest(BaseModel):

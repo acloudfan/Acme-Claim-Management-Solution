@@ -196,7 +196,7 @@ const ClaimDetailPage = () => {
   }
 
   const damages = claim.damage_assessment?.damages || [];
-  const totalCost = claim.claim_amount || 0;
+  const totalCost = claim.damage_assessment?.total_estimated_cost || 0;
   const damageCount = damages.length;
   const isHumanReviewPending = claim.current_status === 'human_review_pending';
   const isPaymentProcessing = claim.current_status === 'sent_for_payment';

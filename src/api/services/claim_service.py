@@ -425,12 +425,26 @@ class ClaimService(BaseService):
                 [ClaimState.LOSS_APPROVED.value]
             )
 
+        # Calculate claim_amount from damages if not already set
+        if claim.claim_amount is None:
+            from src.api.models.damage import Damage
+            from sqlalchemy import func
+
+            total_ai_cost = self.db.query(func.sum(Damage.ai_total_cost)).filter(
+                Damage.claim_id == claim_id
+            ).scalar()
+
+            if total_ai_cost:
+                claim.claim_amount = float(total_ai_cost)
+                self.logger.info(f"Calculated claim_amount for claim {claim_id}: ${claim.claim_amount:.2f}")
+
         # Transition 1: customer_decision_pending → loss_approved
         claim.current_status = ClaimState.LOSS_APPROVED.value
         claim.ai_estimate_accepted = True
         self.commit()
 
         # Log ACCEPT_ESTIMATE event
+        amount_str = f"${claim.claim_amount:.2f}" if claim.claim_amount is not None else "TBD"
         event1 = ClaimEvent(
             claim_id=claim_id,
             event_date=date.today(),
@@ -439,7 +453,7 @@ class ClaimService(BaseService):
             action=ClaimAction.ACCEPT_ESTIMATE.value,
             action_by=ActorType.CUSTOMER.value,
             action_by_identity=f"customer_{customer_id}",
-            comments=f"Customer accepted AI estimate of ${claim.claim_amount:.2f}"
+            comments=f"Customer accepted AI estimate of {amount_str}"
         )
         self.db.add(event1)
         self.db.commit()
@@ -462,7 +476,7 @@ class ClaimService(BaseService):
             action=ClaimAction.INITIATE_PAYMENT.value,
             action_by=ActorType.ADMIN.value,
             action_by_identity="system",
-            comments=f"Payment processing initiated for ${claim.claim_amount:.2f}"
+            comments=f"Payment processing initiated for {amount_str}"
         )
         self.db.add(event2)
         self.db.commit()
@@ -676,35 +690,85 @@ class ClaimService(BaseService):
         if damages_data:
             from src.api.models.damage import Damage
             for damage_update in damages_data:
-                damage = self.db.query(Damage).filter(
-                    Damage.damage_id == damage_update['damage_id']
-                ).first()
+                damage_id = damage_update['damage_id']
 
-                if damage:
-                    # Update ADJUSTOR columns (AI columns remain untouched)
-                    if 'labor_hours' in damage_update:
-                        damage.adjustor_labor_hours = damage_update['labor_hours']
-                    if 'parts_cost' in damage_update:
-                        damage.adjustor_parts_cost = damage_update['parts_cost']
+                # Check if this is a manual damage (string ID starting with "manual_")
+                if isinstance(damage_id, str) and damage_id.startswith('manual_'):
+                    # Create new manual damage entry
+                    self.logger.info(f"Creating manual damage: {damage_update}")
 
-                    # Calculate adjustor total cost
-                    if damage.adjustor_labor_hours is not None and damage.adjustor_parts_cost is not None:
-                        labor_cost = float(damage.adjustor_labor_hours) * float(claim.state_avg_labor_cost or 0)
-                        damage.adjustor_total_cost = labor_cost + float(damage.adjustor_parts_cost)
+                    # Map severity string to numeric value
+                    severity_map = {'light': 0.3, 'moderate': 0.6, 'severe': 0.9}
+                    severity_value = severity_map.get(damage_update.get('severity'), 0.5)
 
-                    if 'adjustor_note' in damage_update:
-                        damage.adjustor_note = damage_update['adjustor_note']
+                    # Generate estimate_id for manual entry
+                    estimate_id = f"manual_{claim_id}_{damage_id}"
 
-                    # Mark as reviewed by adjustor
-                    damage.reviewed_by_adjustor = True
-                    damage.reviewed_at = datetime.now()
+                    labor_hours = damage_update.get('labor_hours', 0)
+                    parts_cost = damage_update.get('parts_cost', 0)
+                    labor_cost = float(labor_hours) * float(claim.state_avg_labor_cost or 0)
+                    total_cost = labor_cost + float(parts_cost)
 
-                    self.logger.info(
-                        f"Updated damage {damage.damage_id}: "
-                        f"AI: {damage.ai_labor_hours}h/${damage.ai_parts_cost} → "
-                        f"Adjustor: {damage.adjustor_labor_hours}h/${damage.adjustor_parts_cost} "
-                        f"(reviewed_by_adjustor={damage.reviewed_by_adjustor})"
+                    new_damage = Damage(
+                        claim_id=claim_id,
+                        estimate_id=estimate_id,
+                        image_id=damage_update.get('image_id') or 'manual_entry',
+                        damage_part=damage_update.get('damage_part') or damage_update.get('location', 'Unknown'),
+                        severity=severity_value,
+                        damage_confidence=1.0,  # Manual entries have full confidence
+                        estimate_type='human',
+                        # Bounding box not applicable for manual entries
+                        bounding_box_x=None,
+                        bounding_box_y=None,
+                        bounding_box_width=None,
+                        bounding_box_height=None,
+                        # AI columns - set to 0 for manual entries (NOT NULL constraint)
+                        ai_labor_hours=0.0,
+                        ai_parts_cost=0.0,
+                        ai_total_cost=0.0,
+                        # Store actual values in adjustor columns
+                        adjustor_labor_hours=labor_hours,
+                        adjustor_parts_cost=parts_cost,
+                        adjustor_total_cost=total_cost,
+                        adjustor_note=damage_update.get('adjustor_note'),
+                        reviewed_by_adjustor=True,
+                        reviewed_at=datetime.now()
                     )
+
+                    self.db.add(new_damage)
+                    self.logger.info(f"Created manual damage for claim {claim_id}: {estimate_id}")
+
+                else:
+                    # Update existing damage
+                    damage = self.db.query(Damage).filter(
+                        Damage.damage_id == damage_id
+                    ).first()
+
+                    if damage:
+                        # Update ADJUSTOR columns (AI columns remain untouched)
+                        if 'labor_hours' in damage_update:
+                            damage.adjustor_labor_hours = damage_update['labor_hours']
+                        if 'parts_cost' in damage_update:
+                            damage.adjustor_parts_cost = damage_update['parts_cost']
+
+                        # Calculate adjustor total cost
+                        if damage.adjustor_labor_hours is not None and damage.adjustor_parts_cost is not None:
+                            labor_cost = float(damage.adjustor_labor_hours) * float(claim.state_avg_labor_cost or 0)
+                            damage.adjustor_total_cost = labor_cost + float(damage.adjustor_parts_cost)
+
+                        if 'adjustor_note' in damage_update:
+                            damage.adjustor_note = damage_update['adjustor_note']
+
+                        # Mark as reviewed by adjustor
+                        damage.reviewed_by_adjustor = True
+                        damage.reviewed_at = datetime.now()
+
+                        self.logger.info(
+                            f"Updated damage {damage.damage_id}: "
+                            f"AI: {damage.ai_labor_hours}h/${damage.ai_parts_cost} → "
+                            f"Adjustor: {damage.adjustor_labor_hours}h/${damage.adjustor_parts_cost} "
+                            f"(reviewed_by_adjustor={damage.reviewed_by_adjustor})"
+                        )
 
         self.commit()
 

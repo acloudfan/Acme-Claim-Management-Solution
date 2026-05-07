@@ -107,3 +107,23 @@ export const fetchAnnotatedImage = async (customerId, claimId, imageId) => {
   );
   return response.data;
 };
+
+/**
+ * Fetch fraud signals for a claim
+ * @param {number} claimId - Claim ID
+ * @returns {Promise} API response with fraud analysis data
+ */
+export const fetchFraudSignals = async (claimId) => {
+  const client = getApiClient();
+  try {
+    const response = await client.get(`/claims/${claimId}/fraud-signals`);
+    return response.data;
+  } catch (error) {
+    // Return empty fraud data if endpoint doesn't exist or no fraud data
+    console.log('No fraud signals found for claim:', claimId);
+    return {
+      overall_risk_score: 0,
+      signals: []
+    };
+  }
+};

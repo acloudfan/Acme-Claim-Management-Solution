@@ -11,7 +11,7 @@ from src.api.services.estimate_service import EstimateService
 from src.api.services.claim_service import ClaimService
 from src.api.services.damage_service import DamageService
 from src.api.exceptions import ResourceNotFoundError
-from typing import List
+from typing import List, Optional, Dict, Any
 from decimal import Decimal
 
 router = APIRouter()
@@ -328,3 +328,46 @@ def update_claim_labor_rate(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
+
+
+@router.get(
+    "/{claim_id}/fraud-signals",
+    response_model=Dict[str, Any],
+    summary="Get fraud signals for claim"
+)
+def get_fraud_signals(
+    claim_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Get fraud detection analysis and signals for a claim.
+
+    Returns fraud risk score and list of detected fraud signals with details.
+
+    - **claim_id**: Claim identifier
+
+    **Returns:**
+    - overall_risk_score: Fraud risk score (0.0-1.0)
+    - signals: List of fraud signals with type, severity, description, evidence
+    """
+    from src.api.models.claim import Claim
+    from src.api.models.fraud_signal import FraudSignal
+
+    # Get claim
+    claim = db.query(Claim).filter(Claim.claim_id == claim_id).first()
+    if not claim:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Claim {claim_id} not found"
+        )
+
+    # Get fraud signals
+    fraud_signals = db.query(FraudSignal).filter(
+        FraudSignal.claim_id == claim_id
+    ).order_by(FraudSignal.severity.desc()).all()
+
+    # Build response
+    return {
+        "overall_risk_score": float(claim.overall_fraud_risk_score) if claim.overall_fraud_risk_score else 0.0,
+        "signals": [signal.to_dict() for signal in fraud_signals]
+    }

@@ -3,12 +3,13 @@ FastAPI main application for Insurance Claims API.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api.routers import customers, claims, cost, adjustors, chatbot
+from src.api.routers import customers, claims, cost, adjustors, chatbot, admin
 from src.api.database import engine, Base
 from src.api.config import settings
 from src.api.exceptions import register_exception_handlers
 from src.api.utils.logging_config import setup_logging
 import logging
+import os
 
 # Setup logging
 setup_logging()
@@ -60,11 +61,25 @@ app.include_router(
     chatbot.router,
     tags=["Chatbot"]
 )
+app.include_router(
+    admin.router,
+    prefix="/api/v1/admin",
+    tags=["Admin"]
+)
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize application on startup"""
     logger.info("Starting Insurance Claims API...")
+
+    # Check for reseed marker file
+    needs_reseed_marker = ".needs_reseed"
+    if os.path.exists(needs_reseed_marker):
+        logger.warning("=" * 80)
+        logger.warning("⚠️  DATABASE NOT SEEDED!")
+        logger.warning("⚠️  PLEASE RESEED the database by running: python scripts/seed-data.py")
+        logger.warning("=" * 80)
+
     # Create database tables if they don't exist
     try:
         Base.metadata.create_all(bind=engine)

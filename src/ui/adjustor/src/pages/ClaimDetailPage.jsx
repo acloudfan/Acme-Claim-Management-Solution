@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchClaimDetails, fetchClaimImages, fetchClaimImage, fetchAnnotatedImage, fetchClaimEvents } from '../api/claims';
+import { fetchClaimDetails, fetchClaimImages, fetchClaimImage, fetchAnnotatedImage, fetchClaimEvents, fetchFraudSignals } from '../api/claims';
 import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
@@ -15,8 +15,9 @@ import DamageEditor from '../components/claims/DamageEditor';
 import DamageCreator from '../components/claims/DamageCreator';
 import EventTimeline from '../components/claims/EventTimeline';
 import ChatBotPlaceholder from '../components/claims/ChatBotPlaceholder';
+import FraudAnalysisSection from '../components/claims/FraudAnalysisSection';
 import { formatCurrency, formatDateTime } from '../utils/formatters';
-import { STATUS_LABELS, STATUS_COLORS, REVIEW_REASON_LABELS } from '../utils/constants';
+import { STATUS_LABELS, STATUS_COLORS, REVIEW_REASON_LABELS, REVIEW_REASONS } from '../utils/constants';
 import { ArrowLeft, Plus } from 'lucide-react';
 
 const ClaimDetailPage = () => {
@@ -29,6 +30,7 @@ const ClaimDetailPage = () => {
   const [events, setEvents] = useState([]);
   const [damages, setDamages] = useState([]);
   const [originalDamages, setOriginalDamages] = useState([]);
+  const [fraudData, setFraudData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageUrls, setImageUrls] = useState({}); // Store blob URLs for cleanup
@@ -71,10 +73,11 @@ const ClaimDetailPage = () => {
       }
 
       // Fetch detailed claim data using customer endpoint
-      const [claimData, imagesResponse, eventsData] = await Promise.all([
+      const [claimData, imagesResponse, eventsData, fraudResponse] = await Promise.all([
         fetchClaimDetails(claimInfo.customer_id, claimId),
         fetchClaimImages(claimInfo.customer_id, claimId),
         fetchClaimEvents(claimInfo.customer_id, claimId),
+        fetchFraudSignals(claimId),
       ]);
 
       // Parse vehicle info from queue response (format: "2022 Honda Accord Silver")
@@ -114,20 +117,30 @@ const ClaimDetailPage = () => {
       // Parse damages from API response
       const apiDamages = claimData.damage_assessment?.damages || [];
       const laborRate = parseFloat(claimData.state_avg_labor_cost) || 0;
-      const claimDamages = apiDamages.map((dmg, idx) => ({
-        damage_id: dmg.damage_id,
-        damage_type: dmg.damage_part || 'unknown',
-        location: dmg.damage_part || 'Unknown',
-        description: `${dmg.damage_part} detected by AI`,
-        severity: parseFloat(dmg.severity) > 0.7 ? 'severe' : parseFloat(dmg.severity) > 0.4 ? 'moderate' : 'light',
-        confidence: dmg.damage_confidence,
-        image_id: dmg.image_id,
-        labor_hours: parseFloat(dmg.labor_hours) || 0,
-        labor_rate: laborRate,
-        parts_cost: parseFloat(dmg.estimated_parts_cost) || 0,
-        source: 'ai',
-        bounding_box: dmg.bounding_box,
-      }));
+      const claimDamages = apiDamages.map((dmg, idx) => {
+        const laborHours = parseFloat(dmg.labor_hours) || 0;
+        const partsCost = parseFloat(dmg.estimated_parts_cost) || 0;
+        const laborCost = laborHours * laborRate;
+        const totalCost = laborCost + partsCost;
+
+        return {
+          damage_id: dmg.damage_id,
+          damage_type: dmg.damage_part || 'unknown',
+          damage_part: dmg.damage_part || 'Unknown',
+          location: dmg.damage_part || 'Unknown',
+          description: `${dmg.damage_part} detected by AI`,
+          severity: parseFloat(dmg.severity) > 0.7 ? 'severe' : parseFloat(dmg.severity) > 0.4 ? 'moderate' : 'light',
+          confidence: dmg.damage_confidence,
+          image_id: dmg.image_id,
+          labor_hours: laborHours,
+          labor_rate: laborRate,
+          parts_cost: partsCost,
+          estimated_parts_cost: partsCost,
+          estimated_total_cost: totalCost,
+          source: 'ai',
+          bounding_box: dmg.bounding_box,
+        };
+      });
 
       // Parse images from API response and fetch image blobs via API
       const apiImages = Array.isArray(imagesResponse) ? imagesResponse : (imagesResponse.images || []);
@@ -180,6 +193,7 @@ const ClaimDetailPage = () => {
       setDamages(claimDamages);
       setOriginalDamages(JSON.parse(JSON.stringify(claimDamages)));
       setEvents(eventsData.events || []);
+      setFraudData(fraudResponse);
 
       // Set labor rate state
       setLaborRateState(claimData.labor_rate_state || '');
@@ -211,12 +225,19 @@ const ClaimDetailPage = () => {
     const rateFloat = parseFloat(newRate) || 0;
     setLaborCost(rateFloat);
 
-    // Update all damages with new labor rate
+    // Update all damages with new labor rate and recalculate totals
     setDamages((prev) =>
-      prev.map((d) => ({
-        ...d,
-        labor_rate: rateFloat,
-      }))
+      prev.map((d) => {
+        const laborCost = (d.labor_hours || 0) * rateFloat;
+        const partsCost = d.parts_cost || d.estimated_parts_cost || 0;
+        const totalCost = laborCost + partsCost;
+
+        return {
+          ...d,
+          labor_rate: rateFloat,
+          estimated_total_cost: totalCost,
+        };
+      })
     );
   };
 
@@ -382,6 +403,11 @@ const ClaimDetailPage = () => {
             </div>
           </Card>
 
+          {/* Section 2.6: Fraud Analysis (if fraud signals exist) */}
+          {claim.review_reason === REVIEW_REASONS.FRAUD_SIGNALS && fraudData && (
+            <FraudAnalysisSection fraudData={fraudData} />
+          )}
+
           {/* Section 2.5: Customer Appeal (if exists) */}
           {(claim.first_appeal_reason || claim.second_appeal_reason) && (
             <Card title="Customer Appeal">
@@ -538,6 +564,7 @@ const ClaimDetailPage = () => {
         onClose={() => setShowDamageCreator(false)}
         onAdd={handleAddDamage}
         images={images}
+        laborRate={laborCost}
       />
     </div>
   );

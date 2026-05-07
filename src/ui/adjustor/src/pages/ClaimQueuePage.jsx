@@ -70,13 +70,16 @@ const ClaimQueuePage = () => {
       // Apply client-side filters
       if (activeFilter !== 'all') {
         filteredClaims = filteredClaims.filter(claim => {
+          const reason = claim.reason_for_review || claim.review_reason; // Support both field names
           switch (activeFilter) {
+            case 'fraud_signals':
+              return reason === REVIEW_REASONS.FRAUD_SIGNALS;
             case 'appeals':
-              return claim.review_reason === REVIEW_REASONS.APPEAL;
+              return reason === REVIEW_REASONS.APPEAL || reason === 'customer_appeal';
             case 'low_confidence':
-              return claim.review_reason === REVIEW_REASONS.LOW_CONFIDENCE;
+              return reason === REVIEW_REASONS.LOW_CONFIDENCE;
             case 'no_damage':
-              return claim.review_reason === REVIEW_REASONS.NO_DAMAGE;
+              return reason === REVIEW_REASONS.NO_DAMAGE;
             default:
               return true;
           }
@@ -129,6 +132,7 @@ const ClaimQueuePage = () => {
             <div className="flex flex-wrap gap-2">
               {[
                 { value: 'all', label: 'All Claims' },
+                { value: 'fraud_signals', label: 'Fraud Signals' },
                 { value: 'appeals', label: 'Appeals' },
                 { value: 'low_confidence', label: 'Low Confidence' },
                 { value: 'no_damage', label: 'No Damage' },
@@ -256,8 +260,14 @@ const ClaimQueuePage = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant={claim.reason_for_review === 'customer_appeal' ? 'warning' : 'default'}>
-                          {claim.reason_for_review === 'customer_appeal' ? 'Appeal' : 'Low Confidence'}
+                        <Badge
+                          variant={
+                            claim.reason_for_review === REVIEW_REASONS.FRAUD_SIGNALS || claim.reason_for_review === 'fraud_signals' ? 'danger' :
+                            claim.reason_for_review === REVIEW_REASONS.APPEAL || claim.reason_for_review === 'customer_appeal' ? 'warning' :
+                            'default'
+                          }
+                        >
+                          {REVIEW_REASON_LABELS[claim.reason_for_review] || REVIEW_REASON_LABELS[claim.review_reason] || claim.reason_for_review || claim.review_reason}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

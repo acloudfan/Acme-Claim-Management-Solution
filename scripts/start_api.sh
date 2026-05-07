@@ -17,45 +17,12 @@ if [ "$CLEAN_MODE" = true ]; then
     echo "🧹 CLEAN MODE ENABLED"
     echo ""
 
-    # Get database file from config
-    DB_FILE="test_insurance.db"
-    if [ -f "api-config.yaml" ]; then
-        # Extract database filename from config (simple grep)
-        DB_PATH=$(grep -oP 'url:.*sqlite:///\./\K[^"]+' api-config.yaml 2>/dev/null || echo "test_insurance.db")
-        DB_FILE="${DB_PATH%.db}.db"
-    fi
-
-    # Delete database
-    if [ -f "$DB_FILE" ]; then
-        echo "🗑️  Deleting database: $DB_FILE"
-        rm -f "$DB_FILE"
-        echo "✅ Database deleted"
-    else
-        echo "ℹ️  Database file not found: $DB_FILE"
-    fi
-
-    # Delete all files from uploads folder
-    UPLOAD_DIR="uploads"
-    if [ -f "api-config.yaml" ]; then
-        # Extract uploads folder from config
-        UPLOAD_DIR=$(grep -oP 'images_root_folder:\s*"\K[^"]+' api-config.yaml 2>/dev/null || echo "uploads")
-    fi
-
-    if [ -d "$UPLOAD_DIR" ]; then
-        FILE_COUNT=$(find "$UPLOAD_DIR" -type f 2>/dev/null | wc -l)
-        if [ "$FILE_COUNT" -gt 0 ]; then
-            echo "🗑️  Deleting $FILE_COUNT file(s) from: $UPLOAD_DIR"
-            find "$UPLOAD_DIR" -type f -delete
-            echo "✅ Upload files deleted"
-        else
-            echo "ℹ️  Upload folder is empty: $UPLOAD_DIR"
-        fi
-    else
-        echo "ℹ️  Upload folder not found: $UPLOAD_DIR"
-    fi
+    # Run the seed-data.py --clean command
+    echo "Running: python scripts/seed-data.py --clean"
+    python scripts/seed-data.py --clean
 
     echo ""
-    echo "✅ Clean complete! Starting with fresh database..."
+    echo "✅ Clean complete!"
     echo ""
 fi
 
@@ -97,6 +64,13 @@ uv sync
 echo "✅ Dependencies synced"
 echo ""
 
+# Seed database if clean mode was used
+if [ "$CLEAN_MODE" = true ]; then
+    echo "Seeding database..."
+    python scripts/seed-data.py
+    echo ""
+fi
+
 # Start the API
 echo "Starting API server..."
 echo "========================================"
@@ -107,7 +81,7 @@ echo "  - ReDoc:      http://localhost:8000/redoc"
 echo "  - Health:     http://localhost:8000/health"
 echo ""
 if [ "$CLEAN_MODE" = true ]; then
-    echo "NOTE: Started with clean database"
+    echo "NOTE: Started with fresh database (cleaned and reseeded)"
     echo ""
 fi
 echo "Press Ctrl+C to stop the server"

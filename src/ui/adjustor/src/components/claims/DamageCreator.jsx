@@ -9,7 +9,7 @@ import Button from '../common/Button';
 import { formatCurrency } from '../../utils/formatters';
 import { DAMAGE_TYPES, DAMAGE_TYPE_LABELS, SEVERITY } from '../../utils/constants';
 
-const DamageCreator = ({ isOpen, onClose, onAdd, images = [] }) => {
+const DamageCreator = ({ isOpen, onClose, onAdd, images = [], laborRate = 0 }) => {
   const [formData, setFormData] = useState({
     damage_type: '',
     location: '',
@@ -17,7 +17,6 @@ const DamageCreator = ({ isOpen, onClose, onAdd, images = [] }) => {
     severity: '',
     image_id: '',
     labor_hours: '',
-    labor_rate: '',
     parts_cost: '',
     adjustor_note: '',
   });
@@ -25,9 +24,8 @@ const DamageCreator = ({ isOpen, onClose, onAdd, images = [] }) => {
 
   const calculateTotal = () => {
     const hours = parseFloat(formData.labor_hours) || 0;
-    const rate = parseFloat(formData.labor_rate) || 0;
     const parts = parseFloat(formData.parts_cost) || 0;
-    return hours * rate + parts;
+    return hours * laborRate + parts;
   };
 
   const validate = () => {
@@ -53,10 +51,6 @@ const DamageCreator = ({ isOpen, onClose, onAdd, images = [] }) => {
       newErrors.labor_hours = 'Labor hours must be greater than 0';
     }
 
-    if (!formData.labor_rate || parseFloat(formData.labor_rate) <= 0) {
-      newErrors.labor_rate = 'Labor rate must be greater than 0';
-    }
-
     if (!formData.parts_cost || parseFloat(formData.parts_cost) < 0) {
       newErrors.parts_cost = 'Parts cost must be 0 or greater';
     }
@@ -74,18 +68,28 @@ const DamageCreator = ({ isOpen, onClose, onAdd, images = [] }) => {
 
     if (!validate()) return;
 
+    const laborHours = parseFloat(formData.labor_hours);
+    const partsCost = parseFloat(formData.parts_cost);
+    const totalCost = laborHours * laborRate + partsCost;
+
     const newDamage = {
       damage_id: `manual_${Date.now()}`,
       damage_type: formData.damage_type,
+      damage_part: formData.location.trim(),
       location: formData.location.trim(),
       description: formData.description.trim(),
       severity: formData.severity,
       image_id: formData.image_id || null,
-      labor_hours: parseFloat(formData.labor_hours),
-      labor_rate: parseFloat(formData.labor_rate),
-      parts_cost: parseFloat(formData.parts_cost),
+      labor_hours: laborHours,
+      labor_rate: laborRate,
+      parts_cost: partsCost,
+      estimated_parts_cost: partsCost,
+      estimated_total_cost: totalCost,
       adjustor_note: formData.adjustor_note.trim(),
       source: 'manual',
+      estimate_type: 'human',
+      reviewed_by_adjustor: true,
+      estimate_source: 'adjustor',
       confidence: null,
       bounding_box: null,
     };
@@ -102,7 +106,6 @@ const DamageCreator = ({ isOpen, onClose, onAdd, images = [] }) => {
       severity: '',
       image_id: '',
       labor_hours: '',
-      labor_rate: '',
       parts_cost: '',
       adjustor_note: '',
     });
@@ -216,16 +219,15 @@ const DamageCreator = ({ isOpen, onClose, onAdd, images = [] }) => {
               required
             />
 
-            <Input
-              label="Labor Rate ($/hr)"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.labor_rate}
-              onChange={(e) => setFormData({ ...formData, labor_rate: e.target.value })}
-              error={errors.labor_rate}
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Labor Rate ($/hr)
+              </label>
+              <div className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-700">
+                ${laborRate.toFixed(2)}
+              </div>
+              <p className="mt-1 text-xs text-gray-500">From claim state labor rate</p>
+            </div>
           </div>
 
           <Input

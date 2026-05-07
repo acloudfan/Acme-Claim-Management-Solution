@@ -94,16 +94,35 @@ export const DAMAGE_TYPE_LABELS = {
 
 // Review reasons
 export const REVIEW_REASONS = {
+  FRAUD_SIGNALS: 'fraud_signals',
   LOW_CONFIDENCE: 'low_confidence',
-  APPEAL: 'appeal',
+  APPEAL: 'customer_appeal',  // Backend uses 'customer_appeal'
   NO_DAMAGE: 'no_damage_detected',
   HIGH_ESTIMATE: 'high_estimate',
 };
 
 // Review reason labels
 export const REVIEW_REASON_LABELS = {
-  [REVIEW_REASONS.LOW_CONFIDENCE]: 'Low AI Confidence',
-  [REVIEW_REASONS.APPEAL]: 'Customer Appeal',
-  [REVIEW_REASONS.NO_DAMAGE]: 'No Damage Detected',
-  [REVIEW_REASONS.HIGH_ESTIMATE]: 'High Estimate Amount',
+  'fraud_signals': 'Fraud Signals',
+  'low_confidence': 'Low AI Confidence',
+  'customer_appeal': 'Customer Appeal',
+  'appeal': 'Customer Appeal',  // Legacy support
+  'no_damage_detected': 'No Damage Detected',
+  'high_estimate': 'High Estimate Amount',
+};
+
+// Fraud risk levels
+export const FRAUD_RISK_LEVELS = {
+  LOW: { min: 0.0, max: 0.3, color: 'success', label: 'Low Risk', bgClass: 'bg-green-50', textClass: 'text-green-700', borderClass: 'border-green-400' },
+  MEDIUM: { min: 0.3, max: 0.7, color: 'warning', label: 'Medium Risk', bgClass: 'bg-amber-50', textClass: 'text-amber-700', borderClass: 'border-amber-400' },
+  HIGH: { min: 0.7, max: 1.0, color: 'danger', label: 'High Risk', bgClass: 'bg-red-50', textClass: 'text-red-700', borderClass: 'border-red-400' }
+};
+
+/**
+ * Get fraud risk level based on score
+ */
+export const getFraudRiskLevel = (score) => {
+  if (score < FRAUD_RISK_LEVELS.LOW.max) return FRAUD_RISK_LEVELS.LOW;
+  if (score < FRAUD_RISK_LEVELS.MEDIUM.max) return FRAUD_RISK_LEVELS.MEDIUM;
+  return FRAUD_RISK_LEVELS.HIGH;
 };

@@ -1,0 +1,21 @@
+# Admin Portal Configuration
+# This file is loaded by the frontend (not the backend API)
+
+api:
+  base_url: "http://localhost:8000/api/v1"
+  timeout: 30000  # 30 seconds
+
+auth:
+  # No authentication required for prototype
+  require_login: false
+  default_admin_id: "admin_001"
+
+portal_links:
+  customer_portal_url: "http://localhost:5173"
+  adjustor_portal_url: "http://localhost:5174"
+  executive_portal_url: null  # Not implemented yet
+
+features:
+  enable_backup_restore: true
+  enable_validation_preview: false  # Future feature
+  enable_auto_restart: false  # Future feature

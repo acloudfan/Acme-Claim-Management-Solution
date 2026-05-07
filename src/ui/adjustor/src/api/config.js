@@ -16,7 +16,7 @@ export const loadConfig = async () => {
     config = {
       api: {
         base_url: 'http://localhost:8000/api/v1',
-        timeout: 30000
+        timeout: 120000  // 2 minutes - fraud detection takes ~60 seconds
       },
       auth: {
         mock_password: 'adjustor123'

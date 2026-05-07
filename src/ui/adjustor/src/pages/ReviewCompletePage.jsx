@@ -70,12 +70,26 @@ const ReviewCompletePage = () => {
       setLoading(true);
 
       // Prepare damage updates - include all damages with their current values
-      const damageUpdates = damages.map((damage) => ({
-        damage_id: damage.damage_id,
-        labor_hours: parseFloat(damage.labor_hours) || 0,
-        parts_cost: parseFloat(damage.parts_cost) || 0,
-        adjustor_note: damage.adjustor_note || null,
-      }));
+      const damageUpdates = damages.map((damage) => {
+        const update = {
+          damage_id: damage.damage_id,
+          labor_hours: parseFloat(damage.labor_hours) || 0,
+          parts_cost: parseFloat(damage.parts_cost) || 0,
+          adjustor_note: damage.adjustor_note || null,
+        };
+
+        // If this is a manual damage (string ID), include additional fields
+        if (typeof damage.damage_id === 'string' && damage.damage_id.startsWith('manual_')) {
+          update.damage_part = damage.damage_part || damage.location;
+          update.damage_type = damage.damage_type;
+          update.location = damage.location;
+          update.description = damage.description;
+          update.severity = damage.severity;
+          update.image_id = damage.image_id || null;
+        }
+
+        return update;
+      });
 
       const reviewData = {
         action: reviewDecision,

@@ -184,6 +184,62 @@ class Settings:
     def CORS_ALLOW_HEADERS(self) -> List[str]:
         return self._config['cors']['allow_headers']
 
+    # LLM Configuration
+    @property
+    def DEFAULT_LLM_PROVIDER(self) -> str:
+        """Default LLM provider"""
+        return self._config['llm']['default_provider']
+
+    @property
+    def DEFAULT_VISION_MODEL(self) -> str:
+        """Default vision model provider for image analysis"""
+        return self._config['llm']['default_vision_model']
+
+    # Agent Configuration
+    @property
+    def FRAUD_DETECTOR_ENABLED(self) -> bool:
+        """Whether fraud detection is enabled"""
+        return self._config['agents']['fraud_detector']['enabled']
+
+    @property
+    def FRAUD_HIGH_RISK_THRESHOLD(self) -> float:
+        """Final risk >= this threshold = HIGH RISK"""
+        return self._config['agents']['fraud_detector']['high_risk_threshold']
+
+    @property
+    def FRAUD_MEDIUM_RISK_THRESHOLD(self) -> float:
+        """Final risk >= this threshold = MEDIUM RISK"""
+        return self._config['agents']['fraud_detector']['medium_risk_threshold']
+
+    def get_fraud_phase1_config(self) -> dict:
+        """Get Phase 1 vision detection configuration (with enabled flags and weights)"""
+        return self._config['agents']['fraud_detector']['phase1_vision']
+
+    def get_fraud_phase2_config(self) -> dict:
+        """Get Phase 2 static check configuration (with enabled flags and weights)"""
+        return self._config['agents']['fraud_detector']['phase2_static']
+
+    def get_fraud_phase3_config(self) -> dict:
+        """Get Phase 3 behavioral analysis configuration"""
+        return self._config['agents']['fraud_detector']['phase3_behavioral']
+
+    # Agent Enable/Disable Flags
+    @property
+    def AGENTS_CHATBOT_ENABLED(self) -> bool:
+        """Check if customer chatbot is enabled"""
+        return self._config.get('agents', {}).get('chatbot', {}).get('enabled', True)
+
+    @property
+    def AGENTS_FRAUD_DETECTOR_ENABLED(self) -> bool:
+        """Check if fraud detector is enabled"""
+        return self._config.get('agents', {}).get('fraud_detector', {}).get('enabled', True)
+
+    # Expose full config dictionary for advanced use cases
+    @property
+    def config(self) -> dict:
+        """Get the full configuration dictionary"""
+        return self._config
+
 @lru_cache()
 def get_settings() -> Settings:
     """
@@ -191,6 +247,24 @@ def get_settings() -> Settings:
     Settings are loaded once and cached.
     """
     return Settings()
+
+def reload_settings() -> Settings:
+    """
+    Reload configuration from file by clearing the cache.
+    Use this after updating api-config.yaml to load new settings.
+
+    Returns:
+        Newly loaded Settings instance
+    """
+    get_settings.cache_clear()
+    logger.info("Configuration cache cleared, reloading settings")
+    new_settings = get_settings()
+
+    # Update the global settings reference
+    global settings
+    settings = new_settings
+
+    return new_settings
 
 # Global settings instance
 settings = get_settings()

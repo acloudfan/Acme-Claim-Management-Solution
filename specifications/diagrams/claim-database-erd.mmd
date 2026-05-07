@@ -34,6 +34,10 @@ erDiagram
     claim_images ||--o{ damages : "analyzed_for"
     claims ||--o{ claims_events : "tracks"
     adjustors ||--o{ claims : "reviews (optional)"
+    claims ||--o{ fraud_signals : "fraud_detection"
+    claims ||--o{ risk_assessments : "risk_analysis"
+    claims ||--o{ agent_usage_logs : "agent_activity"
+    customers ||--o{ agent_usage_logs : "agent_activity"
 
     adjustors {
         string adjustor_id PK "Adjustor identifier (ADJ-001)"
@@ -97,7 +101,7 @@ erDiagram
         time fnol_time "First Notice of Loss time"
         date date_of_damage "Date when damage occurred"
         boolean is_drivable "Is vehicle drivable"
-        text incident_description "NEW: Customer description of what happened"
+        text incident_description "Customer description of what happened"
         date claim_closed_date "Claim closure date"
         boolean claim_closed "Claim closed indicator"
         boolean ai_estimate_accepted "AI estimate accepted flag"
@@ -111,11 +115,14 @@ erDiagram
         decimal state_avg_labor_cost "Labor rate in $/hour for all damages"
         string labor_rate_state "State code used (CA, TX, NY, etc)"
         string labor_rate_source "customer_state or adjustor_override"
-        int appeal_count "NEW: Number of appeals (0, 1, or 2)"
-        text first_appeal_reason "NEW: Customer reason for first appeal"
-        date first_appeal_date "NEW: Date of first appeal"
-        text second_appeal_reason "NEW: Customer reason for second appeal"
-        date second_appeal_date "NEW: Date of second appeal"
+        int appeal_count "Number of appeals (0, 1, or 2)"
+        text first_appeal_reason "Customer reason for first appeal"
+        date first_appeal_date "Date of first appeal"
+        text second_appeal_reason "Customer reason for second appeal"
+        date second_appeal_date "Date of second appeal"
+        decimal overall_fraud_risk_score "AI: Fraud risk score (0.0-1.0)"
+        decimal overall_risk_score "AI: Actuarial risk score (0.0-1.0)"
+        text agent_flags "AI: JSON string of agent warnings"
     }
 
     claim_images {
@@ -130,7 +137,6 @@ erDiagram
         int claim_id FK "References claims"
         string estimate_id "claim_id + timestamp"
         string estimate_type "ai or human"
-        int estimate_version "Version number, default 1"
         string image_id FK "References claim_images, ON DELETE CASCADE"
         date generated_on_date "Damage report generation date"
         time generated_on_time "Damage report generation time"
@@ -147,6 +153,12 @@ erDiagram
         text reasoning "AI assessment reasoning"
         string car_side "front|back|driver_side|passenger_side"
         decimal assessment_confidence "VLM confidence (0.0-1.0)"
+        decimal enhanced_severity "AI: Agent-refined severity"
+        decimal ai_generated_probability "AI: Probability image is AI-generated"
+        decimal fraud_risk_score "AI: Fraud risk for this damage"
+        decimal risk_score "AI: Actuarial risk score"
+        text agent_reasoning "AI: Agent reasoning for assessments"
+        text secondary_damages_predicted "AI: JSON of predicted secondary damages"
         decimal ai_labor_hours "AI-estimated labor hours (IMMUTABLE)"
         decimal ai_parts_cost "AI-estimated parts cost (IMMUTABLE)"
         decimal ai_total_cost "AI total cost (IMMUTABLE)"
@@ -157,6 +169,7 @@ erDiagram
         datetime reviewed_at "Timestamp of adjustor review"
         text adjustor_note "Adjustor notes for manual review/edits"
         string annotated_image_id "Filename of annotated image (BB-prefix)"
+        decimal avg_labor_cost "DEPRECATED: Use claim.state_avg_labor_cost"
     }
 
     claims_events {
@@ -169,4 +182,47 @@ erDiagram
         string action_by "Actor type"
         string action_by_identity "Actor identifier"
         string comments "Free text comments"
+    }
+
+    fraud_signals {
+        int id PK "Auto-increment ID"
+        int claim_id FK "References claims"
+        datetime detection_timestamp "When fraud detection ran"
+        decimal overall_risk_score "Final aggregated fraud risk (0.0-1.0)"
+        string signal_type "color_verification|make_model_verification|ai_generated|image_manipulation|behavioral_pattern"
+        decimal severity "Individual signal severity (0.0-1.0)"
+        text description "Human-readable summary"
+        json evidence "Full JSON with phase, agent, details, raw LLM responses"
+        string agent_version "Agent version (e.g., v1.0)"
+    }
+
+    risk_assessments {
+        int id PK "Auto-increment ID"
+        int claim_id FK "References claims"
+        datetime assessment_timestamp "When risk assessment ran"
+        decimal risk_score "Actuarial risk score (0.0-1.0)"
+        decimal cost_deviation_pct "Cost deviation percentage"
+        json risk_factors "JSON array of risk factors identified"
+        string recommendation "approve|review|reject"
+        text reasoning "AI reasoning for risk assessment"
+        decimal confidence "Confidence score (0.0-1.0)"
+        string agent_version "Agent version"
+    }
+
+    agent_usage_logs {
+        int id PK "Auto-increment ID"
+        datetime timestamp "When agent was invoked"
+        string agent_name "Name of agent (e.g., ColorVerificationAgent)"
+        string llm_provider "anthropic|openai|bedrock"
+        string llm_model "Model name (e.g., claude-sonnet-4.5)"
+        int input_tokens "Input tokens consumed"
+        int output_tokens "Output tokens generated"
+        int total_tokens "Total tokens (input + output)"
+        decimal estimated_cost_usd "Estimated cost in USD"
+        int duration_ms "Execution duration in milliseconds"
+        int claim_id FK "References claims (nullable)"
+        int customer_id FK "References customers (nullable)"
+        string request_type "Type of request"
+        boolean success "Whether agent execution succeeded"
+        text error_message "Error message if failed"
     }

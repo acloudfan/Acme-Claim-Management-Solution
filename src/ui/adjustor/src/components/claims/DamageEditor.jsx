@@ -87,11 +87,20 @@ const DamageEditor = ({ isOpen, onClose, damage, onSave }) => {
 
     if (!validate()) return;
 
+    const laborHours = parseFloat(formData.labor_hours);
+    const partsCost = parseFloat(formData.parts_cost);
+    const laborRate = parseFloat(damage?.labor_rate) || 0;
+    const totalCost = laborHours * laborRate + partsCost;
+
     const updatedDamage = {
       ...damage,
-      labor_hours: parseFloat(formData.labor_hours),
-      parts_cost: parseFloat(formData.parts_cost),
+      labor_hours: laborHours,
+      parts_cost: partsCost,
+      estimated_parts_cost: partsCost,
+      estimated_total_cost: totalCost,
       adjustor_note: formData.adjustor_note.trim(),
+      reviewed_by_adjustor: true,
+      estimate_source: 'adjustor',
     };
 
     onSave(updatedDamage);

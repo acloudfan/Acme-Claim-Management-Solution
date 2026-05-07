@@ -15,7 +15,8 @@ from src.api.services.customer_service import CustomerService
 from src.api.services.event_service import EventService
 from src.api.services.image_service import ImageService
 from src.api.services.policy_service import PolicyService
-from src.api.services.event_logger import log_event
+from src.api.services.fraud_service import FraudDetectionService
+from src.api.services.estimate_service import EstimateService
 from src.api.constants import ClaimAction, ActorType, ClaimState
 from src.api.exceptions import ResourceNotFoundError, ValidationError
 from typing import List, Optional
@@ -273,11 +274,85 @@ def submit_claim(
 
     Transitions claim from 'draft' state to 'FNOL' (First Notice of Loss).
     After submission, claim enters the processing workflow.
+
+    **SECURITY**: Fraud detection runs synchronously as a security gate.
+    High-risk claims are blocked from proceeding to estimation.
     """
     service = ClaimService(db)
+    fraud_service = FraudDetectionService(db)
+    estimate_service = EstimateService(db)
+
     try:
+        # Submit claim (DRAFT -> FNOL)
         claim = service.submit_claim(claim_id, customer_id)
+
+        # SECURITY GATE: Run fraud detection synchronously
+        # Must complete before allowing claim to proceed
+        fraud_result = fraud_service.run_fraud_detection(claim_id)
+
+        # Update claim with fraud risk score
+        # Note: Fraud signals are already stored in database by FraudDetectionSupervisor
+        if fraud_result.get('final_risk_score') is not None:
+            fraud_service.update_claim_fraud_score(claim_id, fraud_result['final_risk_score'])
+
+            # Log fraud detection completion as an event
+            from src.api.models.claim_event import ClaimEvent
+            from datetime import date, datetime
+            event = ClaimEvent(
+                claim_id=claim_id,
+                event_date=date.today(),
+                event_time=datetime.now().time(),
+                status=claim.current_status,
+                action=ClaimAction.ASSESS_FRAUD_RISK.value,
+                action_by=ActorType.AI_AGENT.value,
+                action_by_identity="fraud_detection_supervisor",
+                comments=f"Fraud risk: {fraud_result['final_risk_score']:.2f} - {fraud_result['recommendation']}"
+            )
+            db.add(event)
+            db.commit()
+
+        # Check if damages exist and transition claim status accordingly
+        # Damages are created during image upload, we just need to evaluate and transition
+        from src.api.models.damage import Damage
+        damages = db.query(Damage).filter(Damage.claim_id == claim_id).all()
+
+        if damages:
+            # Calculate average confidence from existing damages
+            avg_confidence = sum(d.damage_confidence for d in damages if d.damage_confidence) / len(damages)
+
+            # Set active_estimate_id from the first damage's estimate_id
+            # (all damages from same upload batch share the same estimate_id)
+            if not claim.active_estimate_id and damages[0].estimate_id:
+                claim.active_estimate_id = damages[0].estimate_id
+
+            # SECURITY: Check fraud risk score before allowing claim to proceed
+            fraud_risk = fraud_result.get('final_risk_score', 0.0)
+            fraud_recommendation = fraud_result.get('recommendation', 'APPROVE')
+
+            if fraud_recommendation in ['REJECT', 'HUMAN_REVIEW']:
+                # Medium or high fraud risk: route to human review (SECURITY GATE)
+                claim.current_status = ClaimState.HUMAN_REVIEW_PENDING.value
+                db.commit()
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(
+                    f"Claim {claim_id} routed to human review due to fraud risk: "
+                    f"{fraud_risk:.2f} ({fraud_recommendation})"
+                )
+            else:
+                # Low fraud risk: Transition based on damage detection confidence
+                CONFIDENCE_THRESHOLD = 0.55
+                if avg_confidence >= CONFIDENCE_THRESHOLD:
+                    # High confidence: transition to CUSTOMER_DECISION_PENDING
+                    claim.current_status = ClaimState.CUSTOMER_DECISION_PENDING.value
+                    db.commit()
+                else:
+                    # Low confidence: route to human review
+                    claim.current_status = ClaimState.HUMAN_REVIEW_PENDING.value
+                    db.commit()
+
         return claim
+
     except ResourceNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

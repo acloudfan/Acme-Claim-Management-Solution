@@ -8,7 +8,7 @@ import Badge from '../common/Badge';
 
 const EventTimeline = ({ events = [] }) => {
   const [expandedEvents, setExpandedEvents] = useState(new Set());
-  const [showEventsList, setShowEventsList] = useState(false);
+  const [showEventsList, setShowEventsList] = useState(true); // Default to expanded
 
   if (events.length === 0) {
     return (
