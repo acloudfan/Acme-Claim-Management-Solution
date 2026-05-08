@@ -506,7 +506,12 @@ The system automatically creates timestamped backups when you save configuration
 - [Car Damage Assessment AI](https://github.com/artemxdata/Car-Damage-Assessment-AI)
 - [AAA Mechanic Labor Rates](https://www.aaa.com/autorepair/articles/average-mechanic-labor-rate-repair-costs-in-your-state-2026)
 - [COCO Car Damage Dataset](https://www.kaggle.com/datasets/lplenka/coco-car-damage-detection-dataset)
+- [Mitchell International](https://www.mitchell.com/) - Industry standard repair time database
+- [CCC Intelligent Solutions](https://cccis.com/) - Claims and collision repair platform
 
+### Standard Operating Procedures
+
+- [Damage Triage SOP](specifications/policies/sop_damage_triage.md) - Comprehensive guide for AI agents and adjustors on claim triage, fraud detection, confidence thresholds, and damage assessment guidelines
 
 ### Technical Diagrams
 
@@ -534,7 +539,7 @@ The system supports multiple LLM providers (Anthropic, OpenAI, AWS Bedrock). You
 ### Where can I set the LLM or VLM to use?
 
 Configure LLM and Vision Language Model (VLM) settings in two ways:
-1. **Admin Portal**: Navigate to http://localhost:5170 → Business Rules → Technical Parameters section
+1. **Admin Portal**: Open JSON to adjust technical parameters
 2. **Configuration File**: Edit `api-config.yaml` in the project root
 
 You can set the default provider, model selection, temperature, tokens, and other parameters.
