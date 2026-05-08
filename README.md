@@ -22,7 +22,6 @@ This project showcases how AI can streamline insurance claims processing through
 - [Technology Stack](#technology-stack)
 - [Key Features](#key-features)
 - [Configuration Management](#configuration-management)
-  - [Environment Variables Setup](#environment-variables-setup)
   - [Key Configuration Parameters](#key-configuration-parameters)
   - [How to Configure](#how-to-configure)
 - [Documentation](#documentation)
@@ -389,46 +388,7 @@ Test images are provided in the `images/` directory. Use these images when filin
 
 Configuration is managed through `api-config.yaml`, environment variables (`.env` file), and the **Admin Portal** (http://localhost:5170).
 
-### Environment Variables Setup
-
-Create a `.env` file in the project root to configure API keys for LLM providers:
-
-```bash
-# LLM Provider API Keys
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
-
-# AWS Bedrock Configuration (uses AWS CLI credentials)
-# Ensure AWS credentials are configured via:
-# - AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables
-# - OR ~/.aws/credentials file
-# - OR IAM role (if running on EC2/ECS)
-AWS_DEFAULT_REGION=us-east-1
-```
-
-**Important Notes:**
-- **AWS Bedrock**: Does not require API key in `.env`. Uses AWS CLI credentials instead. Configure with `aws configure` or set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in `.env`.
-- **API Keys**: Never commit `.env` file to version control. Add `.env` to `.gitignore`.
-- **Provider Selection**: Set `llm.default_provider` in `api-config.yaml` to choose which provider to use (bedrock, anthropic, or openai).
-
-**Example `.env` file:**
-```env
-# Anthropic Claude API
-ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-# OpenAI API
-OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-# AWS Configuration (for Bedrock)
-AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS_DEFAULT_REGION=us-east-1
-```
-
-**Getting API Keys:**
-- **Anthropic**: https://console.anthropic.com/ → Account Settings → API Keys
-- **OpenAI**: https://platform.openai.com/ → API Keys
-- **AWS Bedrock**: https://aws.amazon.com/ → IAM → Create Access Key (requires Bedrock model access)
+See the **[Configuration](#configuration)** section above for setting up environment variables and LLM provider API keys.
 
 ### Key Configuration Parameters
 
@@ -546,7 +506,7 @@ The system automatically creates timestamped backups when you save configuration
 - [Car Damage Assessment AI](https://github.com/artemxdata/Car-Damage-Assessment-AI)
 - [AAA Mechanic Labor Rates](https://www.aaa.com/autorepair/articles/average-mechanic-labor-rate-repair-costs-in-your-state-2026)
 - [COCO Car Damage Dataset](https://www.kaggle.com/datasets/lplenka/coco-car-damage-detection-dataset)
-- [YOLO v8 Tutorial](https://www.digitalocean.com/community/tutorials/yolov8)
+
 
 ### Technical Diagrams
 
