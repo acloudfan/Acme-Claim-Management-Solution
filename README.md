@@ -182,7 +182,21 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ## Quick Start
 
-### 1. Start API Server
+### 1. Install UI Dependencies (First Time Only)
+
+```bash
+# From project root - install dependencies for all portals
+./scripts/install-ui-dependencies.sh
+
+# If you encounter issues, use --clean to remove existing node_modules
+./scripts/install-ui-dependencies.sh --clean
+```
+
+This installs npm packages for all 4 UI portals (customer, adjustor, admin, executive).
+
+**Note:** The `start-portals.sh` script will auto-install dependencies if missing, but running this script first ensures a clean installation and helps troubleshoot any issues.
+
+### 2. Start API Server
 
 ```bash
 # From project root - create database and seed demo data
@@ -194,7 +208,7 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 The API server will start on port 8000. Access API docs at: http://localhost:8000/docs
 
-### 2. Start All Portals
+### 3. Start All Portals
 
 ```bash
 # From project root - starts all 4 portals
@@ -527,6 +541,34 @@ Mermaid diagrams illustrating system architecture and workflows:
 ---
 
 ## FAQ
+
+### Common Setup Issues
+
+**Q: I get "Can't load plugin: sqlalchemy.dialects:sqlanywhere" error**
+
+A: This means your `api-config.yaml` has the wrong database URL. Edit the file and change:
+```yaml
+database:
+  url: "sqlite:///./test_insurance.db"
+```
+
+**Q: Portal fails to start with "Cannot find module 'vite/dist/node/cli.js'" error**
+
+A: Dependencies are missing or corrupted. Run:
+```bash
+./scripts/install-ui-dependencies.sh --clean
+```
+
+**Q: How do I completely reset and start fresh?**
+
+A: Run these commands:
+```bash
+# Clean UI dependencies
+./scripts/install-ui-dependencies.sh --clean
+
+# Clean API and database
+./scripts/start-api-server.sh --clean
+```
 
 ### Can I try my own images?
 
