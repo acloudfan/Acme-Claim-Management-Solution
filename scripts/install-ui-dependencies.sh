@@ -2,6 +2,7 @@
 #
 # UI Dependencies Installation Script
 # Installs npm dependencies for all UI portals
+# Cross-platform: Works on Linux, macOS, and WSL
 #
 
 set -e  # Exit on error
@@ -76,8 +77,8 @@ for portal_info in "${PORTALS[@]}"; do
     # Fix version compatibility issues in package.json
     echo -e "${YELLOW}  Checking for version compatibility issues...${NC}"
 
-    # Check for Vite version
-    VITE_VERSION=$(grep '"vite"' package.json | grep -oP '\d+\.\d+' | head -1)
+    # Check for Vite version (portable sed, works on Linux and macOS)
+    VITE_VERSION=$(grep '"vite"' package.json | head -1 | sed 's/[^0-9.]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/')
 
     if [ ! -z "$VITE_VERSION" ]; then
         VITE_MAJOR=$(echo $VITE_VERSION | cut -d. -f1)
@@ -87,7 +88,7 @@ for portal_info in "${PORTALS[@]}"; do
             # Vite < 8.x requires @vitejs/plugin-react < 6.x
             if grep -q '"@vitejs/plugin-react": "\^[6-9]' package.json; then
                 echo -e "${YELLOW}  → Fixing @vitejs/plugin-react version (incompatible with Vite $VITE_VERSION)${NC}"
-                sed -i 's/"@vitejs\/plugin-react": "\^[6-9][^"]*"/"@vitejs\/plugin-react": "^5.2.0"/g' package.json
+                sed -i.bak 's/"@vitejs\/plugin-react": "\^[6-9][^"]*"/"@vitejs\/plugin-react": "^5.2.0"/g' package.json && rm -f package.json.bak
             fi
         fi
 
@@ -95,20 +96,20 @@ for portal_info in "${PORTALS[@]}"; do
         if [ "$VITE_MAJOR" -eq 5 ]; then
             if grep -q '"tailwindcss": "\^[4-9]' package.json; then
                 echo -e "${YELLOW}  → Fixing Tailwind CSS version (v4+ incompatible with Vite 5.x)${NC}"
-                sed -i 's/"tailwindcss": "\^[4-9][^"]*"/"tailwindcss": "^3.4.19"/g' package.json
+                sed -i.bak 's/"tailwindcss": "\^[4-9][^"]*"/"tailwindcss": "^3.4.19"/g' package.json && rm -f package.json.bak
             fi
 
             # Remove @tailwindcss/postcss if present (only needed for Tailwind v4)
             if grep -q '"@tailwindcss/postcss"' package.json; then
                 echo -e "${YELLOW}  → Removing @tailwindcss/postcss (not needed with Tailwind v3)${NC}"
-                sed -i '/"@tailwindcss\/postcss":/d' package.json
+                sed -i.bak '/"@tailwindcss\/postcss":/d' package.json && rm -f package.json.bak
             fi
 
             # Fix postcss.config.js if it uses Tailwind v4 syntax
             if [ -f "postcss.config.js" ] && grep -q "@tailwindcss/postcss" postcss.config.js; then
                 echo -e "${YELLOW}  → Fixing postcss.config.js (updating to Tailwind v3 syntax)${NC}"
-                sed -i "s/'@tailwindcss\/postcss'/'tailwindcss'/g" postcss.config.js
-                sed -i 's/"@tailwindcss\/postcss"/"tailwindcss"/g' postcss.config.js
+                sed -i.bak "s/'@tailwindcss\/postcss'/'tailwindcss'/g" postcss.config.js && rm -f postcss.config.js.bak
+                sed -i.bak 's/"@tailwindcss\/postcss"/"tailwindcss"/g' postcss.config.js && rm -f postcss.config.js.bak
             fi
 
             # Fix tailwind.config.js if it's using Tailwind v4 empty config
@@ -138,10 +139,10 @@ TAILWIND_EOF
                     cp "$css_file" "${css_file}.v4.bak"
 
                     # Remove v4 import and @theme block, add v3 directives
-                    sed -i '/^@import "tailwindcss";$/d' "$css_file"
+                    sed -i.bak '/^@import "tailwindcss";$/d' "$css_file" && rm -f "${css_file}.bak"
 
                     # Remove @theme block (everything between @theme { and the closing })
-                    sed -i '/@theme {/,/^}/d' "$css_file"
+                    sed -i.bak '/@theme {/,/^}/d' "$css_file" && rm -f "${css_file}.bak"
 
                     # Add v3 directives at the top
                     tmpfile=$(mktemp)
@@ -162,7 +163,7 @@ TAILWIND_EOF
         # Fix Vite version if it's 6.x, 7.x, or 8.x (unstable packaging)
         if [ "$VITE_MAJOR" -gt 5 ]; then
             echo -e "${YELLOW}  → Downgrading Vite from $VITE_VERSION to 5.4.21 (stable version)${NC}"
-            sed -i 's/"vite": "\^[6-9][^"]*"/"vite": "^5.4.21"/g' package.json
+            sed -i.bak 's/"vite": "\^[6-9][^"]*"/"vite": "^5.4.21"/g' package.json && rm -f package.json.bak
         fi
     fi
 

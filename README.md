@@ -37,15 +37,82 @@ This project showcases how AI can streamline insurance claims processing through
 
 ## Prerequisites
 
-This project requires **uv** (fast Python package installer):
+### Required Software
+
+#### 1. **Python 3.11+**
+
+Check your version:
+```bash
+python3 --version  # Should be 3.11 or higher
+```
+
+If you need to install or upgrade:
+- **Linux/WSL**: `sudo apt-get install python3.11`
+- **macOS**: `brew install python@3.11`
+- **Windows**: Download from [python.org](https://www.python.org/downloads/)
+
+#### 2. **uv** (Python Package Manager)
+
+Fast, reliable Python package installer (replaces pip):
 
 ```bash
 # Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# Verify installation
+uv --version
+
 # Or run the setup script (one-time setup)
 ./scripts/setup_uv.sh
 ```
+
+#### 3. **Node.js 18+** and **npm 9+**
+
+Check your versions:
+```bash
+node --version  # Should be v18.x or higher
+npm --version   # Should be 9.x or higher
+```
+
+If you need to install or upgrade:
+- **Recommended**: Use [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager)
+  ```bash
+  # Install nvm
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+  
+  # Install Node 18 LTS
+  nvm install 18
+  nvm use 18
+  ```
+- **Direct Install**: Download from [nodejs.org](https://nodejs.org/) (includes npm)
+- **Linux/WSL**: 
+  ```bash
+  curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+  ```
+- **macOS**: `brew install node@18`
+
+#### 4. **Install UI Dependencies**
+
+After installing Node.js and npm:
+
+```bash
+# From project root - install and lock dependencies for all portals
+./scripts/install-ui-dependencies.sh --clean
+```
+
+This installs npm packages for all 4 UI portals (customer, adjustor, admin, executive) with:
+- ✅ Automatic version compatibility fixes
+- ✅ Exact version locking for reproducible builds
+- ✅ Verified installations
+
+**First-time setup?** The `--clean` flag ensures a fresh installation by removing any existing `node_modules`.
+
+### System Requirements
+
+- **Disk Space**: ~2GB for dependencies (node_modules + Python packages)
+- **RAM**: 4GB minimum, 8GB recommended
+- **OS**: Linux, macOS, or Windows (with WSL2 recommended)
 
 ---
 
@@ -196,6 +263,19 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ---
 
 ## Quick Start
+
+### Setup Summary
+
+Complete setup in 3 steps:
+
+1. **Prerequisites** ✓ (see [Prerequisites](#prerequisites) section above)
+   - Python 3.11+, uv, Node.js 18+, npm 9+
+2. **Install UI Dependencies** (below - first time only)
+3. **Start API Server** (creates database and seeds demo data)
+4. **Start UI Portals** (launches all 4 portals)
+5. **Configure LLM Provider** (add API keys to `.env` - see [Configuration](#configuration) section)
+
+---
 
 ### 1. Install UI Dependencies (First Time Only)
 
