@@ -51,7 +51,7 @@ if curl -s http://localhost:8000/health > /dev/null 2>&1; then
     # Test executive endpoint
     echo ""
     echo "Testing executive API endpoint..."
-    RESPONSE=$(curl -s http://localhost:8000/api/executive/kpis/summary?time_period=last_6_months 2>&1)
+    RESPONSE=$(curl -s http://localhost:8000/api/v1/executive/kpis/summary?time_period=last_6_months 2>&1)
 
     if echo "$RESPONSE" | grep -q "detail"; then
         echo -e "${RED}✗${NC} Executive API error:"
