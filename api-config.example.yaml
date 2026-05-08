@@ -14,9 +14,14 @@ api:
 
 # Database Configuration
 database:
-  # SQLAnywhere connection string
+  # SQLite connection (default - works out of the box, perfect for development/testing)
+  url: "sqlite:///./test_insurance.db"
+
+  # Alternative: SQL Anywhere (enterprise database)
+  # Requires: uv pip install sqlalchemy-sqlanywhere
   # Format: sqlanywhere://user:password@host:port/database
-  url: "sqlanywhere://user:password@localhost:2638/insurance_db"
+  # Example: url: "sqlanywhere://user:password@localhost:2638/insurance_db"
+
   pool_size: 5            # Connection pool size
   max_overflow: 10        # Max overflow connections
   echo: false             # Set to true to log all SQL queries (debug only)
