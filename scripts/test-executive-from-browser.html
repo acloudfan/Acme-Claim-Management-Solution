@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Executive API Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f4f4f4; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Executive API Endpoint Test</h1>
+    <p>This tests if the browser can reach the executive API endpoint.</p>
+
+    <button onclick="testEndpoint()">Test API Endpoint</button>
+
+    <div id="result"></div>
+
+    <script>
+        async function testEndpoint() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+
+            try {
+                const url = 'http://localhost:8000/api/v1/executive/kpis?time_period=last_6_months';
+                console.log('Fetching:', url);
+
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                resultDiv.innerHTML = `
+                    <h2 class="success">✓ SUCCESS</h2>
+                    <p>API endpoint is working correctly!</p>
+                    <h3>Response Data:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <h2 class="error">✗ FAILED</h2>
+                    <p>Error: ${error.message}</p>
+                    <h3>Possible causes:</h3>
+                    <ul>
+                        <li>API server not running on http://localhost:8000</li>
+                        <li>CORS blocking the request (check browser console)</li>
+                        <li>Network connectivity issue</li>
+                        <li>Wrong endpoint URL</li>
+                    </ul>
+                    <p>Check the browser console (F12) for more details.</p>
+                `;
+            }
+        }
+
+        // Auto-test on load
+        window.onload = () => {
+            testEndpoint();
+        };
+    </script>
+</body>
+</html>
