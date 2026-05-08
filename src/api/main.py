@@ -68,8 +68,7 @@ app.include_router(
 )
 app.include_router(
     executive.router,
-    prefix="/api/v1",
-    tags=["Executive"]
+    prefix="/api/v1"
 )
 
 @app.on_event("startup")
