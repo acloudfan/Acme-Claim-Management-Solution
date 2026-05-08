@@ -2895,6 +2895,12 @@ const handleAppealSubmit = async () => {
 
 ### 10.1 Auth Context
 
+**Session Management:**
+- Uses `sessionStorage` instead of `localStorage` for automatic logout when browser closes
+- Authentication tokens are cleared when user closes the browser window/tab
+- Listens to `beforeunload` event to ensure cleanup on window close
+- **Security Rationale**: Prevents unauthorized access if user forgets to logout
+
 ```javascript
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -2907,8 +2913,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Load from localStorage on mount
-    const storedId = localStorage.getItem('customer_id');
+    // Load from sessionStorage on mount (not localStorage)
+    const storedId = sessionStorage.getItem('customer_id');
     if (storedId) {
       setCustomerId(storedId);
       // Fetch customer data
@@ -2916,6 +2922,16 @@ export const AuthProvider = ({ children }) => {
     } else {
       setLoading(false);
     }
+
+    // Auto-logout when window/tab is closed
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem('customer_id');
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
   
   const fetchCustomer = async (id) => {
@@ -2936,13 +2952,14 @@ export const AuthProvider = ({ children }) => {
     // For demo, just use customer_id = 100
     const mockCustomerId = '100';
     
-    localStorage.setItem('customer_id', mockCustomerId);
+    // Store in sessionStorage (cleared when browser closes)
+    sessionStorage.setItem('customer_id', mockCustomerId);
     setCustomerId(mockCustomerId);
     fetchCustomer(mockCustomerId);
   };
   
   const logout = () => {
-    localStorage.removeItem('customer_id');
+    sessionStorage.removeItem('customer_id');
     setCustomerId(null);
     setCustomer(null);
   };

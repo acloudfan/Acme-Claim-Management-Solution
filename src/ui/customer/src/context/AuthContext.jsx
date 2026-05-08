@@ -29,14 +29,24 @@ export const AuthProvider = ({ children }) => {
     // Check customer count on mount
     checkCustomerCount();
 
-    // Load customer_id from localStorage on mount
-    const storedId = localStorage.getItem('customer_id');
+    // Load customer_id from sessionStorage on mount (not localStorage)
+    const storedId = sessionStorage.getItem('customer_id');
     if (storedId) {
       setCustomerId(parseInt(storedId));
       loadCustomer(storedId);
     } else {
       setLoading(false);
     }
+
+    // Auto-logout when window/tab is closed
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem('customer_id');
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   const checkCustomerCount = async () => {
@@ -84,8 +94,8 @@ export const AuthProvider = ({ children }) => {
       throw new Error('Invalid customer selection');
     }
 
-    // Store customer_id in localStorage
-    localStorage.setItem('customer_id', selectedCustomerId.toString());
+    // Store customer_id in sessionStorage (cleared when browser closes)
+    sessionStorage.setItem('customer_id', selectedCustomerId.toString());
     setCustomerId(parseInt(selectedCustomerId));
 
     // Fetch customer data from API
@@ -98,7 +108,7 @@ export const AuthProvider = ({ children }) => {
    * Logout - clear auth state
    */
   const logout = () => {
-    localStorage.removeItem('customer_id');
+    sessionStorage.removeItem('customer_id');
     setCustomerId(null);
     setCustomer(null);
   };

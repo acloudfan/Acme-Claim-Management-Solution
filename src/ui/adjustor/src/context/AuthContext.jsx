@@ -9,7 +9,7 @@ const MOCK_ADJUSTORS = [
   { adjustor_id: 'ADJ-003', name: 'Emily Watson', email: 'emily.watson@acme-insurance.com', role: 'Claims Supervisor' }
 ];
 
-const MOCK_PASSWORD = 'adjustor123';
+const MOCK_PASSWORD = 'password';
 
 export const AuthProvider = ({ children }) => {
   const [adjustorId, setAdjustorId] = useState(null);
@@ -18,12 +18,12 @@ export const AuthProvider = ({ children }) => {
   const [hasAdjustors, setHasAdjustors] = useState(null);
   const [adjustorCount, setAdjustorCount] = useState(0);
 
-  // Load adjustor from localStorage on mount
+  // Load adjustor from sessionStorage on mount (not localStorage)
   useEffect(() => {
     // Check adjustor count on mount
     checkAdjustorCount();
 
-    const storedAdjustorId = localStorage.getItem('adjustor_id');
+    const storedAdjustorId = sessionStorage.getItem('adjustor_id');
     if (storedAdjustorId) {
       const foundAdjustor = MOCK_ADJUSTORS.find(adj => adj.adjustor_id === storedAdjustorId);
       if (foundAdjustor) {
@@ -31,10 +31,20 @@ export const AuthProvider = ({ children }) => {
         setAdjustor(foundAdjustor);
       } else {
         // Invalid stored ID, clear it
-        localStorage.removeItem('adjustor_id');
+        sessionStorage.removeItem('adjustor_id');
       }
     }
     setLoading(false);
+
+    // Auto-logout when window/tab is closed
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem('adjustor_id');
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   const checkAdjustorCount = async () => {
@@ -63,8 +73,8 @@ export const AuthProvider = ({ children }) => {
       throw new Error('Invalid adjustor ID');
     }
 
-    // Store in localStorage
-    localStorage.setItem('adjustor_id', selectedAdjustorId);
+    // Store in sessionStorage (cleared when browser closes)
+    sessionStorage.setItem('adjustor_id', selectedAdjustorId);
 
     // Update state
     setAdjustorId(selectedAdjustorId);
@@ -74,7 +84,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('adjustor_id');
+    sessionStorage.removeItem('adjustor_id');
     setAdjustorId(null);
     setAdjustor(null);
   };

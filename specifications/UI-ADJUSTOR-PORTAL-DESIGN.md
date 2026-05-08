@@ -1844,6 +1844,12 @@ Body:
 
 **Pattern:** React Context API (same pattern as customer portal)
 
+**Session Management:**
+- Uses `sessionStorage` instead of `localStorage` for automatic logout when browser closes
+- Authentication tokens are cleared when user closes the browser window/tab
+- Listens to `beforeunload` event to ensure cleanup on window close
+- **Security Rationale**: Prevents unauthorized access if adjustor forgets to logout at end of workday
+
 ```javascript
 import { createContext, useContext, useState, useEffect } from 'react';
 
@@ -1856,24 +1862,36 @@ const ADJUSTORS = {
   'ADJ-003': { id: 'ADJ-003', name: 'Emily Watson', role: 'Claims Supervisor', email: 'emily.watson@acme-insurance.com' }
 };
 
+const MOCK_PASSWORD = 'password';
+
 export const AuthProvider = ({ children }) => {
   const [adjustorId, setAdjustorId] = useState(null);
   const [adjustor, setAdjustor] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load from localStorage on mount
-    const storedId = localStorage.getItem('adjustor_id');
+    // Load from sessionStorage on mount (not localStorage)
+    const storedId = sessionStorage.getItem('adjustor_id');
     if (storedId && ADJUSTORS[storedId]) {
       setAdjustorId(storedId);
       setAdjustor(ADJUSTORS[storedId]);
     }
     setLoading(false);
+
+    // Auto-logout when window/tab is closed
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem('adjustor_id');
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   const login = async (selectedAdjustorId, password) => {
     // Mock validation
-    if (password !== 'adjustor123') {
+    if (password !== MOCK_PASSWORD) {
       throw new Error('Invalid password');
     }
 
@@ -1881,9 +1899,8 @@ export const AuthProvider = ({ children }) => {
       throw new Error('Invalid adjustor ID');
     }
 
-    // Store in localStorage
-    localStorage.setItem('adjustor_id', selectedAdjustorId);
-    localStorage.setItem('adjustor_name', ADJUSTORS[selectedAdjustorId].name);
+    // Store in sessionStorage (cleared when browser closes)
+    sessionStorage.setItem('adjustor_id', selectedAdjustorId);
 
     // Update state
     setAdjustorId(selectedAdjustorId);
@@ -1891,8 +1908,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('adjustor_id');
-    localStorage.removeItem('adjustor_name');
+    sessionStorage.removeItem('adjustor_id');
     setAdjustorId(null);
     setAdjustor(null);
   };
