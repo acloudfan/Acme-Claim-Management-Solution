@@ -54,7 +54,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 Create a `.env` file in the project root with API keys for at least one provider:
 
-**Option 1: AWS Bedrock (Recommended - Default Provider)**
+**Option 1: AWS Bedrock **
 ```bash
 # AWS Bedrock uses AWS CLI credentials
 AWS_ACCESS_KEY_ID=your_aws_access_key_id
