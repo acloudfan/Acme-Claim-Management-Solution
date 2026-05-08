@@ -11,6 +11,7 @@ This project showcases how AI can streamline insurance claims processing through
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
+- [Dependency Management](#dependency-management)
 - [Configuration](#configuration)
   - [Minimum Setup - Environment Variables](#minimum-setup---environment-variables)
   - [Supported LLM Providers](#supported-llm-providers)
@@ -45,6 +46,20 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Or run the setup script (one-time setup)
 ./scripts/setup_uv.sh
 ```
+
+---
+
+## Dependency Management
+
+This project uses **locked dependencies** for reproducible builds:
+- **NPM**: `package-lock.json` files ensure exact frontend dependency versions
+- **Python**: `uv.lock` file ensures exact backend dependency versions
+
+📖 **See [DEPENDENCY-MANAGEMENT.md](DEPENDENCY-MANAGEMENT.md) for complete guide on:**
+- Locking dependencies with `./scripts/lock-dependencies.sh`
+- Updating dependencies safely
+- CI/CD best practices
+- Troubleshooting lock file issues
 
 ---
 
@@ -185,16 +200,20 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ### 1. Install UI Dependencies (First Time Only)
 
 ```bash
-# From project root - install dependencies for all portals
-./scripts/install-ui-dependencies.sh
-
-# If you encounter issues, use --clean to remove existing node_modules
+# From project root - install dependencies for all portals with automatic fixes
 ./scripts/install-ui-dependencies.sh --clean
 ```
 
-This installs npm packages for all 4 UI portals (customer, adjustor, admin, executive).
+This script:
+- Installs npm packages for all 4 UI portals (customer, adjustor, admin, executive)
+- **Automatically detects and fixes version compatibility issues**:
+  - Downgrades unstable Vite versions (6.x/7.x/8.x → 5.4.21)
+  - Fixes React plugin compatibility (@vitejs/plugin-react 6.x → 5.2.0)
+  - Converts Tailwind v4 to v3 (package.json, postcss.config.js, tailwind.config.js, CSS files)
 
-**Note:** The `start-portals.sh` script will auto-install dependencies if missing, but running this script first ensures a clean installation and helps troubleshoot any issues.
+**Why --clean?** It ensures a fresh installation by removing existing `node_modules` and `package-lock.json` files.
+
+📖 **For detailed portal setup information, see [PORTAL-SETUP-GUIDE.md](PORTAL-SETUP-GUIDE.md)**
 
 ### 2. Start API Server
 

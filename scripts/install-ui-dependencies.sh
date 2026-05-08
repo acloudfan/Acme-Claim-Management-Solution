@@ -5,6 +5,7 @@
 #
 
 set -e  # Exit on error
+set -o pipefail  # Exit on pipe failures
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -57,13 +58,112 @@ for portal_info in "${PORTALS[@]}"; do
         continue
     fi
 
-    cd "$PORTAL_DIR"
+    # Change to portal directory
+    if ! cd "$PORTAL_DIR"; then
+        echo -e "${RED}ERROR: Cannot change to directory: $PORTAL_DIR${NC}"
+        FAILED_PORTALS+=("$portal_name (cannot access directory)")
+        continue
+    fi
 
     # Check if package.json exists
     if [ ! -f "package.json" ]; then
         echo -e "${RED}ERROR: package.json not found in $PORTAL_DIR${NC}"
         FAILED_PORTALS+=("$portal_name (no package.json)")
+        cd "$PROJECT_ROOT"
         continue
+    fi
+
+    # Fix version compatibility issues in package.json
+    echo -e "${YELLOW}  Checking for version compatibility issues...${NC}"
+
+    # Check for Vite version
+    VITE_VERSION=$(grep '"vite"' package.json | grep -oP '\d+\.\d+' | head -1)
+
+    if [ ! -z "$VITE_VERSION" ]; then
+        VITE_MAJOR=$(echo $VITE_VERSION | cut -d. -f1)
+
+        # Fix incompatible @vitejs/plugin-react version
+        if [ "$VITE_MAJOR" -lt 8 ]; then
+            # Vite < 8.x requires @vitejs/plugin-react < 6.x
+            if grep -q '"@vitejs/plugin-react": "\^[6-9]' package.json; then
+                echo -e "${YELLOW}  → Fixing @vitejs/plugin-react version (incompatible with Vite $VITE_VERSION)${NC}"
+                sed -i 's/"@vitejs\/plugin-react": "\^[6-9][^"]*"/"@vitejs\/plugin-react": "^5.2.0"/g' package.json
+            fi
+        fi
+
+        # Fix incompatible Tailwind CSS v4 with Vite 5.x
+        if [ "$VITE_MAJOR" -eq 5 ]; then
+            if grep -q '"tailwindcss": "\^[4-9]' package.json; then
+                echo -e "${YELLOW}  → Fixing Tailwind CSS version (v4+ incompatible with Vite 5.x)${NC}"
+                sed -i 's/"tailwindcss": "\^[4-9][^"]*"/"tailwindcss": "^3.4.19"/g' package.json
+            fi
+
+            # Remove @tailwindcss/postcss if present (only needed for Tailwind v4)
+            if grep -q '"@tailwindcss/postcss"' package.json; then
+                echo -e "${YELLOW}  → Removing @tailwindcss/postcss (not needed with Tailwind v3)${NC}"
+                sed -i '/"@tailwindcss\/postcss":/d' package.json
+            fi
+
+            # Fix postcss.config.js if it uses Tailwind v4 syntax
+            if [ -f "postcss.config.js" ] && grep -q "@tailwindcss/postcss" postcss.config.js; then
+                echo -e "${YELLOW}  → Fixing postcss.config.js (updating to Tailwind v3 syntax)${NC}"
+                sed -i "s/'@tailwindcss\/postcss'/'tailwindcss'/g" postcss.config.js
+                sed -i 's/"@tailwindcss\/postcss"/"tailwindcss"/g' postcss.config.js
+            fi
+
+            # Fix tailwind.config.js if it's using Tailwind v4 empty config
+            if [ -f "tailwind.config.js" ] && grep -q "Tailwind CSS v4" tailwind.config.js; then
+                echo -e "${YELLOW}  → Fixing tailwind.config.js (updating to Tailwind v3 config)${NC}"
+                cat > tailwind.config.js << 'TAILWIND_EOF'
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+TAILWIND_EOF
+            fi
+
+            # Fix CSS files that use Tailwind v4 syntax
+            for css_file in src/index.css src/main.css index.css; do
+                if [ -f "$css_file" ] && grep -q '@import "tailwindcss"' "$css_file"; then
+                    echo -e "${YELLOW}  → Fixing $css_file (converting v4 CSS syntax to v3)${NC}"
+
+                    # Create a backup
+                    cp "$css_file" "${css_file}.v4.bak"
+
+                    # Remove v4 import and @theme block, add v3 directives
+                    sed -i '/^@import "tailwindcss";$/d' "$css_file"
+
+                    # Remove @theme block (everything between @theme { and the closing })
+                    sed -i '/@theme {/,/^}/d' "$css_file"
+
+                    # Add v3 directives at the top
+                    tmpfile=$(mktemp)
+                    {
+                        echo "@tailwind base;"
+                        echo "@tailwind components;"
+                        echo "@tailwind utilities;"
+                        echo ""
+                        cat "$css_file"
+                    } > "$tmpfile"
+                    mv "$tmpfile" "$css_file"
+
+                    echo -e "${YELLOW}     (v4 backup saved as ${css_file}.v4.bak)${NC}"
+                fi
+            done
+        fi
+
+        # Fix Vite version if it's 6.x, 7.x, or 8.x (unstable packaging)
+        if [ "$VITE_MAJOR" -gt 5 ]; then
+            echo -e "${YELLOW}  → Downgrading Vite from $VITE_VERSION to 5.4.21 (stable version)${NC}"
+            sed -i 's/"vite": "\^[6-9][^"]*"/"vite": "^5.4.21"/g' package.json
+        fi
     fi
 
     # Remove existing node_modules if --clean flag is provided
@@ -88,7 +188,7 @@ for portal_info in "${PORTALS[@]}"; do
             if npm install; then
                 if [ -d "node_modules/vite/dist" ]; then
                     echo -e "${GREEN}✓${NC} ${portal_name} portal dependencies installed (after retry)"
-                    ((SUCCESS_COUNT++))
+                    SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
                 else
                     echo -e "${RED}✗${NC} ${portal_name} portal still incomplete after retry"
                     FAILED_PORTALS+=("$portal_name (vite corrupted)")
@@ -99,12 +199,15 @@ for portal_info in "${PORTALS[@]}"; do
             fi
         else
             echo -e "${GREEN}✓${NC} ${portal_name} portal dependencies installed"
-            ((SUCCESS_COUNT++))
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
         fi
     else
         echo -e "${RED}✗${NC} Failed to install ${portal_name} portal dependencies"
         FAILED_PORTALS+=("$portal_name")
     fi
+
+    # Return to project root for next iteration
+    cd "$PROJECT_ROOT"
 
     echo ""
 done

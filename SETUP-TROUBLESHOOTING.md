@@ -33,6 +33,29 @@ If you're experiencing issues, try these steps in order:
 
 ## Common Errors and Solutions
 
+### Error: Portal shows blank screen in browser
+
+**Cause:** This issue was caused by incompatible Vite/React plugin versions (Vite 5.x with @vitejs/plugin-react 6.x). Fixed in current version.
+
+**Solution:**
+```bash
+# Pull latest changes
+git pull
+
+# Clean reinstall dependencies
+./scripts/install-ui-dependencies.sh --clean
+
+# Restart portals
+./scripts/start-portals.sh
+```
+
+**Technical details:** The repository now uses:
+- Vite 5.4.21 (stable)
+- @vitejs/plugin-react 5.2.0 (compatible with Vite 5.x)
+- React 19.2.5
+
+---
+
 ### Error: "Can't load plugin: sqlalchemy.dialects:sqlanywhere"
 
 **Cause:** The `api-config.yaml` file has an incorrect database URL pointing to SQL Anywhere instead of SQLite.
@@ -56,38 +79,35 @@ Save the file and restart the API server.
 
 ### Error: "Cannot find module 'vite/dist/node/cli.js'"
 
-**Cause:** npm dependencies are incomplete or corrupted. The Vite package installed but its dist folder is missing.
+**Cause:** This error should NOT occur with the current repository. All portals use Vite 5.4.21, which is stable and installs correctly.
 
-**Solution 1 - Use the installation script (Recommended):**
+**If you see this error:**
+1. Check your `package.json` files - they should have `"vite": "^5.4.21"` (not 6.x, 7.x, or 8.x)
+2. Make sure you're using Node.js v18 or higher
+3. Clear npm cache and reinstall
+
+**Solution:**
 ```bash
+# Use the installation script (Recommended)
 ./scripts/install-ui-dependencies.sh --clean
+
+# This will:
+# - Remove corrupted node_modules and package-lock.json files
+# - Clear npm cache
+# - Install fresh dependencies with Vite 5.4.21
 ```
 
-**Solution 2 - Manual cleanup:**
+**Manual fix (if script doesn't work):**
 ```bash
-# Go to each portal directory and clean install
-cd src/ui/admin
+# For each portal that has issues
+cd src/ui/admin  # or customer, adjustor, executive
 rm -rf node_modules package-lock.json
-npm install
-cd ../../..
-
-cd src/ui/customer
-rm -rf node_modules package-lock.json
-npm install
-cd ../../..
-
-cd src/ui/adjustor
-rm -rf node_modules package-lock.json
-npm install
-cd ../../..
-
-cd src/ui/executive
-rm -rf node_modules package-lock.json
+npm cache clean --force
 npm install
 cd ../../..
 ```
 
-**Why this happens:** Sometimes npm install completes but doesn't fully extract all package files, especially when there are network interruptions or cache issues.
+**Root cause:** Vite versions 6.x-8.x have npm packaging issues where the dist/node/cli.js file is sometimes not extracted during installation. Vite 5.4.21 is the proven stable version.
 
 ---
 
