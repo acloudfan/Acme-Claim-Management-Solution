@@ -54,23 +54,26 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 Create a `.env` file in the project root with API keys for at least one provider:
 
-**Option 1: AWS Bedrock **
+**Option 1: AWS Bedrock**
 ```bash
 # AWS Bedrock uses AWS CLI credentials
 AWS_ACCESS_KEY_ID=your_aws_access_key_id
 AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
 AWS_DEFAULT_REGION=us-east-1
 ```
+*Default Model: `us.anthropic.claude-sonnet-4-5-20250929-v1:0`*
 
 **Option 2: Anthropic Claude**
 ```bash
 ANTHROPIC_API_KEY=sk-ant-api03-your_key_here
 ```
+*Default Model: `claude-sonnet-4.5-20250929`*
 
 **Option 3: OpenAI**
 ```bash
 OPENAI_API_KEY=sk-your_key_here
 ```
+*Default Model: `gpt-4o`*
 
 ### Quick Setup Steps
 
@@ -89,11 +92,11 @@ OPENAI_API_KEY=sk-your_key_here
 
 ### Supported LLM Providers
 
-| Provider | Default | Required Variables | How to Get Keys |
-|----------|---------|-------------------|-----------------|
-| **AWS Bedrock** | ✅ Yes | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | [AWS Console](https://aws.amazon.com/) → IAM → Access Keys |
-| **Anthropic** | No | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) → API Keys |
-| **OpenAI** | No | `OPENAI_API_KEY` | [OpenAI Platform](https://platform.openai.com/) → API Keys |
+| Provider | Default | Default Model | Required Variables | How to Get Keys |
+|----------|---------|---------------|-------------------|-----------------|
+| **AWS Bedrock** | ✅ Yes | Claude Sonnet 4.5 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | [AWS Console](https://aws.amazon.com/) → IAM → Access Keys |
+| **Anthropic** | No | Claude Sonnet 4.5 | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) → API Keys |
+| **OpenAI** | No | GPT-4o | `OPENAI_API_KEY` | [OpenAI Platform](https://platform.openai.com/) → API Keys |
 
 ### Important Notes
 
