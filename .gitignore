@@ -67,6 +67,9 @@ dmypy.json
 *.sqlite3
 test_insurance.db
 
+# Exception: Include warehouse data for Executive Portal
+!claims-warehouse.db
+
 # Logs
 logs/
 *.log
