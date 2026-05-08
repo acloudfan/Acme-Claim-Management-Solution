@@ -1,243 +1,148 @@
-# ============================================================================
-# Insurance Claims API - Configuration File
-# ============================================================================
-# Copy this file to api-config.yaml and customize for your environment
-# DO NOT commit api-config.yaml with sensitive data (database passwords, etc.)
-
-# API Configuration
 api:
-  title: "Insurance Claims API"
-  version: "v1"
-  debug: true              # Set to false in production
-  host: "0.0.0.0"         # Use "localhost" for local development only
+  title: Insurance Claims API
+  version: v1
+  debug: true
+  host: 0.0.0.0
   port: 8000
-
-# Database Configuration
 database:
-  # SQLite connection (default - works out of the box, perfect for development/testing)
-  url: "sqlite:///./test_insurance.db"
-
-  # Alternative: SQL Anywhere (enterprise database)
-  # Requires: uv pip install sqlalchemy-sqlanywhere
-  # Format: sqlanywhere://user:password@host:port/database
-  # Example: url: "sqlanywhere://user:password@localhost:2638/insurance_db"
-
-  pool_size: 5            # Connection pool size
-  max_overflow: 10        # Max overflow connections
-  echo: false             # Set to true to log all SQL queries (debug only)
-
-# Image Storage Configuration
+  url: sqlite:///./test_insurance.db
+  pool_size: 5
+  max_overflow: 10
+  echo: false
 storage:
-  # Root directory for storing claim images
-  # Structure: {images_root_folder}/{claim_id}/{filename}
-  images_root_folder: "uploads"
-
-  # File upload limits
+  images_root_folder: uploads
   max_upload_size_mb: 10
   allowed_image_types:
-    - "jpg"
-    - "jpeg"
-    - "png"
-    - "heic"
+  - jpg
+  - jpeg
+  - png
+  - heic
   max_images_per_claim: 20
-
-# AI and State Machine Configuration
 ai:
-  # Path to Standard Operating Procedures (SOP) document
-  # Contains instructions for AI agent decision-making
-  sop_claims_document: "policies/damage_triage.md"
-
-  # Path to claims rules YAML file
-  # Contains all business rules and thresholds
-  claims_rules_yaml: "policies/rules.yaml"
-
-  # Inline thresholds (can be overridden by claims_rules_yaml)
+  yolo:
+    model_source: huggingface
+    model_path: vineetsarpal/yolov11n-car-damage
+    confidence_threshold: 0.25
+    device: cpu
+    save_annotated_images: true
+    annotated_image_prefix: BB-
+  sop_claims_document: policies/damage_triage.md
+  claims_rules_yaml: policies/rules.yaml
   confidence:
-    high_threshold: 0.55   # Above: auto-present to customer
-    low_threshold: 0.35    # Below: route to traditional
-
+    high_threshold: 0.55
+    low_threshold: 0.35
   fraud:
-    risk_threshold: 0.1    # Above: flag for human review
-
+    risk_threshold: 0.1
   estimate:
-    human_review_threshold: 5000.00  # Dollar amount threshold
-
-# Logging Configuration
+    human_review_threshold: 5000
 logging:
-  level: "INFO"           # DEBUG, INFO, WARNING, ERROR, CRITICAL
-  file: "logs/api.log"
-  max_bytes: 10485760     # 10MB per log file
-  backup_count: 5         # Keep 5 backup files
-  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
-
-# CORS Configuration (Cross-Origin Resource Sharing)
+  level: INFO
+  file: logs/api.log
+  max_bytes: 10485760
+  backup_count: 5
+  format: '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s'
 cors:
   allow_origins:
-  - http://localhost:5173 # Customer portal
-  - http://localhost:5174 # Adjustor portal
-  - http://localhost:5170 # Admin portal
-  - http://localhost:5176 # Executive portal
+  - http://localhost:5173
+  - http://localhost:5174
+  - http://localhost:5170
+  - http://localhost:5176
   allow_credentials: false
-  
   allow_methods:
-    - "*"
+  - '*'
   allow_headers:
-    - "*"
-
-# LLM and Agent Configuration
+  - '*'
 llm:
-  default_provider: "bedrock"  # Options: anthropic, openai, bedrock
-  default_vision_model: "bedrock"  # Vision model for image analysis (anthropic, openai, bedrock)
-
+  default_provider: bedrock
+  default_vision_model: bedrock
   providers:
     anthropic:
       enabled: false
-      api_key_env: "ANTHROPIC_API_KEY"  # Read from environment (.env file)
-      base_url: "https://api.anthropic.com"
-      default_model: "claude-sonnet-4.5-20250929"
+      api_key_env: ANTHROPIC_API_KEY
+      base_url: https://api.anthropic.com
+      default_model: claude-sonnet-4.5-20250929
       timeout_s: 60
       max_tokens: 4096
       temperature: 0.2
-
     openai:
-      enabled: false
-      api_key_env: "OPENAI_API_KEY"  # Read from environment (.env file)
-      base_url: "https://api.openai.com/v1"
-      default_model: "gpt-4-turbo"
+      enabled: true
+      api_key_env: OPENAI_API_KEY
+      base_url: https://api.openai.com/v1
+      default_model: gpt-4o
       timeout_s: 60
       max_tokens: 4096
       temperature: 0.2
-
     bedrock:
       enabled: true
-      aws_region: "us-east-1"
-      # Authentication: uses boto3 default credential chain
-      # RECOMMENDED: Configure credentials using 'aws configure'
-      #   This creates ~/.aws/credentials with your access keys
-      # ALTERNATIVE: Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in .env
-      # boto3 checks credentials in order: env vars → ~/.aws/credentials → IAM role
-      default_model: "anthropic.claude-3-5-sonnet-20241022-v2:0"
-      # Available models:
-      # - anthropic.claude-3-5-sonnet-20241022-v2:0 (Sonnet 3.5 v2)
-      # - anthropic.claude-3-opus-20240229-v1:0 (Opus 3)
-      # - anthropic.claude-3-sonnet-20240229-v1:0 (Sonnet 3)
-      # - anthropic.claude-3-haiku-20240307-v1:0 (Haiku 3)
-      # - amazon.titan-text-express-v1
-      # - meta.llama3-70b-instruct-v1:0
+      aws_region: us-east-1
+      default_model: us.anthropic.claude-sonnet-4-5-20250929-v1:0
       timeout_s: 60
       max_tokens: 4096
       temperature: 0.2
-
 agents:
   supervisor:
     enabled: true
     parallel_execution: true
     timeout_s: 30
-
   fraud_detector:
-    enabled: false
-    model_override: null  # Use default vision model for vision tasks, default provider for text
-
-    # Final risk decision thresholds (after all phases complete)
-    high_risk_threshold: 0.7          # ≥0.7: HIGH RISK - Recommend REJECT
-    medium_risk_threshold: 0.4        # 0.4-0.7: MEDIUM RISK - Recommend human review
-    # <0.4: LOW RISK - Recommend APPROVE
-
-    # Phase 1: Vision-based fraud detection
+    enabled: true
+    model_override: null
+    skip_phase3_high_threshold: 0.8
+    skip_phase3_low_threshold: 0.3
+    high_risk_threshold: 0.7
+    medium_risk_threshold: 0.4
     phase1_vision:
       color_verification:
-        enabled: true                 # Enable/disable color mismatch detection
-        weight: 0.25                  # Weight when enabled (0 risk if disabled)
+        enabled: true
+        weight: 0.25
       make_model_verification:
-        enabled: true                 # Enable/disable make/model verification
-        weight: 0.30
+        enabled: true
+        weight: 0.3
       ai_generated_detection:
-        enabled: true                 # Enable/disable AI-generated image detection
+        enabled: true
         weight: 0.25
       manipulation_detection:
-        enabled: true                 # Enable/disable image manipulation detection
-        weight: 0.20
-
-    # Phase 2: Static data validation
+        enabled: false
+        weight: 0.2
     phase2_static:
-      vin_format_validation:
-        enabled: false                # TODO: Not implemented yet
-        weight: 0.15
-      vin_year_consistency:
-        enabled: false                # TODO: Not implemented yet
-        weight: 0.25
-      claim_frequency:
-        enabled: false                # TODO: Not implemented yet
-        weight: 0.30
-      claim_velocity:
-        enabled: false                # TODO: Not implemented yet
-        weight: 0.30
-
-    # Phase 3: Behavioral pattern analysis
+      vin_format_weight: 0.15
+      vin_year_weight: 0.25
+      claim_frequency_weight: 0.3
+      claim_velocity_weight: 0.3
     phase3_behavioral:
-      enabled: true                   # Master toggle for Phase 3
-      always_run: false               # true=always run; false=only for borderline cases
-      weight: 0.40                    # Weight of behavioral analysis in final score
-
-      # Thresholds for borderline detection (only used when always_run=false)
-      skip_phase3_high_threshold: 0.8 # ≥0.8: Clear high risk, skip Phase 3
-      skip_phase3_low_threshold: 0.3  # <0.3: Clear low risk, skip Phase 3
-      # Range 0.3-0.8: Borderline, run Phase 3 for deeper analysis
-
+      enabled: true
+      weight: 0.4
   risk_estimator:
     enabled: false
-    deviation_threshold: 0.10  # 10% deviation
-
-  # NOTE: ai_image_detector config is REDUNDANT and not used
-  # AI image detection is controlled via: agents.fraud_detector.phase1_vision.ai_generated_detection.enabled
-  # ai_image_detector:
-  #   enabled: true
-  #   probability_threshold: 0.6
-
-  # NOTE: damage_analyzer NOT IMPLEMENTED YET - Coming Soon
-  # Agent will refine YOLO severity scores, estimate internal damage, recommend repair strategies
-  # damage_analyzer:
-  #   enabled: false
-  #   enhance_all_damages: false
-
+    deviation_threshold: 0.1
+  damage_analyzer:
+    enabled: true
+    enhance_all_damages: false
   chatbot:
     enabled: true
-    model_override: null  # Use default provider model
+    model_override: claude-sonnet-4.5-20250929
     max_conversation_turns: 50
     tool_use_enabled: true
-    knowledge_base_path: "data/faq_knowledge_base.json"
-
+    knowledge_base_path: data/faq_knowledge_base.json
   estimate_explainer:
     enabled: true
-
   shop_recommender:
-    enabled: false  # Not implemented yet
-    shops_database_path: "data/repair_shops.json"
+    enabled: false
+    shops_database_path: data/repair_shops.json
     max_recommendations: 3
-
 tracking:
   usage_logging_enabled: true
   log_to_database: true
-
-  # Cost estimates (USD per 1M tokens)
   cost_estimates:
-    anthropic_claude_sonnet_input: 3.00
-    anthropic_claude_sonnet_output: 15.00
-    anthropic_claude_opus_input: 15.00
-    anthropic_claude_opus_output: 75.00
-    openai_gpt4_turbo_input: 10.00
-    openai_gpt4_turbo_output: 30.00
-    bedrock_claude_3_sonnet_input: 3.00
-    bedrock_claude_3_sonnet_output: 15.00
-    bedrock_claude_3_opus_input: 15.00
-    bedrock_claude_3_opus_output: 75.00
+    anthropic_claude_sonnet_input: 3
+    anthropic_claude_sonnet_output: 15
+    anthropic_claude_opus_input: 15
+    anthropic_claude_opus_output: 75
+    openai_gpt4_turbo_input: 10
+    openai_gpt4_turbo_output: 30
+    bedrock_claude_3_sonnet_input: 3
+    bedrock_claude_3_sonnet_output: 15
+    bedrock_claude_3_opus_input: 15
+    bedrock_claude_3_opus_output: 75
     bedrock_claude_3_haiku_input: 0.25
     bedrock_claude_3_haiku_output: 1.25
-
-# ============================================================================
-# Notes:
-# - This is a PROTOTYPE configuration with NO SECURITY
-# - Do NOT use in production
-# - All endpoints are publicly accessible
-# - Use only in isolated development/demo environments
-# ============================================================================
