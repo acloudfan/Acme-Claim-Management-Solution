@@ -1,6 +1,5 @@
 # Objective
-* Refer to the file "SE Take Home Assignment.pdf"
-* Focus will be on building the demo
+* Focus will be on building a demonstration of AI-based auto claim adjudication
 
 # High level capabilities
 * Customer portal for managing claims
