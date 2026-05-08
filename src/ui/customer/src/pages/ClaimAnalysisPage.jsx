@@ -25,7 +25,16 @@ const ClaimAnalysisPage = () => {
   const [analysisSteps, setAnalysisSteps] = useState([
     { id: 1, label: 'Images uploaded', status: 'completed' },
     { id: 2, label: 'Running damage detection', status: 'in_progress' },
-    { id: 3, label: 'Calculating repair costs', status: 'pending' },
+    {
+      id: 3,
+      label: 'Calculating repair costs',
+      status: 'pending',
+      subSteps: [
+        { id: 3.1, label: 'Validating policy information', status: 'pending' },
+        { id: 3.2, label: 'Checking the vehicle information', status: 'pending' },
+        { id: 3.3, label: 'Conducting overall claim assessment', status: 'pending' }
+      ]
+    },
     { id: 4, label: 'Generating estimate report', status: 'pending' },
   ]);
 
@@ -75,8 +84,25 @@ const ClaimAnalysisPage = () => {
       // Submit handles: fraud detection + claim state transition
       console.log('Damages found, submitting claim (will run fraud detection)...');
       updateStepStatus(2, 'completed'); // Damage detection already done in Phase 4
-      updateStepStatus(3, 'in_progress'); // Fraud detection + estimate
+      updateStepStatus(3, 'in_progress'); // Start step 3 with sub-steps
 
+      // STEP 3 SUB-STEPS: Simulate 3 validation steps with 7-second delays each
+      // Sub-step 3.1: Validating policy information (0-7s)
+      updateSubStepStatus(3, 3.1, 'in_progress');
+      await new Promise(resolve => setTimeout(resolve, 7000)); // 7 second delay
+      updateSubStepStatus(3, 3.1, 'completed');
+
+      // Sub-step 3.2: Checking the vehicle information (7-14s)
+      updateSubStepStatus(3, 3.2, 'in_progress');
+      await new Promise(resolve => setTimeout(resolve, 7000)); // 7 second delay
+      updateSubStepStatus(3, 3.2, 'completed');
+
+      // Sub-step 3.3: Conducting overall claim assessment (14-21s)
+      updateSubStepStatus(3, 3.3, 'in_progress');
+      await new Promise(resolve => setTimeout(resolve, 7000)); // 7 second delay
+      updateSubStepStatus(3, 3.3, 'completed');
+
+      // All sub-steps complete, now make actual API call
       await submitClaim(customerId, claimId);
       console.log('Claim submitted - fraud detection completed, estimate ready');
 
@@ -159,12 +185,37 @@ const ClaimAnalysisPage = () => {
     );
   };
 
+  const updateSubStepStatus = (parentStepId, subStepId, status) => {
+    setAnalysisSteps((prev) =>
+      prev.map((step) => {
+        if (step.id === parentStepId && step.subSteps) {
+          return {
+            ...step,
+            subSteps: step.subSteps.map((subStep) =>
+              subStep.id === subStepId ? { ...subStep, status } : subStep
+            )
+          };
+        }
+        return step;
+      })
+    );
+  };
+
   const handleRetry = () => {
     setError('');
     setAnalysisSteps([
       { id: 1, label: 'Images uploaded', status: 'completed' },
       { id: 2, label: 'Running damage detection', status: 'in_progress' },
-      { id: 3, label: 'Calculating repair costs', status: 'pending' },
+      {
+        id: 3,
+        label: 'Calculating repair costs',
+        status: 'pending',
+        subSteps: [
+          { id: 3.1, label: 'Validating policy information', status: 'pending' },
+          { id: 3.2, label: 'Checking the vehicle information', status: 'pending' },
+          { id: 3.3, label: 'Conducting overall claim assessment', status: 'pending' }
+        ]
+      },
       { id: 4, label: 'Generating estimate report', status: 'pending' },
     ]);
     submitAndAnalyze();
@@ -338,19 +389,45 @@ const ClaimAnalysisPage = () => {
             </h3>
             <div className="space-y-4">
               {analysisSteps.map((step) => (
-                <div key={step.id} className="flex items-center gap-3">
-                  {getStepIcon(step.status)}
-                  <span
-                    className={`text-base ${
-                      step.status === 'completed'
-                        ? 'text-green-700 font-medium'
-                        : step.status === 'in_progress'
-                        ? 'text-primary-700 font-medium'
-                        : 'text-gray-500'
-                    }`}
-                  >
-                    {step.label}
-                  </span>
+                <div key={step.id}>
+                  {/* Main Step */}
+                  <div className="flex items-center gap-3">
+                    {getStepIcon(step.status)}
+                    <span
+                      className={`text-base ${
+                        step.status === 'completed'
+                          ? 'text-green-700 font-medium'
+                          : step.status === 'in_progress'
+                          ? 'text-primary-700 font-medium'
+                          : 'text-gray-500'
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                  </div>
+
+                  {/* Sub-steps (if they exist and parent is in_progress or completed) */}
+                  {step.subSteps && (step.status === 'in_progress' || step.status === 'completed') && (
+                    <div className="ml-8 mt-2 space-y-2">
+                      {step.subSteps.map((subStep) => (
+                        <div key={subStep.id} className="flex items-center gap-3">
+                          <span className="text-gray-400">├─</span>
+                          {getStepIcon(subStep.status)}
+                          <span
+                            className={`text-sm ${
+                              subStep.status === 'completed'
+                                ? 'text-green-700 font-medium'
+                                : subStep.status === 'in_progress'
+                                ? 'text-primary-700 font-medium'
+                                : 'text-gray-500'
+                            }`}
+                          >
+                            {subStep.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

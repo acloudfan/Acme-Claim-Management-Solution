@@ -152,7 +152,7 @@ const LoginPage = () => {
             <p>Version 1.0.0</p>
             <p className="mt-1">AI-Powered Claims Adjustor Portal</p>
             {hasAdjustors !== false && (
-              <p className="mt-3 text-gray-400">Demo: Use password "adjustor123"</p>
+              <p className="mt-3 text-gray-400">Demo: Use password "password"</p>
             )}
           </div>
         </div>

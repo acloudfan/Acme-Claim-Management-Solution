@@ -303,7 +303,7 @@ const ImageUploadPage = () => {
 
         {/* Mobile QR Code Section */}
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
             <div className="flex-1">
               <h3 className="text-base font-semibold text-blue-900 mb-2">
                 📱 Continue on Mobile Device
@@ -327,16 +327,16 @@ const ImageUploadPage = () => {
               <p className="text-xs text-center text-blue-600 mt-1">Scan to continue</p>
             </div>
           </div>
-        </div>
 
-        {/* Sample Images Info */}
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <h3 className="text-sm font-semibold text-green-900 mb-1">
-            💡 Test Images Available
-          </h3>
-          <p className="text-sm text-green-800">
-            You can use sample damaged car images provided in the <code className="bg-green-100 px-1.5 py-0.5 rounded text-xs font-mono">images/</code> folder under project root for testing this feature.
-          </p>
+          {/* Sample Images Info - Inside QR Code Box */}
+          <div className="pt-4 border-t border-blue-200">
+            <h3 className="text-sm font-semibold text-blue-900 mb-1">
+              💡 Test Images Available
+            </h3>
+            <p className="text-sm text-blue-800">
+              You can use sample damaged car images provided in the <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">images/</code> folder under project root for testing this feature.
+            </p>
+          </div>
         </div>
 
         {/* Drag & Drop Zone - 50% smaller */}

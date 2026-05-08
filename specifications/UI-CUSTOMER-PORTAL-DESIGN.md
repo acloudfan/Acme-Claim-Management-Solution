@@ -1044,7 +1044,7 @@ navigate(`/claims/${claimId}/submit`);
 2. Aggregate estimate generation (combines all individual damage detections)
 3. Status polling until estimate is finalized
 
-**Layout (Analyzing):**
+**Layout (Analyzing - with Step 3 Sub-Steps):**
 ```
 ┌──────────────────────────────────────────────────┐
 │ Analyzing Your Claim...                          │
@@ -1061,17 +1061,23 @@ navigate(`/claims/${claimId}/submit`);
 │ │                                            │  │
 │ │   This typically takes 10-30 seconds...    │  │
 │ │                                            │  │
-│ │        [Animated spinner/progress]         │  │
+│ │        ANALYSIS PROGRESS                   │  │
 │ │                                            │  │
-│ │   ✅ Images uploaded (2)                   │  │
-│ │   🔄 Running damage detection...           │  │
-│ │   ⏳ Calculating repair costs...           │  │
-│ │   ⏳ Generating estimate report...         │  │
+│ │   ✅ Images uploaded                       │  │
+│ │   ✅ Running damage detection              │  │
+│ │   🔄 Calculating repair costs              │  │
+│ │      ├─ ✅ Validating policy information   │  │
+│ │      ├─ 🔄 Checking vehicle information    │  │
+│ │      └─ ⏳ Conducting claim assessment     │  │
+│ │   ⏳ Generating estimate report            │  │
 │ │                                            │  │
 │ └────────────────────────────────────────────┘  │
 │                                                  │
 └──────────────────────────────────────────────────┘
 ```
+
+**Note:** When step 3 "Calculating repair costs" becomes active, it expands 
+to show 3 indented sub-steps with 7-second delays each (21 seconds total).
 
 **Implementation Details:**
 
@@ -1137,22 +1143,32 @@ useEffect(() => {
 }, [claimId]);
 ```
 
-**Progress States:**
+**Progress States (with Step 3 Sub-Steps):**
 ```javascript
 const [analysisSteps, setAnalysisSteps] = useState([
-  { label: 'Images uploaded', status: 'completed' },
-  { label: 'Running damage detection', status: 'completed' }, // Already done in Step 2!
-  { label: 'Aggregating repair costs', status: 'in_progress' },
-  { label: 'Generating estimate report', status: 'pending' }
+  { id: 1, label: 'Images uploaded', status: 'completed' },
+  { id: 2, label: 'Running damage detection', status: 'in_progress' },
+  { id: 3, label: 'Calculating repair costs', status: 'pending', subSteps: [
+    { id: 3.1, label: 'Validating policy information', status: 'pending' },
+    { id: 3.2, label: 'Checking the vehicle information', status: 'pending' },
+    { id: 3.3, label: 'Conducting overall claim assessment', status: 'pending' }
+  ]},
+  { id: 4, label: 'Generating estimate report', status: 'pending' }
 ]);
 
-// Note: Damage detection ALREADY happened during image upload (Step 2)
-// This page only aggregates the detections into a final estimate
-
-// Update steps based on backend status
-// When estimate API called: mark step 3 as in_progress
-// When status = loss_estimated_ai: mark all as completed
-// Auto-redirect to Claim Detail Page
+// Step 3 Simulation:
+// When step 3 becomes active, show nested sub-steps with 7-second delays:
+// 0-7s:   Sub-step 3.1 (Validating policy information)
+// 7-14s:  Sub-step 3.2 (Checking the vehicle information)
+// 14-21s: Sub-step 3.3 (Conducting overall claim assessment)
+// 21s+:   Mark step 3 complete, proceed to step 4
+//
+// Implementation:
+// 1. Steps 1-2: Show as normal (completed/in_progress)
+// 2. Step 3: When active, expand to show 3 indented sub-steps
+// 3. Each sub-step processes with 7-second delay (21 seconds total)
+// 4. After all sub-steps complete: mark step 3 complete
+// 5. Step 4: Proceeds as normal after step 3
 ```
 
 **User Experience:**
