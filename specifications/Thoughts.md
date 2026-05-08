@@ -331,18 +331,20 @@ The idea of this Portal is to provide the "human reviewer" capability to review 
     * Ask the user to restart the user to either manually restart the API server or automatically restart API the server
 
 
-* An admin front-end for (Refer: policies sub folder for example)
-    - manage the system rules such as auto-payment thresholds, human-review, human-handover etc
-    - manage the SOP documents
-    - 
-* A business dashboard front-end for
-    - show raw data with NLP query interface, user can generate reports
+### Business Intelligence Dashboard (executives & insurance ops)
+* this would require a separate table (that will represent a warehouse)
+* The front-end will be driven by this sample warehouse table (or 2)
+* A business dashboard front-end
+    - show raw data with NLP query interface, user can generate reports with rich graphs
+        - A drop down box will have some common queries
         - "how many claims were processed in Q1 that required human feedback?"
         - "how many claim estimates needed adjustment during repairs?"
     - Business KPI dashboard
         - Efficiency
             - Auto-Adjudication Rate: The percentage of claims processed entirely by the system without manual intervention.
             - Claim Cycle Time: The average number of days from when the First Notice of Loss (FNOL) is received to when the claim is settled or closed.
+            - First Contact Resolution (FCR) Rate: % of claims resolved within the first call or within 24 hours of FNOL.
+            - Claims per Adjuster (Active Inventory): Number of open claims per full-time adjuster.
         - Accuracy
             - Claim Leakage: Financial loss due to preventable overpayments, missed subrogation opportunities, or duplicate payments.
             - Cost per Claim: The total operational cost (labor, technology, and admin) to process a single claim from start to finish.
@@ -351,6 +353,27 @@ The idea of this Portal is to provide the "human reviewer" capability to review 
             - Appeal/Dispute Rate: The percentage of automated decisions that are challenged by policyholders; a high rate may indicate issues with automation logic.
             - Overturn Rate: The frequency with which manual reviews override or reverse an initial automated decision.
             - Customer Satisfaction (CSAT/NPS): Scores derived from policyholder feedback that measure their experience with the speed and transparency of the adjudication process.
+* KPI
+    * We want to prove that auto insurance claim using AI has reduced the cycle time & the cost 
+    * This dashboard will provide a historical-perspective of how the Business KPI have improved over time (Avg. Cycle Time, FCR, Cost per claim, CSAT/NPS)
+    * For cost : saving will be a factor of 0.9 if customer accepted the AI generated estimate without appeal, 0.8 if customer appealed and accepted the revised human reviewed estimate
+    * For accuracy : we want to show that the deviation is +/- 10% tolerance and it can be changed. This will be calculated checking the difference between estimated and actual
+
+* Synthetic data
+    * The simulated warehouse will be a separate SQLite database (claims-warehouse.db)
+    * The structure of the warehose database will be decided based on the KPI we will finalize
+    * The synthetic data will be generated for roughly 200 claims representing data for 1 quarter (scaled down to 1% for demo purposes)
+        * The actual saving will be calculated based on extrapolation (200 x 100 = 2000o claims/quarter )
+
+* UI
+    * UI MUST used appropriate graphs, charts to show the reports
+    * These dashboards need to be interactive e.g., time interval may be changed, chart types may be changed etc.
+
+
+    
+
+
+
 * Technical evaluation dashboard front-end
     - Damage assessment accuracy per damage type (part)
     - Internal damage assessment accuracy

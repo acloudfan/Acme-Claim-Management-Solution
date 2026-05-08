@@ -13,7 +13,7 @@ auth:
 portal_links:
   customer_portal_url: "http://localhost:5173"
   adjustor_portal_url: "http://localhost:5174"
-  executive_portal_url: null  # Not implemented yet
+  executive_portal_url: "http://localhost:5176"  # Executive Portal now available!
 
 features:
   enable_backup_restore: true

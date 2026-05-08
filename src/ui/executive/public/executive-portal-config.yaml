@@ -1,0 +1,41 @@
+# Executive Portal Configuration
+# This file is loaded by the frontend (not the backend API)
+
+api:
+  base_url: "http://localhost:8000/api/v1"
+  timeout: 30000  # 30 seconds
+
+auth:
+  # No authentication required for prototype
+  require_login: false
+  default_executive_id: "exec_001"
+
+portal_links:
+  customer_portal_url: "http://localhost:5173"
+  adjustor_portal_url: "http://localhost:5174"
+  admin_portal_url: "http://localhost:5170"
+
+dashboard:
+  default_time_period: "last_quarter"
+  refresh_interval: 300000  # 5 minutes (disabled by default)
+  auto_refresh: false
+
+features:
+  enable_export: true
+  enable_drill_down: true
+  enable_nlp_queries: false  # MVP: Preset queries only
+  enable_custom_date_range: true
+
+kpis:
+  cycle_time:
+    target: 3.5
+    unit: "days"
+  auto_adjudication_rate:
+    target: 70.0
+    unit: "percent"
+  cost_per_claim:
+    target: 3500.0
+    unit: "dollars"
+  fraud_detection_rate:
+    target: 85.0
+    unit: "percent"

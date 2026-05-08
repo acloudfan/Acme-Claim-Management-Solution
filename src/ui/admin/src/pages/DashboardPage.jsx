@@ -166,7 +166,7 @@ const DashboardPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">ACME Claims : Admin Portal</h1>
+              <h1 className="text-2xl font-bold text-gray-900">ACME Insurance : Admin Portal</h1>
               <p className="text-sm text-gray-600 mt-1">
                 Manage the (a) Business rules applied to the AI Agents (b) Technical parameters such as Vision models, Model providers etc.
               </p>
@@ -461,10 +461,11 @@ const DashboardPage = () => {
 
                       <ConfigField
                         label="Manipulation Detection"
-                        description={FIELD_DESCRIPTIONS['agents.fraud_detector.phase1_vision.manipulation_detection.enabled']}
-                        value={getNestedValue(editedConfig, 'agents.fraud_detector.phase1_vision.manipulation_detection.enabled')}
-                        onChange={(val) => handleFieldChange('agents.fraud_detector.phase1_vision.manipulation_detection.enabled', val)}
+                        description="Detect photo editing/manipulation with traditional image analysis tools (coming soon)"
+                        value={false}
+                        onChange={() => {}}
                         variant="checkbox"
+                        disabled={true}
                       />
                     </ConfigSubsection>
                   )}
@@ -542,12 +543,15 @@ const DashboardPage = () => {
                   </Button>
 
                   <Button
+                    onClick={() => openPortal(portalConfig.portal_links.executive_portal_url)}
                     variant="secondary"
-                    disabled
-                    className="w-full justify-start opacity-50"
+                    className="w-full justify-start"
+                    disabled={!portalConfig.portal_links.executive_portal_url}
                   >
                     📊 Executive Portal
-                    <span className="ml-2 text-xs">(Coming Soon)</span>
+                    {!portalConfig.portal_links.executive_portal_url && (
+                      <span className="ml-2 text-xs">(Coming Soon)</span>
+                    )}
                   </Button>
                 </div>
 
@@ -603,12 +607,12 @@ const DashboardPage = () => {
                     </div>
                   </div>
 
-                  {/* Scenario 3: Fraud Detection */}
+                  {/* Scenario 3: Fraud Detection - Make Mismatch */}
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                     <div className="flex items-start gap-2">
                       <span className="text-lg">🚨</span>
                       <div>
-                        <h4 className="font-semibold text-red-900 mb-1">Fraud Detection</h4>
+                        <h4 className="font-semibold text-red-900 mb-1">Fraud - Make Mismatch</h4>
                         <p className="text-red-800 text-xs leading-relaxed">
                           <strong>Bob Johnson</strong> owns a <strong>red Chevy Silverado 2012</strong>. He files a claim and uploads an image of a damaged <strong>red Ford F-150</strong>.
                         </p>
@@ -623,6 +627,31 @@ const DashboardPage = () => {
                           <p className="text-xs text-red-800">
                             Switch OFF fraud detection in Admin Config and try again — claim will be auto-approved!
                             This demonstrates the fraud detection toggle.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Scenario 4: Fraud Detection - AI Generated Image */}
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg">🎨</span>
+                      <div>
+                        <h4 className="font-semibold text-red-900 mb-1">Fraud - AI Generated Damage</h4>
+                        <p className="text-red-800 text-xs leading-relaxed">
+                          <strong>Alice Williams</strong> owns a <strong>black Honda Accord 2022</strong>. She generates an AI image using her car's original photo, adding fake damage with an image model.
+                        </p>
+                        <ul className="mt-2 space-y-1 text-red-700 text-xs">
+                          <li>• VLM analyzes images for AI generation artifacts</li>
+                          <li>• Detects inconsistencies in lighting, textures, and damage patterns</li>
+                          <li>• Flagged for fraud review with detailed analysis</li>
+                          <li>• Routed to adjustor with AI detection signals</li>
+                        </ul>
+                        <div className="mt-3 p-2 bg-red-100 border border-red-300 rounded">
+                          <p className="text-xs font-semibold text-red-900 mb-1">🔬 Detection Method:</p>
+                          <p className="text-xs text-red-800">
+                            Demo uses Vision Language Model (VLM) for AI generation analysis. Production systems combine VLM with static image forensics tools (metadata analysis, pixel-level artifact detection) for comprehensive fraud detection.
                           </p>
                         </div>
                       </div>

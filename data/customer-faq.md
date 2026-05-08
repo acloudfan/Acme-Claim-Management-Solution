@@ -3,7 +3,7 @@
 ## Claims Process
 
 ### How long does it take to process a claim?
-Most claims are processed within 24-48 hours. If your claim requires human review, it may take 3-5 business days.
+Most claims with AI estimates are processed immediately - you'll receive your estimate within minutes of submitting your photos. If your claim requires human review or has fraud signals detected, it may take 2-3 business days for an adjustor to review.
 
 **Keywords:** processing time, how long, duration, wait time
 
@@ -18,12 +18,12 @@ Yes! You can check your claim status anytime through your customer portal or by 
 **Keywords:** track claim, claim status, check status, where is my claim
 
 ### What happens after I submit photos?
-Our AI system analyzes your photos to detect damage and estimate repair costs. You'll receive a decision within 24-48 hours.
+Our AI system analyzes your photos in real-time using YOLO damage detection technology. As you upload each image, we automatically detect visible damage. Once you submit your claim, our AI generates an instant repair estimate. If everything looks good, you can accept the estimate and proceed with repairs immediately. If additional review is needed, we'll route your claim to a human adjustor.
 
-**Keywords:** after submission, next steps, what happens next
+**Keywords:** after submission, next steps, what happens next, AI analysis, YOLO
 
 ### Can I add more photos after submitting?
-Yes! If you need to add more photos, you can upload them from your claim detail page. This may restart the review process.
+Yes! You can add more photos while uploading before final submission. Each new photo is automatically analyzed by our AI damage detection system. If you've already submitted your claim and it's in draft status, you can go back and add more photos. For approved or under-review claims, please contact an adjustor through the appeal process.
 
 **Keywords:** add photos, more pictures, additional images
 
@@ -61,12 +61,12 @@ Yes! You can appeal your estimate, and a human adjustor will review it within 2-
 ## Appeals
 
 ### What happens if I appeal my estimate?
-If you appeal, a human adjustor will review your claim within 2-3 business days. They may adjust the estimate or request additional photos.
+If you appeal, your claim is immediately routed to a human adjustor for manual review. The adjustor will review all your photos, damage details, and your appeal reason. They can add manual damage assessments, adjust severity ratings, and revise the estimate. You'll receive a response within 2-3 business days.
 
 **Keywords:** appeal, dispute, disagree, not satisfied
 
 ### How do I submit an appeal?
-Click the "Appeal Decision" button on your claim detail page and provide your reason for the appeal. You can also upload additional photos or documentation.
+On your claim detail page, click the "Appeal Decision" button. Provide your reason for the appeal - for example, if you believe damage is more severe than estimated, or if internal damage (like radiator or frame damage) wasn't fully captured. The appeal immediately routes your claim to a human adjustor for review.
 
 **Keywords:** submit appeal, appeal process, how to appeal, file appeal
 
@@ -162,7 +162,7 @@ If the final repair cost exceeds our estimate, contact us immediately. We may ne
 ## Account and Portal
 
 ### How do I reset my password?
-Click "Forgot Password" on the login page and follow the instructions. You'll receive a password reset link via email.
+For this demo system, use the password "password" for all customer accounts. In a production system, you would click "Forgot Password" on the login page and receive a password reset link via email.
 
 **Keywords:** reset password, forgot password, change password
 
@@ -178,6 +178,25 @@ Your policy documents are available in the "Documents" section of your customer 
 
 ---
 
+## Fraud Detection
+
+### What fraud detection measures do you use?
+Our system uses advanced AI technology to detect potential fraud, including: vehicle make/model verification (ensuring the damaged vehicle matches your registered vehicle), color verification, AI-generated image detection (using Vision Language Models to identify artificially created or manipulated damage photos), and pattern analysis for suspicious claims. These measures protect honest customers and help keep premiums fair.
+
+**Keywords:** fraud detection, AI fraud, fake images, security, verification
+
+### What happens if fraud is detected?
+If our system detects potential fraud signals (such as vehicle mismatch, AI-generated images, or other inconsistencies), your claim is automatically routed to a human adjustor for careful review. The adjustor will examine all evidence and may contact you for clarification. False positives are reviewed fairly - we understand that legitimate claims can sometimes trigger automated flags.
+
+**Keywords:** fraud detected, fraud flag, fraud review, what if fraud
+
+### Can I be denied for uploading the wrong photos?
+If you accidentally upload photos of the wrong vehicle, simply delete them and upload the correct photos. However, intentionally submitting photos of a different vehicle or AI-generated/manipulated damage images is considered fraud and may result in claim denial and policy cancellation.
+
+**Keywords:** wrong photos, mistake, different car, fraud denial
+
+---
+
 ## General
 
 ### Is my information secure?
@@ -186,9 +205,9 @@ Yes! We use industry-standard encryption and security measures to protect your p
 **Keywords:** security, secure, safe, data protection
 
 ### Can I submit a claim over the phone?
-Currently, claims are submitted through our online portal. However, you can contact customer service if you need assistance with the submission process.
+Currently, claims are submitted through our online portal or mobile device. You can start a claim on your computer and continue on your phone by scanning the QR code shown on the upload page. This makes it easy to take photos directly from your mobile device and upload them to your claim.
 
-**Keywords:** phone claim, call in claim, submit by phone
+**Keywords:** phone claim, call in claim, submit by phone, mobile claim, QR code
 
 ### What if I have a question not answered here?
 Feel free to ask our chatbot! It can answer specific questions about your claim, policy, or help you navigate the portal.
@@ -197,5 +216,5 @@ Feel free to ask our chatbot! It can answer specific questions about your claim,
 
 ---
 
-**Last Updated:** 2026-05-06  
-**Total FAQs:** 30
+**Last Updated:** 2026-05-08  
+**Total FAQs:** 33

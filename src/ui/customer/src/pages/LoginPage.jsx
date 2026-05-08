@@ -65,8 +65,7 @@ const LoginPage = () => {
               }}
             />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">ACME Insurance</h1>
-          <p className="text-gray-600 text-sm mt-1">Customer Portal</p>
+          <p className="text-gray-600 text-sm">Customer logic</p>
         </div>
 
         {/* Login Card */}
@@ -119,7 +118,7 @@ const LoginPage = () => {
             {/* Demo Info */}
             <div className="p-3 bg-blue-50 text-blue-800 rounded-lg text-sm">
               <p className="font-medium mb-1">Demo Credentials:</p>
-              <p>Password: <code className="bg-blue-100 px-2 py-0.5 rounded">password123</code></p>
+              <p>Password: <code className="bg-blue-100 px-2 py-0.5 rounded">password</code></p>
               <p className="text-xs text-blue-600 mt-1">
                 (Select any customer and use this password)
               </p>

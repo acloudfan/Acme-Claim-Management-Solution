@@ -117,20 +117,22 @@ src/ui/admin/
 │    │   - High Threshold  [0.55]  │   │  Portal URLs loaded from    │
 │    │   - Low Threshold   [0.35]  │   │  admin-portal-config.yaml   │
 │    │ • Fraud Detection           │   │                             │
-│    │   - Risk Threshold  [0.1]   │   │                             │
-│    │ • Auto-Approval             │   │                             │
-│    │   - Amount Threshold [$5000]│   │                             │
-│    └─────────────────────────────┘   │                             │
-│                                       │                             │
-│    ┌─ Subsection: Agent Settings ─┐  │                             │
-│    │ • Fraud Detector            │  │                             │
-│    │   ☑ Enabled                 │  │                             │
-│    │ • Risk Estimator            │  │                             │
-│    │   ☑ Enabled                 │  │                             │
-│    │ • Damage Analyzer           │  │                             │
-│    │   ☑ Enabled                 │  │                             │
-│    │   ☑ Enhance All Damages     │  │                             │
-│    └─────────────────────────────┘  │                             │
+│    │   - Risk Threshold  [0.1]   │   │  ┌──────────────────────┐   │
+│    │ • Auto-Approval             │   │  │  🎬 Demo Scenarios   │   │
+│    │   - Amount Threshold [$5000]│   │  ├──────────────────────┤   │
+│    └─────────────────────────────┘   │  │ 1️⃣ Happy Path       │   │
+│                                       │  │   Cx accepts AI est  │   │
+│    ┌─ Subsection: Agent Settings ─┐  │  │   John Doe/Corolla   │   │
+│    │ • Fraud Detector            │  │  │                      │   │
+│    │   ☑ Enabled                 │  │  │ 2️⃣ Customer Appeal  │   │
+│    │ • Risk Estimator            │  │  │   Human Review - Cx  │   │
+│    │   ☑ Enabled                 │  │  │   Appeals            │   │
+│    │ • Damage Analyzer           │  │  │   Jane Smith/BMW     │   │
+│    │   ☑ Enabled                 │  │  │                      │   │
+│    │   ☑ Enhance All Damages     │  │  │ 3️⃣ Fraud Detection  │   │
+│    └─────────────────────────────┘  │  │   Bob Johnson/Chevy  │   │
+│                                       │  │   (Config toggle)    │   │
+│                                       │  └──────────────────────┘   │
 │                                       │                             │
 │  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ │                             │
 │  ┃ Section 2: Technical Parameters┃ │                             │
@@ -153,6 +155,11 @@ src/ui/admin/
 │    └─────────────────────────────┘  │                             │
 └───────────────────────────────────────┴─────────────────────────────┘
 ```
+
+**Note:** The Demo Scenarios card appears in the right sidebar (20% column) below the Quick Access panel. It displays three color-coded scenarios:
+- 1️⃣ Happy Path (green background) - John Doe/Toyota Corolla flow
+- 2️⃣ Customer Appeal (amber background) - Jane Smith/BMW with radiator damage and human review
+- 3️⃣ Fraud Detection (red background) - Bob Johnson/Chevy with config toggle demonstration showing make mismatch detection
 
 ### 3.2 Page Descriptions
 
@@ -253,9 +260,9 @@ src/ui/admin/
 | Host | Text | 0.0.0.0 | API server host (0.0.0.0 for all interfaces) |
 | Port | Number | 8000 | API server port |
 
-##### Right Section (20%): Portal Launcher
+##### Right Section (20%): Portal Launcher & Demo Scenarios
 
-**Component:** Fixed sidebar with quick access buttons
+**Component:** Fixed sidebar with quick access buttons and demo scenarios
 
 **Buttons:**
 1. **[🌐 Customer Portal]** 
@@ -276,6 +283,68 @@ portal_links:
   adjustor_portal_url: "http://localhost:5174"
   executive_portal_url: null  # Future
 ```
+
+**Demo Scenarios Card:**
+
+Below the Quick Access panel, a Demo Scenarios card displays three test scenarios for demonstrating the claims system:
+
+**Card Layout:**
+```
+┌────────────────────────────────────┐
+│ 🎬 Demo Scenarios                  │
+├────────────────────────────────────┤
+│ ┌────────────────────────────────┐ │
+│ │ 1️⃣ Happy Path                  │ │
+│ │ Happy Path - Cx accepts AI     │ │
+│ │ estimate                       │ │
+│ │ • Customer: John Doe (#100)    │ │
+│ │ • Vehicle: 2015 Toyota Corolla │ │
+│ │ • Flow: Submit → AI estimate   │ │
+│ │   → Customer accepts           │ │
+│ └────────────────────────────────┘ │
+│                                    │
+│ ┌────────────────────────────────┐ │
+│ │ 2️⃣ Customer Appeal             │ │
+│ │ Human Review - Cx Appeals      │ │
+│ │ • Customer: Jane Smith (#101)  │ │
+│ │ • Vehicle: 2006 BMW 1 Series   │ │
+│ │ • Damage: Radiator damaged     │ │
+│ │ • Flow: Submit → Low AI conf   │ │
+│ │   → Cx appeals → Adj review    │ │
+│ └────────────────────────────────┘ │
+│                                    │
+│ ┌────────────────────────────────┐ │
+│ │ 3️⃣ Fraud - Make Mismatch       │ │
+│ │ • Customer: Bob Johnson (#102) │ │
+│ │ • Vehicle: 2012 Chevy truck    │ │
+│ │ • Detection: Make mismatch     │ │
+│ └────────────────────────────────┘ │
+│                                    │
+│ ┌────────────────────────────────┐ │
+│ │ 4️⃣ Fraud - AI Generated Image │ │
+│ │ • Customer: Alice Williams     │ │
+│ │ • Vehicle: 2022 Honda Accord   │ │
+│ │ • Detection: VLM analyzes for  │ │
+│ │   AI generation signals        │ │
+│ │ • Note: Production systems use │ │
+│ │   VLM + static analysis tools  │ │
+│ └────────────────────────────────┘ │
+└────────────────────────────────────┘
+```
+
+**Visual Design:**
+- Scenario 1 (Happy Path): Light green background (`bg-green-50`)
+- Scenario 2 (Customer Appeal): Light amber background (`bg-amber-50`)
+- Scenario 3 (Fraud Detection): Light red background (`bg-red-50`)
+- Each scenario displays emoji indicator (1️⃣, 2️⃣, 3️⃣)
+- Bullet points with customer details, vehicle info, and flow steps
+- Card has subtle border and shadow for visual separation
+
+**Purpose:**
+Provides quick reference for demo users to understand the three main claim processing paths:
+1. **Happy Path**: Standard approval flow with AI estimate acceptance
+2. **Customer Appeal**: Human review triggered by customer disagreement
+3. **Fraud Detection**: Configurable fraud detection with make/model verification
 
 ---
 
@@ -365,6 +434,78 @@ const openPortal = (url) => {
   window.open(url, '_blank', 'width=1440,height=900');
 };
 ```
+
+---
+
+#### 3.3.4 DemoScenarios Component
+
+**Purpose:** Display three demo scenarios for testing the claims system
+
+**Location:** Right sidebar (20% width), below Quick Access panel
+
+**Component File:** `src/components/config/DemoScenarios.jsx`
+
+**UI Structure:**
+```jsx
+<Card className="mt-4">
+  <div className="space-y-4">
+    <div className="flex items-center gap-2">
+      <span className="text-2xl">🎬</span>
+      <h3>Demo Scenarios</h3>
+    </div>
+    {/* Scenario cards */}
+  </div>
+</Card>
+```
+
+**Scenario Cards:**
+
+**Scenario 1: Happy Path**
+- Background: `bg-green-50 border-green-200`
+- Emoji: 1️⃣
+- Title: "Happy Path - Cx accepts AI estimate"
+- Details:
+  - Customer: John Doe (#100)
+  - Vehicle: 2015 Toyota Corolla
+  - Flow: Submit → AI estimate → Customer accepts
+
+**Scenario 2: Customer Appeal**
+- Background: `bg-amber-50 border-amber-200`
+- Emoji: 2️⃣
+- Title: "Human Review - Cx Appeals"
+- Details:
+  - Customer: Jane Smith (#101)
+  - Vehicle: 2006 BMW 1 Series (E87)
+  - Damage: Radiator damaged
+  - Flow: Submit → Low AI confidence → Cx appeals → Adjustor review
+
+**Scenario 3: Fraud Detection - Make Mismatch**
+- Background: `bg-red-50 border-red-200`
+- Emoji: 3️⃣
+- Title: "Fraud Detection - Make Mismatch"
+- Details:
+  - Customer: Bob Johnson (#102)
+  - Vehicle: 2012 Chevy Silverado (Red)
+  - Test Variation: Use config toggle to disable/enable fraud detection
+  - Images show Chevy vs Ford (make mismatch triggers fraud signal)
+
+**Scenario 4: Fraud Detection - AI Generated Image**
+- Background: `bg-red-50 border-red-200`
+- Emoji: 4️⃣
+- Title: "Fraud Detection - AI Generated Damage"
+- Details:
+  - Customer: Alice Williams (#103)
+  - Vehicle: 2022 Honda Accord (Black)
+  - Fraud Type: AI-generated damage image created using image manipulation model
+  - Detection: Vision Language Model (VLM) analyzes images for AI generation artifacts and inconsistencies
+  - Note: In production, static image analysis tools (forensic metadata analysis, pixel-level artifact detection) complement VLM analysis for comprehensive fraud detection
+
+**Visual Design:**
+- Each scenario in separate card with colored background
+- Bullet points for details
+- Compact layout to fit in sidebar
+- Subtle border and shadow for card separation
+- Responsive: stacks below Quick Access on mobile
 
 ---
 
@@ -1709,9 +1850,16 @@ Do NOT implement based solely on this document - refer to API-BACKEND-DESIGN.md 
 
 ---
 
-**Document Version:** 1.2  
+**Document Version:** 1.3  
 **Last Updated:** 2026-05-07  
-**Status:** ✅ MVP Complete, Enhanced UI Design in Progress
+**Status:** ✅ MVP Complete with Demo Scenarios, Enhanced UI Design in Progress
+
+**Changes in v1.3:**
+- Added Demo Scenarios component to right sidebar (Section 3.1, 3.3.4)
+- Documented three demo scenarios: Happy Path, Customer Appeal, Fraud Detection
+- Updated layout diagram to show Demo Scenarios card below Quick Access
+- Added scenario details: customer info, vehicles, and flow descriptions
+- Updated Portal Launcher section (3.3.3) to reflect new sidebar content
 
 **Changes in v1.2:**
 - Added detailed Business Rules UI component specifications (Section 18)

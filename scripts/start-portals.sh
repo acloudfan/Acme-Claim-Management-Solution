@@ -2,7 +2,7 @@
 #
 # UI Portals Launch Script
 # Starts the React development servers for all UI portals
-# Currently: Customer Portal, Adjustor Portal, Admin Portal (future: Executive)
+# Currently: Customer Portal, Adjustor Portal, Admin Portal, Executive Portal
 #
 
 set -e  # Exit on error
@@ -19,6 +19,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CUSTOMER_PORTAL_DIR="$PROJECT_ROOT/src/ui/customer"
 ADJUSTOR_PORTAL_DIR="$PROJECT_ROOT/src/ui/adjustor"
 ADMIN_PORTAL_DIR="$PROJECT_ROOT/src/ui/admin"
+EXECUTIVE_PORTAL_DIR="$PROJECT_ROOT/src/ui/executive"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  UI Portals Launcher${NC}"
@@ -44,8 +45,13 @@ if [ ! -d "$ADMIN_PORTAL_DIR" ]; then
     exit 1
 fi
 
-echo -e "${BLUE}Starting Customer Portal, Adjustor Portal, and Admin Portal...${NC}"
-echo -e "${YELLOW}(Executive portal coming in future phase)${NC}"
+if [ ! -d "$EXECUTIVE_PORTAL_DIR" ]; then
+    echo -e "${RED}ERROR: Executive portal directory not found at:${NC}"
+    echo -e "${RED}  $EXECUTIVE_PORTAL_DIR${NC}"
+    exit 1
+fi
+
+echo -e "${BLUE}Starting all UI portals...${NC}"
 echo ""
 
 # Check if Node.js is installed
@@ -107,6 +113,20 @@ fi
 echo -e "${GREEN}✓${NC} Admin portal ready"
 echo ""
 
+# Check and setup Executive Portal
+echo -e "${BLUE}Checking Executive Portal...${NC}"
+cd "$EXECUTIVE_PORTAL_DIR"
+if [ ! -d "node_modules" ]; then
+    echo -e "${YELLOW}⚠ Installing executive portal dependencies...${NC}"
+    npm install
+    echo -e "${GREEN}✓${NC} Executive portal dependencies installed"
+fi
+if [ ! -f "public/executive-portal-config.yaml" ]; then
+    echo -e "${YELLOW}⚠ WARNING: executive-portal-config.yaml not found${NC}"
+fi
+echo -e "${GREEN}✓${NC} Executive portal ready"
+echo ""
+
 # Check if API server is running
 echo -e "${BLUE}Checking API server...${NC}"
 if curl -s http://localhost:8000/health > /dev/null 2>&1; then
@@ -128,12 +148,10 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  Starting Development Servers...${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
-echo -e "Customer Portal:  ${GREEN}http://localhost:5173${NC}"
-echo -e "Adjustor Portal:  ${GREEN}http://localhost:5174${NC}"
-echo -e "Admin Portal:     ${GREEN}http://localhost:5170${NC}"
-echo ""
-echo -e "${YELLOW}Future portals:${NC}"
-echo -e "  Executive Portal: http://localhost:5175 (coming soon)"
+echo -e "Customer Portal:   ${GREEN}http://localhost:5173${NC}"
+echo -e "Adjustor Portal:   ${GREEN}http://localhost:5174${NC}"
+echo -e "Admin Portal:      ${GREEN}http://localhost:5170${NC}"
+echo -e "Executive Portal:  ${GREEN}http://localhost:5176${NC}"
 echo ""
 echo -e "Press ${YELLOW}Ctrl+C${NC} to stop all servers"
 echo ""
@@ -166,12 +184,19 @@ echo -e "${BLUE}Starting Admin Portal on port 5170...${NC}"
 npm run dev > /tmp/admin-portal.log 2>&1 &
 ADMIN_PID=$!
 
+# Start Executive Portal in background
+cd "$EXECUTIVE_PORTAL_DIR"
+echo -e "${BLUE}Starting Executive Portal on port 5176...${NC}"
+npm run dev > /tmp/executive-portal.log 2>&1 &
+EXECUTIVE_PID=$!
+
 echo ""
 echo -e "${GREEN}✓${NC} All portals starting..."
 echo -e "${YELLOW}Tip: Check logs at:${NC}"
 echo -e "  /tmp/customer-portal.log"
 echo -e "  /tmp/adjustor-portal.log"
 echo -e "  /tmp/admin-portal.log"
+echo -e "  /tmp/executive-portal.log"
 echo ""
 
 # Wait for all processes

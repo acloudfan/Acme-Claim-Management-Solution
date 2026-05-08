@@ -301,6 +301,34 @@ const ImageUploadPage = () => {
       <Card className="max-w-4xl mx-auto">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">Upload Images</h2>
 
+        {/* Mobile QR Code Section */}
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-blue-900 mb-2">
+                📱 Continue on Mobile Device
+              </h3>
+              <p className="text-sm text-blue-800 mb-2">
+                You can continue filing this claim on your mobile device such as a phone or tablet. Just scan the QR code with your device's camera and continue from there.
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <div className="bg-white p-3 rounded-lg border-2 border-blue-300 shadow-sm">
+                <img
+                  src="/qr-code-mobile.png"
+                  alt="QR Code to continue on mobile"
+                  className="w-32 h-32"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<div class="w-32 h-32 bg-gray-200 flex items-center justify-center rounded"><span class="text-gray-500 text-xs">QR Code</span></div>';
+                  }}
+                />
+              </div>
+              <p className="text-xs text-center text-blue-600 mt-1">Scan to continue</p>
+            </div>
+          </div>
+        </div>
+
         {/* Drag & Drop Zone - 50% smaller */}
         <label className="block mb-6">
           <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors">

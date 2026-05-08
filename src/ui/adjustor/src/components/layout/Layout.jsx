@@ -1,12 +1,16 @@
 /**
  * Main layout component wrapping all pages
  */
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { FileText } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
+import SOPViewer from '../common/SOPViewer';
 
 const Layout = ({ children }) => {
   const location = useLocation();
+  const [showSOP, setShowSOP] = useState(false);
 
   // Don't show header/footer on login page
   const isLoginPage = location.pathname === '/login';
@@ -22,6 +26,19 @@ const Layout = ({ children }) => {
         {children}
       </main>
       <Footer />
+
+      {/* Floating SOP Button - Positioned in bottom-right */}
+      <button
+        onClick={() => setShowSOP(true)}
+        className="fixed bottom-6 right-6 p-4 bg-primary-600 text-white rounded-full shadow-lg hover:bg-primary-700 transition-all hover:scale-110 focus:outline-none focus:ring-4 focus:ring-primary-300 z-50"
+        aria-label="View Standard Operating Procedures"
+        title="View SOP - Damage Triage Guidelines"
+      >
+        <FileText className="w-6 h-6" />
+      </button>
+
+      {/* SOP Viewer Modal */}
+      <SOPViewer isOpen={showSOP} onClose={() => setShowSOP(false)} />
     </div>
   );
 };

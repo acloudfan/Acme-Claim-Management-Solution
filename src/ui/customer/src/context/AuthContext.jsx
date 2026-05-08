@@ -16,7 +16,7 @@ const MOCK_CUSTOMERS = [
   { customer_id: 104, name: 'Charlie Brown', email: 'charlie.brown@example.com' }
 ];
 
-const MOCK_PASSWORD = 'password123';
+const MOCK_PASSWORD = 'password';
 
 export const AuthProvider = ({ children }) => {
   const [customerId, setCustomerId] = useState(null);

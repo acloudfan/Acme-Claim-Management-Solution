@@ -3,7 +3,7 @@ FastAPI main application for Insurance Claims API.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api.routers import customers, claims, cost, adjustors, chatbot, admin
+from src.api.routers import customers, claims, cost, adjustors, chatbot, admin, executive
 from src.api.database import engine, Base
 from src.api.config import settings
 from src.api.exceptions import register_exception_handlers
@@ -65,6 +65,11 @@ app.include_router(
     admin.router,
     prefix="/api/v1/admin",
     tags=["Admin"]
+)
+app.include_router(
+    executive.router,
+    prefix="/api/v1",
+    tags=["Executive"]
 )
 
 @app.on_event("startup")

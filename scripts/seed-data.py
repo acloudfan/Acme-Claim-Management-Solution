@@ -321,9 +321,9 @@ def create_sample_data():
             Vehicle(
                 vin="WBAPL33569A123456",
                 customer_id=103,
-                make="BMW",
-                model="3 Series",
-                year=2020,
+                make="Honda",
+                model="Accord",
+                year=2022,
                 color="Black"
             ),
             Vehicle(

@@ -1324,6 +1324,87 @@ export const Header = () => {
 
 ---
 
+#### 8.2.8 SOPViewer Component
+
+**File:** `src/components/common/SOPViewer.jsx`
+
+**Purpose:** Display Standard Operating Procedures (SOP) document in a modal for adjustors to reference during claim review
+
+**Props:**
+```typescript
+{
+  isOpen: boolean,
+  onClose: () => void
+}
+```
+
+**Features:**
+- **Floating Action Button:** Fixed position button (bottom-right corner) with FileText icon
+- **Modal Display:** Full-screen modal showing the complete SOP document
+- **Markdown Rendering:** Converts markdown to HTML with proper formatting
+- **Always Accessible:** Available on all pages via floating button in Layout component
+- **Real-time Content:** Loads latest version of sop_damage_triage.md from public folder
+
+**Implementation:**
+
+The SOPViewer is integrated into the Layout component as a floating action button that appears on all pages (except login):
+
+```jsx
+// In Layout.jsx
+<button
+  onClick={() => setShowSOP(true)}
+  className="fixed bottom-6 right-6 p-4 bg-primary-600 text-white rounded-full shadow-lg hover:bg-primary-700 transition-all hover:scale-110"
+  aria-label="View Standard Operating Procedures"
+  title="View SOP - Damage Triage Guidelines"
+>
+  <FileText className="w-6 h-6" />
+</button>
+
+<SOPViewer isOpen={showSOP} onClose={() => setShowSOP(false)} />
+```
+
+**Positioning:**
+- Fixed position: bottom-right corner
+- Coordinates: `bottom-6` (1.5rem / 24px from bottom), `right-6` (1.5rem / 24px from right)
+- Floats above all page content
+- Z-index: 50 (ensures visibility above content)
+
+**Content Source:**
+- File: `public/sop_damage_triage.md` (copied from `specifications/policies/sop_damage_triage.md`)
+- Updated: Automatically reflects latest SOP document
+- Format: Markdown with standard sections (Overview, Thresholds, Decision Trees, Fraud Detection, etc.)
+
+**Display Features:**
+- **Header:** Document title, version, and close button
+- **Scrollable Content:** Full document with formatted sections
+- **Formatted Elements:** 
+  - Headers (H1, H2, H3)
+  - Bold and italic text
+  - Code blocks and inline code
+  - Lists (ordered and unordered)
+  - Tables
+  - Blockquotes
+  - Links
+- **Footer:** Document metadata and close action
+
+**Use Cases:**
+- Quick reference for confidence thresholds
+- Review fraud detection protocols
+- Check damage assessment guidelines
+- Verify triage decision tree logic
+- Reference customer appeal process
+- Look up part costs and labor rates
+
+**User Experience:**
+- Icon appears in bottom-right corner of all pages
+- Tooltip on hover: "View SOP - Damage Triage Guidelines"
+- Click opens full-screen modal
+- Easy to close and resume work
+- Always visible and accessible regardless of scroll position
+- Similar to chat widget positioning for familiarity
+
+---
+
 ## 9. API Integration
 
 ### 9.1 API Client Setup
