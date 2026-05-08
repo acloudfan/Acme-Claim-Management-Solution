@@ -12,6 +12,9 @@ This project showcases how AI can streamline insurance claims processing through
 
 - [Prerequisites](#prerequisites)
 - [Configuration](#configuration)
+  - [Minimum Setup - Environment Variables](#minimum-setup---environment-variables)
+  - [Supported LLM Providers](#supported-llm-providers)
+  - [How to Switch LLM Providers](#how-to-switch-llm-providers)
 - [Quick Start](#quick-start)
 - [What's Built](#whats-built)
 - [Demo Scenarios](#demo-scenarios)
