@@ -73,11 +73,12 @@ logging:
 # CORS Configuration (Cross-Origin Resource Sharing)
 cors:
   allow_origins:
-    - "http://localhost:5173"  # Customer portal
-    - "http://localhost:5174"  # Adjustor portal
-    - "http://localhost:5170"  # Admin portal
-    # Or use "*" to allow all origins (prototype only!)
-  allow_credentials: true
+  - http://localhost:5173 # Customer portal
+  - http://localhost:5174 # Adjustor portal
+  - http://localhost:5170 # Admin portal
+  - http://localhost:5176 # Executive portal
+  allow_credentials: false
+  
   allow_methods:
     - "*"
   allow_headers:
