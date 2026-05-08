@@ -100,18 +100,42 @@ OPENAI_API_KEY=sk-your_key_here
 | **Anthropic** | No | Claude Sonnet 4.5 | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) → API Keys |
 | **OpenAI** | No | GPT-4o | `OPENAI_API_KEY` | [OpenAI Platform](https://platform.openai.com/) → API Keys |
 
+### How to Switch LLM Providers
+
+The system uses **AWS Bedrock** by default. To switch to a different provider:
+
+**Method 1: Edit Configuration File (Recommended)**
+
+1. Open `api-config.yaml` in the project root
+2. Find the `llm` section
+3. Change `default_provider` to your preferred provider:
+
+```yaml
+llm:
+  default_provider: "anthropic"  # Options: "bedrock" | "anthropic" | "openai"
+  default_vision_model: "anthropic"  # Should match default_provider
+```
+
+4. Save the file
+5. Restart API server: `./scripts/start-api-server.sh`
+
+**Method 2: Use Admin Portal (No Restart Required)**
+
+1. Open Admin Portal: http://localhost:5170
+2. Navigate to **Technical Parameters** section
+3. Find **Default LLM Provider**
+4. Select from dropdown: `bedrock`, `anthropic`, or `openai`
+5. Click **Save Configuration**
+6. Changes take effect immediately (automatic reload)
+
+**Important**: Ensure you have the API key configured in `.env` for the provider you're switching to.
+
 ### Important Notes
 
 - **Security**: Never commit `.env` file to version control (already in `.gitignore`)
 - **Default Provider**: The system is configured to use AWS Bedrock by default
 - **AWS Credentials**: If you have `~/.aws/credentials` configured, you don't need to add AWS variables to `.env`
-- **Switch Provider**: To change from default (Bedrock), edit `llm.default_provider` in `api-config.yaml`:
-  ```yaml
-  llm:
-    default_provider: "anthropic"  # or "openai" or "bedrock"
-  ```
-  Or use **Admin Portal** → Technical Parameters → Default LLM Provider
-- **Multiple Providers**: You can configure all three providers and switch between them anytime via Admin Portal
+- **Multiple Providers**: You can configure all three providers and switch between them anytime
 
 ### Example `.env` File
 
