@@ -58,8 +58,7 @@ app.include_router(
     tags=["Adjustors"]
 )
 app.include_router(
-    chatbot.router,
-    tags=["Chatbot"]
+    chatbot.router
 )
 app.include_router(
     admin.router,
