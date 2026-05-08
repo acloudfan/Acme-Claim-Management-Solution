@@ -9,7 +9,9 @@
 # - Use portable POSIX commands that work on both Linux and macOS
 # - Test on both Linux and macOS before committing changes
 # - See CROSS-PLATFORM-FIXES.md for guidelines
-#
+# 
+
+
 
 set -e  # Exit on error
 set -o pipefail  # Exit on pipe failures
