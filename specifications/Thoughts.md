@@ -372,14 +372,8 @@ The idea of this Portal is to provide the "human reviewer" capability to review 
 
     
 
-
-
-* Technical evaluation dashboard front-end
-    - Damage assessment accuracy per damage type (part)
-    - Internal damage assessment accuracy
-* Synthetic claim data generation
-    - Customer profiles (demographic, automobiles[])
-    - 
+# Langfuse integration
+T.B.D.
 
 
 

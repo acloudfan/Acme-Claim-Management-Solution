@@ -1,94 +1,270 @@
-# AI-Powered Auto Insurance Claims System
+# ACME Insurance - AI Claims Management System
 
-Build a prototype/demo for showing a customer how auto claims can be streamlined using AI for damage detection and repair estimation.
+**Purpose**: Demonstration of AI-based auto claim adjudication
+
+This project showcases how AI can streamline insurance claims processing through automated damage detection, fraud analysis, cost estimation, and intelligent routing - reducing claim processing time from days to minutes while maintaining accuracy and fraud prevention.
+
+**Key Technologies**: YOLO damage detection, Vision Language Models for fraud detection, multi-portal architecture for different user roles.
+
+## Prerequisites
+
+This project requires **uv** (fast Python package installer):
+
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or run the setup script (one-time setup)
+./scripts/setup_uv.sh
+```
 
 ## Quick Start
 
-See **[Quick Start Guide](specifications/QUICK-START-UV.md)** for complete setup instructions.
-
-### 30-Second Setup
+### 1. Start API Server
 
 ```bash
-# 1. Install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# From project root - create database and seed demo data
+./scripts/start-api-server.sh --clean
 
-# 2. Setup and run
-./scripts/setup_uv.sh && ./scripts/start_api.sh
+# To continue with existing data (skip --clean flag)
+./scripts/start-api-server.sh
 ```
 
-Access API at: http://localhost:8000/docs
+The API server will start on port 8000. Access API docs at: http://localhost:8000/docs
 
-## Documentation
+### 2. Start All Portals
 
-- **[Quick Start](specifications/QUICK-START-UV.md)** - Get up and running fast
-- **[API Documentation](specifications/README-API.md)** - Complete API reference
-- **[Implementation Summary](specifications/API-IMPLEMENTATION-SUMMARY.md)** - What's been built
-- **[Design Specification](specifications/API-BACKEND-DESIGN.md)** - Architecture details
-- **[Project Overview](CLAUDE.md)** - High-level project context
+```bash
+# From project root - starts all 4 portals
+./scripts/start-portals.sh
+```
+
+This starts:
+- Customer Portal: http://localhost:5173
+- Adjustor Portal: http://localhost:5174
+- Admin Portal: http://localhost:5170
+- Executive Portal: http://localhost:5175
+
+### 3. Open Admin Portal
+
+Navigate to **http://localhost:5170** in your browser:
+
+![Admin Portal](docs/images/admin-portal.png)
+
+From the Admin Portal, you can launch the Customer, Adjustor, and Executive portals using the **Quick Access** panel on the right side.
+
+## What's Built
+
+### Backend API (FastAPI)
+- YOLO-based damage detection (real-time during upload)
+- AI fraud detection (VLM + multi-signal analysis)
+- Cost estimation engine
+- Customer chatbot (Claude + RAG)
+- Complete claim lifecycle management
+
+### Customer Portal
+- File claims with photo upload
+- Real-time AI damage analysis
+- Instant repair estimates
+- Appeal decisions
+- Mobile QR code support
+
+### Adjustor Portal
+- Review flagged claims
+- Manual damage assessment
+- Fraud signal analysis
+- Cost estimate adjustments
+- SOP reference viewer
+
+### Admin Portal
+- Configure AI thresholds
+- Toggle fraud detection features
+- Manage business rules
+- View demo scenarios
+
+### Executive Portal
+- 6-month historical analytics
+- KPI dashboards
+- Fraud detection metrics
+- Cost savings analysis
+
+## Demo Scenarios
+
+Test images are provided in the `images/` directory. Use these images when filing claims through the Customer Portal.
+
+### 1. Happy Path - Auto-Approved
+- **Customer**: John Doe (#100)
+- **Vehicle**: 2015 Toyota Corolla (Silver)
+- **Image**: `images/toyota-rear-end-damage.png`
+- **Expected**: Auto-approved with AI estimate
+- **Outcome**: Customer accepts estimate
+
+### 2. Customer Appeal - Human Review
+- **Customer**: Jane Smith (#101)
+- **Vehicle**: 2006 BMW 1 Series E87 (Silver)
+- **Image**: `images/bmw-silver-2006-front-damaged.png`
+- **Expected**: AI estimate presented, customer appeals
+- **Appeal Reason**: "Radiator seems to be damaged beyond repair"
+- **Outcome**: Adjustor adds manual damage and revises estimate
+
+### 3. Fraud Detection - Make Mismatch
+- **Customer**: Bob Johnson (#102)
+- **Vehicle**: 2012 Chevy Silverado (Red)
+- **Images**: 
+  - Upload: `images/red-ford-f150-ai-generated-damage.jpg` (Ford F-150)
+  - Note: Vehicle mismatch (Chevy ≠ Ford)
+- **Expected**: Fraud signals detected
+- **Outcome**: Routed to adjustor for fraud review
+
+### 4. Fraud Detection - AI Generated Image
+- **Customer**: Alice Williams (#103)
+- **Vehicle**: 2022 Honda Accord (Black)
+- **Image**: `images/honda-acord-ex-2022-ai-generated-damage.jpg`
+- **Expected**: AI-generated damage detected by VLM
+- **Outcome**: Routed to fraud review with AI generation analysis
+
+**Default password for all portals**: `password`
+
+**Additional Test Images**:
+- `images/damaged-car-1.jpg` - General damage
+- `images/damaged-car-dent-2.jpg` - Dent damage
+- `images/damaged-car-front-bumper-3.jpg` - Front bumper
+- `images/damaged-car-back-bumper-4.jpg` - Back bumper
+- `images/damaged-car-door-5.jpg` - Door damage
+- `images/red-ford-f150-no-damage.jpg` - Undamaged Ford F-150
 
 ## Project Structure
 
-- `src/api/` - FastAPI backend (37 files, ~3,500 LOC)
-- `expts/` - YOLO experiments and model training
-- `repos/` - Reference implementation (Streamlit app)
-- `scripts/` - Setup and utility scripts
-- `specifications/` - Documentation and design docs
-
-## Setup
-
-### Backend API (FastAPI)
-```bash
-./scripts/setup_uv.sh  # One-time setup
-make run               # Start API server
+```
+├── src/
+│   ├── api/              # FastAPI backend
+│   ├── ui/
+│   │   ├── customer/     # Customer portal (React)
+│   │   ├── adjustor/     # Adjustor portal (React)
+│   │   ├── admin/        # Admin portal (React)
+│   │   └── executive/    # Executive portal (React)
+│   └── data/             # Warehouse data, FAQs
+├── scripts/              # Setup and seed scripts
+├── specifications/       # Design docs and SOPs
+└── simulation/           # Data generation scripts
 ```
 
-### Experiments (YOLO)
-```bash
-cd expts
-python -m venv .venv
-source .venv/bin/activate
-pip install ultralytics gdown huggingface_hub
-python main.py
-```
+## Technology Stack
 
-### Reference App (Streamlit)
-```bash
-cd repos/Car-Damage-Assessment-AI
-docker-compose up --build
-```
+- **Backend**: FastAPI, SQLAlchemy, SQLite
+- **AI/ML**: YOLO v8, Claude (Anthropic), AWS Bedrock
+- **Frontend**: React 18, Vite, Tailwind CSS, Recharts
+- **Data**: DuckDB (warehouse), SQLite (operational)
 
-## Development Tools
+## Key Features
 
-Claude Code extensions:
-```bash
-/plugin install frontend-design@claude-plugins-official
-```
+✅ Real-time damage detection (YOLO)  
+✅ AI fraud detection (make/model mismatch, AI-generated images)  
+✅ Instant cost estimation  
+✅ Customer chatbot with RAG  
+✅ Human review workflow  
+✅ Executive analytics dashboards  
+✅ Configurable business rules  
+✅ Complete audit trail
 
-# References
+## Documentation
 
-* Car-Damage-Assessment-AI
+- [Quick Start Guide](specifications/QUICK-START-UV.md)
+- [API Design](specifications/API-BACKEND-DESIGN.md)
+- [Customer Portal](specifications/UI-CUSTOMER-PORTAL-DESIGN.md)
+- [Adjustor Portal](specifications/UI-ADJUSTOR-PORTAL-DESIGN.md)
+- [Admin Portal](specifications/UI-ADMIN-PORTAL-DESIGN.md)
+- [Executive Portal](specifications/UI-EXECUTIVES-PORTAL-DESIGN.md)
+- [SOP - Damage Triage](specifications/policies/sop_damage_triage.md)
 
-https://github.com/artemxdata/Car-Damage-Assessment-AI
+## References
 
-* Repair cost estimation
+### External Resources
 
-https://www.aaa.com/autorepair/articles/average-mechanic-labor-rate-repair-costs-in-your-state-2026
+- [Car Damage Assessment AI](https://github.com/artemxdata/Car-Damage-Assessment-AI)
+- [AAA Mechanic Labor Rates](https://www.aaa.com/autorepair/articles/average-mechanic-labor-rate-repair-costs-in-your-state-2026)
+- [COCO Car Damage Dataset](https://www.kaggle.com/datasets/lplenka/coco-car-damage-detection-dataset)
+- [YOLO v8 Tutorial](https://www.digitalocean.com/community/tutorials/yolov8)
 
-* Car damage images dataset
+### Technical Diagrams
 
-https://www.kaggle.com/datasets/lplenka/coco-car-damage-detection-dataset
+Mermaid diagrams illustrating system architecture and workflows:
 
-* Open data annotation platform (CVAT)
+- [AI-Powered Claim Flow](specifications/diagrams/claim-flow-with-ai.mmd) - End-to-end claim processing with AI
+- [Traditional Claims Process](specifications/diagrams/traditional-claims.mmd) - Comparison: traditional vs AI workflow
+- [Claim State Machine](specifications/diagrams/claims-state-machine.mmd) - Claim lifecycle states and transitions
+- [Image Upload Flow](specifications/diagrams/claim_image_upload.mmd) - YOLO damage detection during upload
+- [Fraud Detection Agent](specifications/diagrams/customer-fraud-ai-agent.mmd) - AI fraud detection workflow
+- [Database ERD](specifications/diagrams/claim-database-erd.mmd) - Data model and relationships
 
-https://www.cvat.ai/?ref=blog.paperspace.com
+---
 
-* YOLO v8 training tutorial
+## FAQ
 
-https://www.digitalocean.com/community/tutorials/yolov8
+### Can I try my own images?
 
+Yes! You can upload your own vehicle damage images through the Customer Portal when filing a claim. The system will analyze any clear photos of vehicle damage.
 
-* Interesting report
+### How can I use my own LLM provider?
 
-https://dl.acm.org/doi/fullHtml/10.1145/3627631.3627662
+The system supports multiple LLM providers (Anthropic, OpenAI, AWS Bedrock). You can configure your preferred provider and API keys in the `api-config.yaml` file or through the Admin Portal.
 
-![severity detection](expts/images/report-severity-detection.jpg)
+### Where can I set the LLM or VLM to use?
+
+Configure LLM and Vision Language Model (VLM) settings in two ways:
+1. **Admin Portal**: Navigate to http://localhost:5170 → Business Rules → Technical Parameters section
+2. **Configuration File**: Edit `api-config.yaml` in the project root
+
+You can set the default provider, model selection, temperature, tokens, and other parameters.
+
+### Which version of YOLO are you using?
+
+The system uses **YOLO v8** for real-time vehicle damage detection.
+
+### Did you fine-tune the YOLO model?
+
+No, we are using an open-source fine-tuned version of YOLO v8 from HuggingFace that has been pre-trained on vehicle damage detection datasets.
+
+### Are you showing real data in the Executive Portal?
+
+No, we are using **synthetically generated data** driven by multiple auto industry averages for realistic data generation. 
+
+We simulate a **Data Warehouse** for ACME claims data. This warehouse holds the data in a **flattened structure** optimized for analytics queries. The Executive dashboard runs off this warehouse structure, demonstrating how business intelligence and reporting would work in a production system.
+
+The 6-month historical analytics, KPIs, and metrics are simulated to demonstrate the types of insights an executive dashboard would provide.
+
+### Is this system ready for production?
+
+No, this is a **demonstration and starting point** for anyone interested in AI-based auto claim adjudication. For production use, you would need:
+- Enhanced security and authentication
+- Scalable infrastructure
+- Compliance with insurance regulations
+- Additional fraud prevention measures
+- Comprehensive testing and validation
+- Integration with existing insurance systems
+
+---
+
+## License
+
+MIT License
+
+Copyright (c) 2026 ACME Insurance - AI Claims Management System
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
