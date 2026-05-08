@@ -11,7 +11,7 @@ import { LogIn } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, availableCustomers } = useAuth();
+  const { login, isAuthenticated, availableCustomers, hasCustomers, customerCount } = useAuth();
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -85,10 +85,12 @@ const LoginPage = () => {
                 value={selectedCustomerId}
                 onChange={(e) => setSelectedCustomerId(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                disabled={loading}
+                disabled={loading || hasCustomers === false}
               >
-                <option value="">Select your name...</option>
-                {availableCustomers.map((customer) => (
+                <option value="">
+                  {hasCustomers === false ? 'No customers available - seed database first' : 'Select your name...'}
+                </option>
+                {hasCustomers !== false && availableCustomers.map((customer) => (
                   <option key={customer.customer_id} value={customer.customer_id}>
                     {customer.name}
                   </option>
@@ -115,14 +117,31 @@ const LoginPage = () => {
               </div>
             )}
 
+            {/* Database Seeding Warning */}
+            {hasCustomers === false && (
+              <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+                <p className="font-semibold mb-2">⚠️ Database Not Seeded</p>
+                <p className="mb-2">You MUST first seed the database with customer and policy data.</p>
+                <div className="bg-red-100 p-2 rounded mt-2 font-mono text-xs">
+                  <p className="font-semibold mb-1">Run this command:</p>
+                  <p className="text-red-900">python scripts/seed-data.py --clean</p>
+                </div>
+                <p className="mt-2 text-xs">
+                  Once seeded, you can start the API server without the --clean flag to retain the data.
+                </p>
+              </div>
+            )}
+
             {/* Demo Info */}
-            <div className="p-3 bg-blue-50 text-blue-800 rounded-lg text-sm">
-              <p className="font-medium mb-1">Demo Credentials:</p>
-              <p>Password: <code className="bg-blue-100 px-2 py-0.5 rounded">password</code></p>
-              <p className="text-xs text-blue-600 mt-1">
-                (Select any customer and use this password)
-              </p>
-            </div>
+            {hasCustomers !== false && (
+              <div className="p-3 bg-blue-50 text-blue-800 rounded-lg text-sm">
+                <p className="font-medium mb-1">Demo Credentials:</p>
+                <p>Password: <code className="bg-blue-100 px-2 py-0.5 rounded">password</code></p>
+                <p className="text-xs text-blue-600 mt-1">
+                  (Select any customer and use this password)
+                </p>
+              </div>
+            )}
 
             {/* Login Button */}
             <Button
@@ -130,7 +149,7 @@ const LoginPage = () => {
               variant="primary"
               className="w-full"
               loading={loading}
-              disabled={loading}
+              disabled={loading || hasCustomers === false}
             >
               {loading ? (
                 <>

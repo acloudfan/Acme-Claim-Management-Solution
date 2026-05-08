@@ -28,6 +28,29 @@ router = APIRouter()
 # ============================================================================
 
 @router.get(
+    "",
+    summary="Get customer count"
+)
+def get_customer_count(
+    db: Session = Depends(get_db)
+):
+    """
+    Get total number of customers in the database.
+
+    Returns:
+    - **count**: Number of customers
+    - **has_customers**: Boolean indicating if database has customers
+
+    Used by customer login screen to determine if database needs seeding.
+    """
+    from src.api.models.customer import Customer
+    count = db.query(Customer).count()
+    return {
+        "count": count,
+        "has_customers": count > 0
+    }
+
+@router.get(
     "/{customer_id}",
     response_model=CustomerResponse,
     summary="Get customer details"

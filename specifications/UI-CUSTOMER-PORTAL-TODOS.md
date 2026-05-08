@@ -132,8 +132,11 @@ This document tracks the implementation progress of the Customer Portal UI, a Re
 
 ### Pages
 - [x] Login Page
-  - [x] Login form with email/phone and password fields
-  - [x] Mock authentication (password: "password123")
+  - [x] Login form with customer dropdown (not email/phone)
+  - [x] Mock authentication (password: "password")
+  - [x] Database seeding check on mount: `GET /api/v1/customers`
+  - [x] Disable login when no customers exist (`has_customers === false`)
+  - [x] Show seeding instructions with command: `python scripts/seed-data.py --clean`
   - [x] Store customer_id in localStorage
   - [x] Redirect to home page on success
   - [x] Styled with insurance-blue gradient background

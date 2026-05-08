@@ -22,8 +22,13 @@ export const AuthProvider = ({ children }) => {
   const [customerId, setCustomerId] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasCustomers, setHasCustomers] = useState(null);
+  const [customerCount, setCustomerCount] = useState(0);
 
   useEffect(() => {
+    // Check customer count on mount
+    checkCustomerCount();
+
     // Load customer_id from localStorage on mount
     const storedId = localStorage.getItem('customer_id');
     if (storedId) {
@@ -33,6 +38,20 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
+
+  const checkCustomerCount = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/v1/customers`);
+      const data = await response.json();
+      setHasCustomers(data.has_customers);
+      setCustomerCount(data.count);
+    } catch (error) {
+      console.error('Failed to check customer count:', error);
+      // Assume customers exist if API call fails (fail open)
+      setHasCustomers(true);
+    }
+  };
 
   const loadCustomer = async (id) => {
     try {
@@ -99,7 +118,9 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isAuthenticated,
-    availableCustomers: MOCK_CUSTOMERS
+    availableCustomers: MOCK_CUSTOMERS,
+    hasCustomers,
+    customerCount
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

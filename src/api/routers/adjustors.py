@@ -12,6 +12,25 @@ from datetime import datetime
 router = APIRouter()
 
 
+@router.get("/count")
+def get_adjustor_count(db: Session = Depends(get_db)):
+    """
+    Get total number of adjustors in the database.
+
+    Returns:
+    - **count**: Number of adjustors
+    - **has_adjustors**: Boolean indicating if database has adjustors
+
+    Used by adjustor login screen to determine if database needs seeding.
+    """
+    from src.api.models.adjustor import Adjustor
+    count = db.query(Adjustor).count()
+    return {
+        "count": count,
+        "has_adjustors": count > 0
+    }
+
+
 @router.get("", response_model=List[AdjustorWithWorkload])
 def list_adjustors(
     status_filter: Optional[str] = Query(None, description="Filter by status: active, inactive"),

@@ -478,6 +478,27 @@ X-Customer-ID: <customer_id>
 
 ### 7.1 Customers API
 
+#### 7.1.0 Get Customer Count
+
+**Endpoint**: `GET /api/v1/customers`
+
+**Description**: Get total number of customers in the database (used for database seeding check)
+
+**Response** (200 OK):
+```json
+{
+  "count": 5,
+  "has_customers": true
+}
+```
+
+**Use Case**: 
+- Customer login page checks if database has been seeded
+- If `has_customers === false`, display seeding instructions to user
+- Used to prevent login attempts when database is empty
+
+---
+
 #### 7.1.1 Get Customer Details
 
 **Endpoint**: `GET /api/v1/customers/{customer_id}`
@@ -1700,6 +1721,27 @@ ETag: <file-hash>
 ### 7.3 Adjustors API
 
 **NEW in v1.1:** Endpoints for adjustor workload management and claim assignment.
+
+#### 7.3.0 Get Adjustor Count
+
+**Endpoint**: `GET /api/v1/adjustors/count`
+
+**Description**: Get total number of adjustors in the database (used for database seeding check)
+
+**Response** (200 OK):
+```json
+{
+  "count": 3,
+  "has_adjustors": true
+}
+```
+
+**Use Case**: 
+- Adjustor login page checks if database has been seeded
+- If `has_adjustors === false`, display seeding instructions to user
+- Used to prevent login attempts when database is empty
+
+---
 
 #### 7.3.1 List All Adjustors with Workload
 

@@ -417,6 +417,24 @@ src/ui/adjustor/
 └─────────────────────────────┘
 ```
 
+**Database Seeding Check:**
+On component mount, the login page checks if adjustors exist in the database:
+- API Call: `GET /api/v1/adjustors/count` returns `{ count: N, has_adjustors: boolean }`
+- If `has_adjustors === false`:
+  - Display warning banner with red background
+  - Disable adjustor dropdown (show message: "No adjustors available - seed database first")
+  - Disable login button
+  - Show seeding instructions:
+    ```
+    ⚠️ Database Not Seeded
+    You MUST first seed the database with customer and policy data.
+    
+    Run this command:
+    python scripts/seed-data.py --clean
+    
+    Once seeded, you can start the API server without the --clean flag to retain the data.
+    ```
+
 **Branding:**
 - Display ACME logo at top of login card
 - Logo source: `src/common/assets/ACME-logo.png`
@@ -426,6 +444,7 @@ src/ui/adjustor/
 **Fields:**
 - **Adjustor ID**: Select dropdown
   - Options: ADJ-001, ADJ-002, ADJ-003 (with names)
+  - Disabled if no adjustors in database
   - Required, no validation beyond non-empty
 - **Password**: Password input
   - Hardcoded: `adjustor123`
@@ -433,10 +452,12 @@ src/ui/adjustor/
 
 **Actions:**
 - **Login Button**: Validate credentials, store in localStorage, redirect to `/dashboard`
+- Disabled if no adjustors in database
 
 **Error Handling:**
 - Invalid password: Show error message below form
 - Network error: Show "Unable to connect to server" message
+- No adjustors: Show seeding instructions banner
 
 ---
 

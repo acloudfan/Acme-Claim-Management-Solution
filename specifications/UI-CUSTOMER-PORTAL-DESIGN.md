@@ -647,21 +647,44 @@ Step 4: Claim Detail Page (Decision)
 └─────────────────────────────────────┘
 ```
 
+**Database Seeding Check:**
+On component mount, the login page checks if customers exist in the database:
+- API Call: `GET /api/v1/customers` returns `{ count: N, has_customers: boolean }`
+- If `has_customers === false`:
+  - Display warning banner with red background
+  - Disable customer dropdown (show message: "No customers available - seed database first")
+  - Disable login button
+  - Show seeding instructions:
+    ```
+    ⚠️ Database Not Seeded
+    You MUST first seed the database with customer and policy data.
+    
+    Run this command:
+    python scripts/seed-data.py --clean
+    
+    Once seeded, you can start the API server without the --clean flag to retain the data.
+    ```
+
 **Implementation Details:**
-- Hardcoded authentication (no backend call)
+- On mount: Check customer count via `GET /api/v1/customers`
+- If customers exist: Show mock authentication UI
 - Dropdown list of mock customers (similar to adjustor portal pattern)
-- Fixed password "password123" for all customers
+- Fixed password "password" for all customers
 - Store selected customer_id in localStorage
 - Redirect to HomePage on success
+- If no customers: Show seeding instructions and disable login
 
 **Mock Customer Data:**
 ```javascript
+// Must match customers created by scripts/seed-data.py
 const MOCK_CUSTOMERS = [
-  { customer_id: 100, name: 'Jane Doe', email: 'jane.doe@example.com' },
-  { customer_id: 101, name: 'John Smith', email: 'john.smith@example.com' },
-  { customer_id: 102, name: 'Alice Johnson', email: 'alice.johnson@example.com' }
+  { customer_id: 100, name: 'John Doe', email: 'john.doe@example.com' },
+  { customer_id: 101, name: 'Jane Smith', email: 'jane.smith@example.com' },
+  { customer_id: 102, name: 'Bob Johnson', email: 'bob.johnson@example.com' },
+  { customer_id: 103, name: 'Alice Williams', email: 'alice.williams@example.com' },
+  { customer_id: 104, name: 'Charlie Brown', email: 'charlie.brown@example.com' }
 ];
-const MOCK_PASSWORD = 'password123';
+const MOCK_PASSWORD = 'password';
 ```
 
 **Component Tree:**

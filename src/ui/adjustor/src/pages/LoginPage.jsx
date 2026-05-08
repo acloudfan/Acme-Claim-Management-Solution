@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, availableAdjustors } = useAuth();
+  const { login, isAuthenticated, availableAdjustors, hasAdjustors, adjustorCount } = useAuth();
 
   const [selectedAdjustorId, setSelectedAdjustorId] = useState('');
   const [password, setPassword] = useState('');
@@ -69,6 +69,21 @@ const LoginPage = () => {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Database Seeding Warning */}
+            {hasAdjustors === false && (
+              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md text-sm">
+                <p className="font-semibold mb-2">⚠️ Database Not Seeded</p>
+                <p className="mb-2">You MUST first seed the database with customer and policy data.</p>
+                <div className="bg-red-100 p-2 rounded mt-2 font-mono text-xs">
+                  <p className="font-semibold mb-1">Run this command:</p>
+                  <p className="text-red-900">python scripts/seed-data.py --clean</p>
+                </div>
+                <p className="mt-2 text-xs">
+                  Once seeded, you can start the API server without the --clean flag to retain the data.
+                </p>
+              </div>
+            )}
+
             {/* Adjustor ID Dropdown */}
             <div>
               <label htmlFor="adjustor-id" className="block text-sm font-medium text-gray-700 mb-2">
@@ -79,10 +94,12 @@ const LoginPage = () => {
                 value={selectedAdjustorId}
                 onChange={(e) => setSelectedAdjustorId(e.target.value)}
                 className="input"
-                disabled={loading}
+                disabled={loading || hasAdjustors === false}
               >
-                <option value="">Select your ID...</option>
-                {availableAdjustors.map((adj) => (
+                <option value="">
+                  {hasAdjustors === false ? 'No adjustors available - seed database first' : 'Select your ID...'}
+                </option>
+                {hasAdjustors !== false && availableAdjustors.map((adj) => (
                   <option key={adj.adjustor_id} value={adj.adjustor_id}>
                     {adj.adjustor_id} - {adj.name}
                   </option>
@@ -116,7 +133,7 @@ const LoginPage = () => {
             {/* Login Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || hasAdjustors === false}
               className="btn btn-primary w-full flex items-center justify-center"
             >
               {loading ? (
@@ -134,7 +151,9 @@ const LoginPage = () => {
           <div className="mt-8 text-center text-xs text-gray-500">
             <p>Version 1.0.0</p>
             <p className="mt-1">AI-Powered Claims Adjustor Portal</p>
-            <p className="mt-3 text-gray-400">Demo: Use password "adjustor123"</p>
+            {hasAdjustors !== false && (
+              <p className="mt-3 text-gray-400">Demo: Use password "adjustor123"</p>
+            )}
           </div>
         </div>
 

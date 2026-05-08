@@ -69,6 +69,7 @@ test_insurance.db
 
 # Exception: Include warehouse data for Executive Portal
 !claims-warehouse.db
+!claims.db
 
 # Logs
 logs/
