@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [hasCustomers, setHasCustomers] = useState(null);
   const [customerCount, setCustomerCount] = useState(0);
+  const [apiServerDown, setApiServerDown] = useState(false);
 
   useEffect(() => {
     // Check customer count on mount
@@ -52,14 +53,29 @@ export const AuthProvider = ({ children }) => {
   const checkCustomerCount = async () => {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/api/v1/customers`);
+      const response = await fetch(`${apiUrl}/api/v1/customers`, {
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+
       const data = await response.json();
       setHasCustomers(data.has_customers);
       setCustomerCount(data.count);
+      setApiServerDown(false);
     } catch (error) {
       console.error('Failed to check customer count:', error);
-      // Assume customers exist if API call fails (fail open)
-      setHasCustomers(true);
+      // Check if it's a network error (API server down)
+      if (error.name === 'TypeError' || error.message.includes('Failed to fetch') || error.name === 'TimeoutError') {
+        setApiServerDown(true);
+        setHasCustomers(false);
+      } else {
+        // Other errors, assume customers exist (fail open)
+        setHasCustomers(true);
+        setApiServerDown(false);
+      }
     }
   };
 
@@ -130,7 +146,8 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     availableCustomers: MOCK_CUSTOMERS,
     hasCustomers,
-    customerCount
+    customerCount,
+    apiServerDown
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

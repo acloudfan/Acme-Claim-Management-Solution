@@ -1850,6 +1850,13 @@ Body:
 - Listens to `beforeunload` event to ensure cleanup on window close
 - **Security Rationale**: Prevents unauthorized access if adjustor forgets to logout at end of workday
 
+**API Server Detection:**
+- Checks API server health on mount by calling adjustor count endpoint
+- Uses 5-second timeout to detect unresponsive server
+- Shows prominent error message with start instructions if API is down
+- Disables login controls when API server is not responding
+- Error detection catches: TypeError, "Failed to fetch", TimeoutError
+
 ```javascript
 import { createContext, useContext, useState, useEffect } from 'react';
 

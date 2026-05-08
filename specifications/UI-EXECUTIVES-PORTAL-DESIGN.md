@@ -1281,7 +1281,36 @@ const SampleDataDistribution = ({ sampleSize, actualVolume, extrapolationFactor,
 
 ## 6. State Management
 
-### 6.1 Dashboard State
+### 6.1 Authentication Context
+
+**Session Management:**
+- Uses `sessionStorage` instead of `localStorage` for automatic logout when browser closes
+- Authentication tokens are cleared when user closes the browser window/tab
+- Listens to `beforeunload` event to ensure cleanup on window close
+- Checks API server health on mount using `/health` endpoint
+- Shows error message with start instructions if API server is down
+- **Security Rationale**: Prevents unauthorized access if executive forgets to logout
+
+**API Server Detection:**
+```javascript
+const checkApiServer = async () => {
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/health`, {
+      signal: AbortSignal.timeout(5000)
+    });
+    if (!response.ok) throw new Error(`API returned ${response.status}`);
+    setApiServerDown(false);
+  } catch (error) {
+    if (error.name === 'TypeError' || error.message.includes('Failed to fetch') || 
+        error.name === 'TimeoutError') {
+      setApiServerDown(true);
+    }
+  }
+};
+```
+
+### 6.2 Dashboard State
 
 ```jsx
 const [kpis, setKpis] = useState(null);              // KPI data from API
@@ -1292,9 +1321,10 @@ const [customRange, setCustomRange] = useState(null);
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState(null);
 const [lastUpdated, setLastUpdated] = useState(null);
+const [apiServerDown, setApiServerDown] = useState(false); // API health status
 ```
 
-### 6.2 State Flow
+### 6.3 State Flow
 
 ```
 1. Page Load:

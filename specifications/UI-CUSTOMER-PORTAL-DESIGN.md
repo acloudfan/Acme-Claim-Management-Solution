@@ -2901,6 +2901,13 @@ const handleAppealSubmit = async () => {
 - Listens to `beforeunload` event to ensure cleanup on window close
 - **Security Rationale**: Prevents unauthorized access if user forgets to logout
 
+**API Server Detection:**
+- Checks API server health on mount by calling customer count endpoint
+- Uses 5-second timeout to detect unresponsive server
+- Shows prominent error message with start instructions if API is down
+- Disables login controls when API server is not responding
+- Error detection catches: TypeError, "Failed to fetch", TimeoutError
+
 ```javascript
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';

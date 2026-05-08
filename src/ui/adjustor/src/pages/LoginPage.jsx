@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, availableAdjustors, hasAdjustors, adjustorCount } = useAuth();
+  const { login, isAuthenticated, availableAdjustors, hasAdjustors, adjustorCount, apiServerDown } = useAuth();
 
   const [selectedAdjustorId, setSelectedAdjustorId] = useState('');
   const [password, setPassword] = useState('');
@@ -69,8 +69,30 @@ const LoginPage = () => {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* API Server Down Warning */}
+            {apiServerDown && (
+              <div className="bg-red-50 border-2 border-red-300 text-red-900 px-4 py-3 rounded-md text-sm">
+                <p className="font-bold mb-2 text-base">🔴 API Server Not Running</p>
+                <p className="mb-3">The backend API server is not responding. Please start it to continue.</p>
+                <div className="bg-red-100 p-3 rounded mt-2 font-mono text-xs space-y-2">
+                  <div>
+                    <p className="font-semibold mb-1">1. Start the API server:</p>
+                    <p className="text-red-900">cd /home/raj/workspace2026/Acme-Claim-Management-Solution</p>
+                    <p className="text-red-900">python -m src.api.main</p>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-red-200">
+                    <p className="font-semibold mb-1">2. Verify it's running:</p>
+                    <p className="text-red-900">curl http://localhost:8000/health</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs">
+                  Once the server is running, refresh this page.
+                </p>
+              </div>
+            )}
+
             {/* Database Seeding Warning */}
-            {hasAdjustors === false && (
+            {!apiServerDown && hasAdjustors === false && (
               <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md text-sm">
                 <p className="font-semibold mb-2">⚠️ Database Not Seeded</p>
                 <p className="mb-2">You MUST first seed the database with customer and policy data.</p>
@@ -94,7 +116,7 @@ const LoginPage = () => {
                 value={selectedAdjustorId}
                 onChange={(e) => setSelectedAdjustorId(e.target.value)}
                 className="input"
-                disabled={loading || hasAdjustors === false}
+                disabled={loading || hasAdjustors === false || apiServerDown}
               >
                 <option value="">
                   {hasAdjustors === false ? 'No adjustors available - seed database first' : 'Select your ID...'}
@@ -133,7 +155,7 @@ const LoginPage = () => {
             {/* Login Button */}
             <button
               type="submit"
-              disabled={loading || hasAdjustors === false}
+              disabled={loading || hasAdjustors === false || apiServerDown}
               className="btn btn-primary w-full flex items-center justify-center"
             >
               {loading ? (
@@ -151,7 +173,7 @@ const LoginPage = () => {
           <div className="mt-8 text-center text-xs text-gray-500">
             <p>Version 1.0.0</p>
             <p className="mt-1">AI-Powered Claims Adjustor Portal</p>
-            {hasAdjustors !== false && (
+            {!apiServerDown && hasAdjustors !== false && (
               <p className="mt-3 text-gray-400">Demo: Use password "password"</p>
             )}
           </div>

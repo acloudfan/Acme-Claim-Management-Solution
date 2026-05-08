@@ -219,9 +219,30 @@ const DashboardPage = () => {
             {/* Messages */}
             {error && (
               <Card>
-                <div className="bg-error-light border-l-4 border-error p-4">
-                  <p className="text-sm text-error-dark whitespace-pre-wrap">{error}</p>
-                </div>
+                {error.includes('backend API server is not responding') ? (
+                  <div className="bg-red-50 border-2 border-red-300 text-red-900 p-4 rounded-md text-sm">
+                    <p className="font-bold mb-2 text-base">🔴 API Server Not Running</p>
+                    <p className="mb-3">The backend API server is not responding. Please start it to continue.</p>
+                    <div className="bg-red-100 p-3 rounded mt-2 font-mono text-xs space-y-2">
+                      <div>
+                        <p className="font-semibold mb-1">1. Start the API server:</p>
+                        <p className="text-red-900">cd /home/raj/workspace2026/Acme-Claim-Management-Solution</p>
+                        <p className="text-red-900">python -m src.api.main</p>
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-red-200">
+                        <p className="font-semibold mb-1">2. Verify it's running:</p>
+                        <p className="text-red-900">curl http://localhost:8000/health</p>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-xs">
+                      Once the server is running, refresh this page.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-error-light border-l-4 border-error p-4">
+                    <p className="text-sm text-error-dark whitespace-pre-wrap">{error}</p>
+                  </div>
+                )}
               </Card>
             )}
 

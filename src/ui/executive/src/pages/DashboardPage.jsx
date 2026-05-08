@@ -261,18 +261,31 @@ export default function DashboardPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-error-900 mb-1">Error Loading Dashboard</h3>
-                <p className="text-error-700">{error}</p>
-                <p className="text-sm text-error-600 mt-2">
-                  Make sure the API server is running on <code className="bg-error-100 px-2 py-1 rounded">http://localhost:8000</code>
-                </p>
-                <button
-                  onClick={() => loadDashboardData()}
-                  className="mt-4 px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700"
-                >
-                  Retry
-                </button>
+              <div className="flex-1">
+                <div className="bg-red-50 border-2 border-red-300 text-red-900 p-4 rounded-md text-sm">
+                  <p className="font-bold mb-2 text-base">🔴 API Server Not Running</p>
+                  <p className="mb-3">The backend API server is not responding. Please start it to continue.</p>
+                  <div className="bg-red-100 p-3 rounded mt-2 font-mono text-xs space-y-2">
+                    <div>
+                      <p className="font-semibold mb-1">1. Start the API server:</p>
+                      <p className="text-red-900">cd /home/raj/workspace2026/Acme-Claim-Management-Solution</p>
+                      <p className="text-red-900">python -m src.api.main</p>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-red-200">
+                      <p className="font-semibold mb-1">2. Verify it's running:</p>
+                      <p className="text-red-900">curl http://localhost:8000/health</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs">
+                    Once the server is running, click the Retry button below.
+                  </p>
+                  <button
+                    onClick={() => loadDashboardData()}
+                    className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+                  >
+                    Retry
+                  </button>
+                </div>
               </div>
             </div>
           </div>

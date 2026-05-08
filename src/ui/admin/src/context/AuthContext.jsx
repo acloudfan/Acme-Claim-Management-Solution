@@ -10,10 +10,14 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [adminId, setAdminId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [apiServerDown, setApiServerDown] = useState(false);
 
   useEffect(() => {
+    // Check API server health first
+    checkApiServer();
+
     // Check if admin is already logged in
-    const storedAdminId = localStorage.getItem('admin_id');
+    const storedAdminId = sessionStorage.getItem('admin_id');
     if (storedAdminId) {
       setAdminId(storedAdminId);
     } else {
@@ -22,20 +26,50 @@ export const AuthProvider = ({ children }) => {
       if (!config.auth.require_login) {
         const defaultId = config.auth.default_admin_id;
         setAdminId(defaultId);
-        localStorage.setItem('admin_id', defaultId);
+        sessionStorage.setItem('admin_id', defaultId);
       }
     }
     setLoading(false);
+
+    // Auto-logout when window/tab is closed
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem('admin_id');
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
+
+  const checkApiServer = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/health`, {
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+
+      setApiServerDown(false);
+    } catch (error) {
+      console.error('API server health check failed:', error);
+      if (error.name === 'TypeError' || error.message.includes('Failed to fetch') || error.name === 'TimeoutError') {
+        setApiServerDown(true);
+      }
+    }
+  };
 
   const login = (id) => {
     setAdminId(id);
-    localStorage.setItem('admin_id', id);
+    sessionStorage.setItem('admin_id', id);
   };
 
   const logout = () => {
     setAdminId(null);
-    localStorage.removeItem('admin_id');
+    sessionStorage.removeItem('admin_id');
   };
 
   const isAuthenticated = () => {
@@ -50,6 +84,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isAuthenticated,
+        apiServerDown,
       }}
     >
       {children}

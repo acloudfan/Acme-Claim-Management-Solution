@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [hasAdjustors, setHasAdjustors] = useState(null);
   const [adjustorCount, setAdjustorCount] = useState(0);
+  const [apiServerDown, setApiServerDown] = useState(false);
 
   // Load adjustor from sessionStorage on mount (not localStorage)
   useEffect(() => {
@@ -50,14 +51,29 @@ export const AuthProvider = ({ children }) => {
   const checkAdjustorCount = async () => {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/api/v1/adjustors/count`);
+      const response = await fetch(`${apiUrl}/api/v1/adjustors/count`, {
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+
       const data = await response.json();
       setHasAdjustors(data.has_adjustors);
       setAdjustorCount(data.count);
+      setApiServerDown(false);
     } catch (error) {
       console.error('Failed to check adjustor count:', error);
-      // Assume adjustors exist if API call fails (fail open)
-      setHasAdjustors(true);
+      // Check if it's a network error (API server down)
+      if (error.name === 'TypeError' || error.message.includes('Failed to fetch') || error.name === 'TimeoutError') {
+        setApiServerDown(true);
+        setHasAdjustors(false);
+      } else {
+        // Other errors, assume adjustors exist (fail open)
+        setHasAdjustors(true);
+        setApiServerDown(false);
+      }
     }
   };
 
@@ -102,7 +118,8 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     availableAdjustors: MOCK_ADJUSTORS,
     hasAdjustors,
-    adjustorCount
+    adjustorCount,
+    apiServerDown
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

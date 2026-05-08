@@ -44,10 +44,10 @@ const createApiClient = () => {
         window.location.href = '/login';
       }
 
-      // Handle network errors
+      // Handle network errors (API server not running)
       if (!error.response) {
         console.error('Network error:', error.message);
-        error.message = 'Network error. Please check your connection.';
+        error.message = 'The backend API server is not responding. Please start it to continue.';
       }
 
       return Promise.reject(error);
