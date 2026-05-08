@@ -1,16 +1,17 @@
 sequenceDiagram
     autonumber
 
-    %% Image Upload Sequence Diagram
+    %% Image Upload Sequence Diagram with AI Analysis
     %% Color Palette: color-palette-dark.css
 
     participant Customer
     participant API as API<br/>/customers/{id}/claims/{claim_id}/images
     participant Claim as Claim Service
     participant YOLO as YOLO Model<br/>(damage detection)
+    participant VLM as Vision LLM<br/>(fraud pre-screening)
     participant DB as Database
 
-    Note over Customer,DB: Image Upload Flow
+    Note over Customer,DB: Image Upload Flow with AI Analysis
 
     %% Step 1: Customer uploads image
     Customer->>+API: POST image file
@@ -30,8 +31,8 @@ sequenceDiagram
     %% Step 3: Store image
     API->>DB: Store image file
 
-    %% Step 4: Analyze image with YOLO
-    API->>+YOLO: Analyze image
+    %% Step 4: Analyze image with YOLO (Damage Detection)
+    API->>+YOLO: Analyze image for damage
     YOLO->>YOLO: YOLO inference<br/>(detect damages, bounding boxes)
     YOLO->>YOLO: Generate annotated image<br/>(BB-{filename})
     YOLO-->>-API: Damage detections<br/>(class, confidence, bbox, severity)
@@ -40,13 +41,28 @@ sequenceDiagram
     API->>+DB: INSERT INTO damages<br/>(YOLO detection + assessment data)
     DB-->>-API: Damage report(s) added
 
-    %% Step 6: Log event
+    %% Step 6: VLM Fraud Pre-Screening (Optional - during upload or submission)
+    Note over API,VLM: Fraud analysis can occur during<br/>upload or deferred to submission
+
+    opt Fraud Detection Enabled
+        API->>+VLM: Analyze image for fraud signals
+        VLM->>VLM: Check: vehicle color match
+        VLM->>VLM: Check: vehicle make/model match
+        VLM->>VLM: Check: AI-generated artifacts
+        VLM->>VLM: Check: image manipulation signs
+        VLM-->>-API: Fraud signals<br/>(color mismatch, make/model mismatch,<br/>AI-generated detection, etc.)
+
+        API->>+DB: Store fraud analysis metadata
+        DB-->>-API: Fraud signals stored
+    end
+
+    %% Step 7: Log event
     API->>+DB: INSERT INTO claims_events<br/>(action: image_uploaded)
     DB-->>-API: Event logged
 
     Note over API,DB: NO change in claim status<br/>(remains in 'draft')
 
-    %% Step 7: Return success
+    %% Step 8: Return success
     API-->>-Customer: 201 Created<br/>Image uploaded successfully
 
-    Note over Customer,DB: ✓ Original image stored<br/>✓ Annotated image generated (BB- prefix)<br/>✓ YOLO analyzed (class, bbox, confidence)<br/>✓ Damage report(s) added to DB<br/>✓ Event logged<br/>✗ NO status change (remains draft)
+    Note over Customer,DB: ✓ Original image stored<br/>✓ Annotated image generated (BB- prefix)<br/>✓ YOLO damage detection complete<br/>✓ VLM fraud pre-screening (optional)<br/>✓ Damage report(s) added to DB<br/>✓ Event logged<br/>✗ NO status change (remains draft)

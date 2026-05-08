@@ -1,12 +1,16 @@
-# Quick Start with UV
+# Quick Start - API Server Only
+
+> **Note**: This guide covers **backend API setup only**. For the complete system with all portals (Customer, Adjustor, Admin, Executive), see the main [README.md](../README.md).
 
 ## 🚀 One-Command Setup
 
 ```bash
-./scripts/setup_uv.sh && ./scripts/start_api.sh
+./scripts/setup_uv.sh && ./scripts/start-api-server.sh --clean
 ```
 
 That's it! The API will be running at http://localhost:8000
+
+**To start the full system** (API + all portals), see [Complete System Setup](../README.md#quick-start).
 
 ---
 
@@ -44,11 +48,11 @@ mkdir -p uploads logs
 ### 3. Start API
 
 ```bash
-# Using the start script
-./scripts/start_api.sh
+# Using the start script (recommended)
+./scripts/start-api-server.sh --clean
 
-# Start with clean database (deletes existing data)
-./scripts/start_api.sh --clean
+# Without --clean to keep existing data
+./scripts/start-api-server.sh
 
 # Or manually
 uv run uvicorn src.api.main:app --reload
@@ -266,7 +270,7 @@ uv run uvicorn src.api.main:app --reload --port 8001
 
 ```bash
 # 1. Start API
-./scripts/start_api.sh
+./scripts/start-api-server.sh --clean
 
 # 2. In another terminal, test health endpoint
 curl http://localhost:8000/health
@@ -277,6 +281,23 @@ xdg-open http://localhost:8000/docs  # Linux
 
 # 4. Try creating a claim via Swagger UI
 ```
+
+## 🌐 Full System with Portals
+
+To run the complete system with Customer, Adjustor, Admin, and Executive portals:
+
+```bash
+# 1. Start API server
+./scripts/start-api-server.sh --clean
+
+# 2. In a new terminal, start all portals
+./scripts/start-portals.sh
+
+# 3. Open Admin Portal and launch other portals from there
+open http://localhost:5170
+```
+
+See [README.md](../README.md) for complete setup instructions including demo scenarios and test images.
 
 ---
 

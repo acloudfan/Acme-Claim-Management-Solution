@@ -167,6 +167,109 @@ Test images are provided in the `images/` directory. Use these images when filin
 ✅ Configurable business rules  
 ✅ Complete audit trail
 
+## Configuration Management
+
+Configuration is managed through `api-config.yaml` and the **Admin Portal** (http://localhost:5170).
+
+### Key Configuration Parameters
+
+#### AI Confidence Thresholds
+Controls automatic claim routing based on AI confidence levels.
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| `ai.confidence.high_threshold` | Auto-present estimate to customer | **0.55** | `0.55` (55% confidence) |
+| `ai.confidence.low_threshold` | Below this routes to traditional process | **0.35** | `0.35` (35% confidence) |
+
+#### Fraud Detection
+Controls fraud detection sensitivity and features.
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| `ai.fraud.risk_threshold` | Flag claims above this risk score | **0.1** | `0.1` (10% risk) |
+| `agents.fraud_detector.enabled` | Enable/disable fraud detection | **true** | `true` or `false` |
+| `agents.fraud_detector.high_risk_threshold` | High fraud risk threshold | **0.7** | `0.7` (70% risk) |
+| `agents.fraud_detector.medium_risk_threshold` | Medium fraud risk threshold | **0.4** | `0.4` (40% risk) |
+| `agents.fraud_detector.phase1_vision.color_verification.enabled` | Verify vehicle color | **true** | `true` or `false` |
+| `agents.fraud_detector.phase1_vision.make_model_verification.enabled` | Verify vehicle make/model | **true** | `true` or `false` |
+| `agents.fraud_detector.phase1_vision.ai_generated_detection.enabled` | Detect AI-generated images | **true** | `true` or `false` |
+
+#### Cost Estimation
+Controls when human review is required.
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| `ai.estimate.human_review_threshold` | Dollar amount requiring manual review | **5000** | `5000` ($5,000+) |
+
+#### YOLO Damage Detection
+Controls the YOLO model for damage detection.
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| `ai.yolo.model_path` | HuggingFace model identifier | **vineetsarpal/yolov11n-car-damage** | `username/model-name` |
+| `ai.yolo.confidence_threshold` | Minimum confidence for detection | **0.25** | `0.25` (25%) |
+| `ai.yolo.device` | Processing device | **cpu** | `cpu` or `cuda` |
+
+#### LLM Provider Configuration
+Configure which AI provider to use.
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| `llm.default_provider` | Default LLM provider | **bedrock** | `bedrock`, `anthropic`, or `openai` |
+| `llm.default_vision_model` | Default Vision Language Model | **bedrock** | `bedrock`, `anthropic`, or `openai` |
+| `llm.providers.bedrock.default_model` | AWS Bedrock model ID | **us.anthropic.claude-sonnet-4-5...** | See AWS Bedrock docs |
+| `llm.providers.bedrock.temperature` | LLM temperature (creativity) | **0.2** | `0.0` (deterministic) to `1.0` (creative) |
+
+#### AI Agents
+Enable or disable specific AI agents.
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| `agents.chatbot.enabled` | Customer chatbot | **true** | `true` or `false` |
+| `agents.fraud_detector.enabled` | Fraud detection agent | **true** | `true` or `false` |
+| `agents.damage_analyzer.enabled` | Enhanced damage analysis | **true** | `true` or `false` |
+| `agents.risk_estimator.enabled` | Actuarial risk analysis | **false** | `true` or `false` |
+
+#### Database
+Database connection settings.
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| `database.url` | Database connection string | **sqlite:///./test_insurance.db** | `sqlite:///./database.db` |
+| `database.pool_size` | Connection pool size | **5** | `5` connections |
+
+#### Storage
+File upload and storage settings.
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| `storage.images_root_folder` | Image upload directory | **uploads** | `uploads/` |
+| `storage.max_upload_size_mb` | Max image size per file | **10** | `10` MB |
+| `storage.max_images_per_claim` | Max images per claim | **20** | `20` images |
+
+### How to Configure
+
+**Option 1: Admin Portal (Recommended)**
+1. Open http://localhost:5170
+2. Navigate to Business Rules or Technical Parameters
+3. Adjust values using the UI
+4. Click "Save Configuration"
+5. Changes take effect immediately (automatic reload)
+
+**Option 2: Edit Configuration File**
+1. Edit `api-config.yaml` in project root
+2. Save changes
+3. Restart API server: `./scripts/start-api-server.sh`
+
+### Configuration Backup
+
+The system automatically creates timestamped backups when you save configuration through the Admin Portal:
+- Format: `api-config.YYYY-MM-DD-HH-MM-SS.bak`
+- Location: Project root directory
+- Restore: Use Admin Portal → Backup History (coming soon)
+
+---
+
 ## Documentation
 
 - [Quick Start Guide](specifications/QUICK-START-UV.md)
