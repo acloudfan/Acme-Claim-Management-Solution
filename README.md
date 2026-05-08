@@ -63,6 +63,8 @@ AWS_DEFAULT_REGION=us-east-1
 ```
 *Default Model: `us.anthropic.claude-sonnet-4-5-20250929-v1:0`*
 
+**Note**: If you already have AWS credentials configured in `~/.aws/credentials`, you can skip adding AWS variables to `.env`. The system will automatically use your AWS CLI credentials.
+
 **Option 2: Anthropic Claude**
 ```bash
 ANTHROPIC_API_KEY=sk-ant-api03-your_key_here
@@ -102,23 +104,45 @@ OPENAI_API_KEY=sk-your_key_here
 
 - **Security**: Never commit `.env` file to version control (already in `.gitignore`)
 - **Default Provider**: The system is configured to use AWS Bedrock by default
-- **Change Provider**: Edit `llm.default_provider` in `api-config.yaml` to switch providers
-- **Multiple Providers**: You can configure all three providers and switch between them via Admin Portal
+- **AWS Credentials**: If you have `~/.aws/credentials` configured, you don't need to add AWS variables to `.env`
+- **Switch Provider**: To change from default (Bedrock), edit `llm.default_provider` in `api-config.yaml`:
+  ```yaml
+  llm:
+    default_provider: "anthropic"  # or "openai" or "bedrock"
+  ```
+  Or use **Admin Portal** → Technical Parameters → Default LLM Provider
+- **Multiple Providers**: You can configure all three providers and switch between them anytime via Admin Portal
 
 ### Example `.env` File
 
 ```env
-# Choose ONE or MORE providers
+# ==============================================================================
+# LLM PROVIDER SELECTION
+# ==============================================================================
+# To switch providers, set one of these values in api-config.yaml:
+# - llm.default_provider: "bedrock" | "anthropic" | "openai"
+# 
+# OR use Admin Portal (http://localhost:5170) → Technical Parameters → LLM Provider
+# ==============================================================================
 
-# AWS Bedrock (Default - Recommended)
+# Choose ONE or MORE providers below:
+
+# ------------------------------------------------------------------------------
+# AWS Bedrock (Default Provider)
+# ------------------------------------------------------------------------------
+# If you have AWS CLI configured (~/.aws/credentials), you can skip these:
 AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
 AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 AWS_DEFAULT_REGION=us-east-1
 
-# Anthropic (Optional)
+# ------------------------------------------------------------------------------
+# Anthropic (Optional - to use, set llm.default_provider: "anthropic")
+# ------------------------------------------------------------------------------
 ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# OpenAI (Optional)
+# ------------------------------------------------------------------------------
+# OpenAI (Optional - to use, set llm.default_provider: "openai")
+# ------------------------------------------------------------------------------
 OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
