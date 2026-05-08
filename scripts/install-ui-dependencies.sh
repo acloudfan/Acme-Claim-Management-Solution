@@ -72,12 +72,35 @@ for portal_info in "${PORTALS[@]}"; do
             echo -e "${YELLOW}  Removing existing node_modules...${NC}"
             rm -rf node_modules
         fi
+        if [ -f "package-lock.json" ]; then
+            echo -e "${YELLOW}  Removing package-lock.json...${NC}"
+            rm -f package-lock.json
+        fi
     fi
 
     # Install dependencies
     if npm install; then
-        echo -e "${GREEN}✓${NC} ${portal_name} portal dependencies installed"
-        ((SUCCESS_COUNT++))
+        # Verify critical dependency (vite) was installed correctly
+        if [ ! -d "node_modules/vite/dist" ]; then
+            echo -e "${RED}✗${NC} ${portal_name} portal installation incomplete (vite dist missing)"
+            echo -e "${YELLOW}  Retrying with clean install...${NC}"
+            rm -rf node_modules package-lock.json
+            if npm install; then
+                if [ -d "node_modules/vite/dist" ]; then
+                    echo -e "${GREEN}✓${NC} ${portal_name} portal dependencies installed (after retry)"
+                    ((SUCCESS_COUNT++))
+                else
+                    echo -e "${RED}✗${NC} ${portal_name} portal still incomplete after retry"
+                    FAILED_PORTALS+=("$portal_name (vite corrupted)")
+                fi
+            else
+                echo -e "${RED}✗${NC} Failed to install ${portal_name} portal dependencies (retry failed)"
+                FAILED_PORTALS+=("$portal_name")
+            fi
+        else
+            echo -e "${GREEN}✓${NC} ${portal_name} portal dependencies installed"
+            ((SUCCESS_COUNT++))
+        fi
     else
         echo -e "${RED}✗${NC} Failed to install ${portal_name} portal dependencies"
         FAILED_PORTALS+=("$portal_name")
