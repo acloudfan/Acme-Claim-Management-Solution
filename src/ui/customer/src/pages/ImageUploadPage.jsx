@@ -329,6 +329,16 @@ const ImageUploadPage = () => {
           </div>
         </div>
 
+        {/* Sample Images Info */}
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h3 className="text-sm font-semibold text-green-900 mb-1">
+            💡 Test Images Available
+          </h3>
+          <p className="text-sm text-green-800">
+            You can use sample damaged car images provided in the <code className="bg-green-100 px-1.5 py-0.5 rounded text-xs font-mono">images/</code> folder under project root for testing this feature.
+          </p>
+        </div>
+
         {/* Drag & Drop Zone - 50% smaller */}
         <label className="block mb-6">
           <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors">

@@ -65,11 +65,10 @@ dmypy.json
 *.db
 *.sqlite
 *.sqlite3
-test_insurance.db
 
-# Exception: Include warehouse data for Executive Portal
+# Exceptions: Include specific database files
 !claims-warehouse.db
-!claims.db
+!test_insurance.db
 
 # Logs
 logs/
