@@ -6,6 +6,32 @@ This project showcases how AI can streamline insurance claims processing through
 
 **Key Technologies**: YOLO damage detection, Vision Language Models for fraud detection, multi-portal architecture for different user roles.
 
+---
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Configuration](#configuration)
+- [Quick Start](#quick-start)
+- [What's Built](#whats-built)
+- [Demo Scenarios](#demo-scenarios)
+- [Project Structure](#project-structure)
+- [Technology Stack](#technology-stack)
+- [Key Features](#key-features)
+- [Configuration Management](#configuration-management)
+  - [Environment Variables Setup](#environment-variables-setup)
+  - [Key Configuration Parameters](#key-configuration-parameters)
+  - [How to Configure](#how-to-configure)
+- [Documentation](#documentation)
+- [How This Prototype Was Built](#how-this-prototype-was-built)
+- [References](#references)
+  - [External Resources](#external-resources)
+  - [Technical Diagrams](#technical-diagrams)
+- [FAQ](#faq)
+- [License](#license)
+
+---
+
 ## Prerequisites
 
 This project requires **uv** (fast Python package installer):
@@ -17,6 +43,89 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Or run the setup script (one-time setup)
 ./scripts/setup_uv.sh
 ```
+
+---
+
+## Configuration
+
+⚠️ **REQUIRED**: Before starting the system, you MUST configure at least one LLM provider.
+
+### Minimum Setup - Environment Variables
+
+Create a `.env` file in the project root with API keys for at least one provider:
+
+**Option 1: AWS Bedrock (Recommended - Default Provider)**
+```bash
+# AWS Bedrock uses AWS CLI credentials
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_DEFAULT_REGION=us-east-1
+```
+
+**Option 2: Anthropic Claude**
+```bash
+ANTHROPIC_API_KEY=sk-ant-api03-your_key_here
+```
+
+**Option 3: OpenAI**
+```bash
+OPENAI_API_KEY=sk-your_key_here
+```
+
+### Quick Setup Steps
+
+1. **Create `.env` file** in project root:
+   ```bash
+   touch .env
+   ```
+
+2. **Add your API key** for one of the supported providers (see options above)
+
+3. **Verify configuration** (optional):
+   ```bash
+   # Check that .env file exists and has content
+   cat .env
+   ```
+
+### Supported LLM Providers
+
+| Provider | Default | Required Variables | How to Get Keys |
+|----------|---------|-------------------|-----------------|
+| **AWS Bedrock** | ✅ Yes | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | [AWS Console](https://aws.amazon.com/) → IAM → Access Keys |
+| **Anthropic** | No | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) → API Keys |
+| **OpenAI** | No | `OPENAI_API_KEY` | [OpenAI Platform](https://platform.openai.com/) → API Keys |
+
+### Important Notes
+
+- **Security**: Never commit `.env` file to version control (already in `.gitignore`)
+- **Default Provider**: The system is configured to use AWS Bedrock by default
+- **Change Provider**: Edit `llm.default_provider` in `api-config.yaml` to switch providers
+- **Multiple Providers**: You can configure all three providers and switch between them via Admin Portal
+
+### Example `.env` File
+
+```env
+# Choose ONE or MORE providers
+
+# AWS Bedrock (Default - Recommended)
+AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+AWS_DEFAULT_REGION=us-east-1
+
+# Anthropic (Optional)
+ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# OpenAI (Optional)
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+**Without proper LLM configuration, the following features will not work:**
+- AI fraud detection (VLM analysis)
+- Customer chatbot
+- Damage analysis enhancement
+- Estimate explanations
+
+---
 
 ## Quick Start
 
@@ -224,7 +333,48 @@ Test images are provided in the `images/` directory. Use these images when filin
 
 ## Configuration Management
 
-Configuration is managed through `api-config.yaml` and the **Admin Portal** (http://localhost:5170).
+Configuration is managed through `api-config.yaml`, environment variables (`.env` file), and the **Admin Portal** (http://localhost:5170).
+
+### Environment Variables Setup
+
+Create a `.env` file in the project root to configure API keys for LLM providers:
+
+```bash
+# LLM Provider API Keys
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+
+# AWS Bedrock Configuration (uses AWS CLI credentials)
+# Ensure AWS credentials are configured via:
+# - AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables
+# - OR ~/.aws/credentials file
+# - OR IAM role (if running on EC2/ECS)
+AWS_DEFAULT_REGION=us-east-1
+```
+
+**Important Notes:**
+- **AWS Bedrock**: Does not require API key in `.env`. Uses AWS CLI credentials instead. Configure with `aws configure` or set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in `.env`.
+- **API Keys**: Never commit `.env` file to version control. Add `.env` to `.gitignore`.
+- **Provider Selection**: Set `llm.default_provider` in `api-config.yaml` to choose which provider to use (bedrock, anthropic, or openai).
+
+**Example `.env` file:**
+```env
+# Anthropic Claude API
+ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# OpenAI API
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# AWS Configuration (for Bedrock)
+AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+AWS_DEFAULT_REGION=us-east-1
+```
+
+**Getting API Keys:**
+- **Anthropic**: https://console.anthropic.com/ → Account Settings → API Keys
+- **OpenAI**: https://platform.openai.com/ → API Keys
+- **AWS Bedrock**: https://aws.amazon.com/ → IAM → Create Access Key (requires Bedrock model access)
 
 ### Key Configuration Parameters
 
@@ -400,6 +550,10 @@ No, this is a **demonstration and starting point** for anyone interested in AI-b
 - Additional fraud prevention measures
 - Comprehensive testing and validation
 - Integration with existing insurance systems
+
+### How long did it take for you to build this prototype?
+
+It took me **~2 days** and most of that time was spent waiting for Claude to finish thinking :-)
 
 ---
 
