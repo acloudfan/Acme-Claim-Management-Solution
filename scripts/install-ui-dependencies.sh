@@ -77,11 +77,26 @@ for portal_info in "${PORTALS[@]}"; do
     # Fix version compatibility issues in package.json
     echo -e "${YELLOW}  Checking for version compatibility issues...${NC}"
 
-    # Check for Vite version (portable sed, works on Linux and macOS)
-    VITE_VERSION=$(grep '"vite"' package.json | head -1 | sed 's/[^0-9.]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/')
+    # Check for Vite version (portable approach, works on Linux and macOS)
+    # Extract version from either "vite": "^X.Y.Z" or "dev": "vite" patterns
+    VITE_LINE=$(grep '"vite":' package.json | grep -v '"dev"')
+
+    if [ ! -z "$VITE_LINE" ]; then
+        # Extract version: "vite": "^5.4.21" -> 5.4.21 -> 5.4
+        VITE_VERSION=$(echo "$VITE_LINE" | awk -F'"' '{for(i=1;i<=NF;i++) if($i ~ /^[\^~]?[0-9]/) print $i}' | sed 's/[^0-9.]//g' | cut -d. -f1-2)
+        VITE_MAJOR=$(echo "$VITE_VERSION" | cut -d. -f1)
+    else
+        VITE_VERSION=""
+        VITE_MAJOR=""
+    fi
+
+    # Ensure VITE_MAJOR is a valid number (default to 5 if empty)
+    if [ -z "$VITE_MAJOR" ] || ! [[ "$VITE_MAJOR" =~ ^[0-9]+$ ]]; then
+        echo -e "${YELLOW}  → Could not detect Vite version, assuming 5.x${NC}"
+        VITE_MAJOR=5
+    fi
 
     if [ ! -z "$VITE_VERSION" ]; then
-        VITE_MAJOR=$(echo $VITE_VERSION | cut -d. -f1)
 
         # Fix incompatible @vitejs/plugin-react version
         if [ "$VITE_MAJOR" -lt 8 ]; then
