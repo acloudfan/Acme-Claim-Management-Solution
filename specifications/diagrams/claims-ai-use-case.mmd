@@ -15,7 +15,11 @@ flowchart TD
     Decision -->|Accept| Close1[Claim Closed ✓]
     Decision -->|Appeal| Human
 
-    AI -->|High Fraud Risk| Human[Human Adjustor Review]
+    AI -->|Low Confidence in Estimate | Human[Human Adjustor Review]
+
+    AI -->|Fraud Signals Detected| Human[Human Adjustor Review]
+
+   
 
     Human --> AdjustorDecision[Adjustor Makes Decision]
     AdjustorDecision --> Close2[Claim Closed ✓]
