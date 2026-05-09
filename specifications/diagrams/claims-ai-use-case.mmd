@@ -1,0 +1,34 @@
+%% AI-Powered Claims Processing - High-Level Block Diagram
+
+flowchart TD
+    Start([Customer Submits Claim]) --> Upload[Upload Damage Images]
+    Upload --> AI[AI Processing]
+
+    subgraph AI[AI Analysis]
+        direction LR
+        Damage[Damage Detection] --> Estimate[Cost Estimation]
+        Estimate --> Fraud[Fraud Detection]
+    end
+
+    AI --> Decision{Customer<br/>Decision}
+
+    Decision -->|Accept| Close1[Claim Closed ✓]
+    Decision -->|Appeal| Human
+
+    AI -->|High Fraud Risk| Human[Human Adjustor Review]
+
+    Human --> AdjustorDecision[Adjustor Makes Decision]
+    AdjustorDecision --> Close2[Claim Closed ✓]
+
+    %% Styling
+    classDef startClass fill:#3b82f6,stroke:#1e40af,stroke-width:3px,color:#fff
+    classDef aiClass fill:#10b981,stroke:#047857,stroke-width:3px,color:#fff
+    classDef decisionClass fill:#f59e0b,stroke:#d97706,stroke-width:3px,color:#fff
+    classDef humanClass fill:#ef4444,stroke:#dc2626,stroke-width:3px,color:#fff
+    classDef closeClass fill:#8b5cf6,stroke:#7c3aed,stroke-width:3px,color:#fff
+
+    class Start startClass
+    class Upload,Damage,Estimate,Fraud aiClass
+    class Decision decisionClass
+    class Human,AdjustorDecision humanClass
+    class Close1,Close2 closeClass
