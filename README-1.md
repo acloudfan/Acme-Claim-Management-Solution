@@ -424,8 +424,8 @@ Test images are provided in the `images/` directory. Use these images when filin
 
 ### 1. Happy Path - Auto-Approved
 - **Customer**: John Doe (#100)
-- **Vehicle**: 2015 Toyota Corolla (Silver)
-- **Image**: `images/toyota-rear-end-damage.png`
+- **Vehicle**: 2015 Toyota Corolla (Red)
+- **Image**: `images/red-toyota-2015-rear-end-damage.png`
 - **Expected**: Auto-approved with AI estimate
 - **Outcome**: Customer accepts estimate
 

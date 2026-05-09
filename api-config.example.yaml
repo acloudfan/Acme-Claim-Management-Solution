@@ -146,3 +146,5 @@ tracking:
     bedrock_claude_3_opus_output: 75
     bedrock_claude_3_haiku_input: 0.25
     bedrock_claude_3_haiku_output: 1.25
+  langfuse:
+    enabled: false  # Set to true to enable Langfuse tracing (credentials in .env)

@@ -15,7 +15,7 @@ These images contain actual vehicle damage and will trigger AI damage detection:
 6. **damaged-car-front-bumper-3.jpg** - Front bumper damage
 7. **honda-acord-ex-2022-ai-generated-damage.jpg** - Honda Accord with damage
 8. **red-ford-f150-ai-generated-damage.jpg** - Ford F-150 with damage
-9. **toyota-rear-end-damage.png** - Toyota rear-end damage
+9. **red-toyota-2015-rear-end-damage.png** - Red 2015 Toyota rear-end damage
 
 ### No Damage / Test Cases
 10. **red-ford-f150-no-damage.jpg** - Undamaged Ford F-150 (tests no-damage scenario)

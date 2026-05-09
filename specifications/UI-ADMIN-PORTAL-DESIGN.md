@@ -187,10 +187,12 @@ src/ui/admin/
 
 ##### Left Section (80%): Configuration Editor
 
-**Header Actions:**
-- **[Save]** button (primary): Validates → Saves to YAML → Creates backup → Shows restart prompt
-- **[Reset]** button (secondary): Reverts unsaved changes
-- **[Backup History]** button (ghost): Shows list of .bak files with restore option
+**Configuration Editor Box:**
+- Header: "Configuration Editor" with toggle button
+- **Action Buttons (inside Configuration Editor box):**
+  - **[<> Show JSON]** button: Toggle between form UI and JSON editor
+  - **[Save Configuration]** button (primary): Validates → Saves to YAML → Creates backup → Auto-reloads config in API server
+  - **[Reset]** button (secondary): Reverts unsaved changes
 
 **Section 1: Claim Processing Rules**
 

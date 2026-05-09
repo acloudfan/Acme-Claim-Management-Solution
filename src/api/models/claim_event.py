@@ -24,6 +24,9 @@ class ClaimEvent(Base):
     action_by_identity = Column(String(100), nullable=False)  # Actor identifier
     comments = Column(String(500), nullable=True)
 
+    # Langfuse Integration
+    langfuse_trace_id = Column(String(255), nullable=True)  # Trace ID for AI agent execution
+
     # Relationships
     claim = relationship("Claim", back_populates="events")
 

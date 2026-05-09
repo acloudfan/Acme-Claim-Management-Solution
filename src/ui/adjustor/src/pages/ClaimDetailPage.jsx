@@ -533,11 +533,14 @@ const ClaimDetailPage = () => {
           </Card>
 
           {/* Section 6: Review Actions */}
-          <Card>
-            <div className="flex justify-end">
-              <Button variant="primary" size="lg" onClick={handleCompleteReview}>
+          <Card title="Your Decision">
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={handleCompleteReview}
+                className="px-8 py-4 text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transition-all duration-200"
+              >
                 Complete Review →
-              </Button>
+              </button>
             </div>
           </Card>
         </div>

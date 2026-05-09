@@ -1,6 +1,7 @@
 """
 Customer API router for customer CRUD, claims, images, events, and policies.
 """
+import logging
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -20,6 +21,8 @@ from src.api.services.estimate_service import EstimateService
 from src.api.constants import ClaimAction, ActorType, ClaimState
 from src.api.exceptions import ResourceNotFoundError, ValidationError
 from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -301,6 +304,8 @@ def submit_claim(
     **SECURITY**: Fraud detection runs synchronously as a security gate.
     High-risk claims are blocked from proceeding to estimation.
     """
+    import uuid
+
     service = ClaimService(db)
     fraud_service = FraudDetectionService(db)
     estimate_service = EstimateService(db)
@@ -309,9 +314,13 @@ def submit_claim(
         # Submit claim (DRAFT -> FNOL)
         claim = service.submit_claim(claim_id, customer_id)
 
+        # Generate session ID for this claims submission workflow
+        session_id = str(uuid.uuid4())
+        logger.info(f"Generated session_id {session_id} for claim {claim_id} submission")
+
         # SECURITY GATE: Run fraud detection synchronously
         # Must complete before allowing claim to proceed
-        fraud_result = fraud_service.run_fraud_detection(claim_id)
+        fraud_result = fraud_service.run_fraud_detection(claim_id, session_id=session_id)
 
         # Update claim with fraud risk score
         # Note: Fraud signals are already stored in database by FraudDetectionSupervisor
@@ -356,8 +365,6 @@ def submit_claim(
                 # Medium or high fraud risk: route to human review (SECURITY GATE)
                 claim.current_status = ClaimState.HUMAN_REVIEW_PENDING.value
                 db.commit()
-                import logging
-                logger = logging.getLogger(__name__)
                 logger.info(
                     f"Claim {claim_id} routed to human review due to fraud risk: "
                     f"{fraud_risk:.2f} ({fraud_recommendation})"

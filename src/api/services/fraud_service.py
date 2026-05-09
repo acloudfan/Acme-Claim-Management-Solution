@@ -30,7 +30,7 @@ class FraudDetectionService:
         """
         self.db = db
 
-    def run_fraud_detection(self, claim_id: int) -> Dict[str, Any]:
+    def run_fraud_detection(self, claim_id: int, session_id: str = None) -> Dict[str, Any]:
         """
         Run fraud detection analysis on a claim.
 
@@ -42,6 +42,7 @@ class FraudDetectionService:
 
         Args:
             claim_id: Claim ID to analyze
+            session_id: Optional session ID for tracking related requests
 
         Returns:
             Dict with fraud analysis results including:
@@ -63,7 +64,7 @@ class FraudDetectionService:
             }
 
         try:
-            logger.info(f"Running fraud detection for claim {claim_id}")
+            logger.info(f"Running fraud detection for claim {claim_id} (session_id: {session_id})")
 
             # Get LLM clients
             from ..agents.llm.config import load_llm_config, get_llm_client as get_client
@@ -77,8 +78,11 @@ class FraudDetectionService:
             config = {}  # Can pass additional config if needed
             supervisor = FraudDetectionSupervisor(llm_client, config, self.db)
 
-            # Run fraud detection (async)
-            input_data = {'claim_id': claim_id}
+            # Run fraud detection (async) with session context
+            input_data = {
+                'claim_id': claim_id,
+                'session_id': session_id
+            }
             result = asyncio.run(supervisor.execute(input_data))
 
             if not result.success:

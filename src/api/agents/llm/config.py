@@ -8,6 +8,7 @@ from typing import Optional, Dict, Any
 
 from .base import BaseLLMClient
 from .providers import AnthropicClient, OpenAIClient, BedrockClient
+from .langfuse_wrapper import LangfuseWrapper, is_langfuse_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -81,21 +82,25 @@ def get_llm_client(config: LLMConfig) -> BaseLLMClient:
     """
     Factory method to create LLM client based on provider configuration.
 
+    If Langfuse tracing is enabled, the client will be wrapped with LangfuseWrapper
+    to automatically trace all LLM calls.
+
     Args:
         config: LLMConfig object
 
     Returns:
-        BaseLLMClient implementation for the specified provider
+        BaseLLMClient implementation for the specified provider (optionally wrapped)
 
     Raises:
         ValueError: If provider is not supported
     """
     provider = config.provider.lower()
 
+    # Create the base provider client
     if provider == "anthropic":
         if not config.api_key:
             raise ValueError("Anthropic API key not found. Set ANTHROPIC_API_KEY environment variable.")
-        return AnthropicClient(
+        client = AnthropicClient(
             api_key=config.api_key,
             model=config.model,
             base_url=config.base_url or "https://api.anthropic.com",
@@ -105,7 +110,7 @@ def get_llm_client(config: LLMConfig) -> BaseLLMClient:
     elif provider == "openai":
         if not config.api_key:
             raise ValueError("OpenAI API key not found. Set OPENAI_API_KEY environment variable.")
-        return OpenAIClient(
+        client = OpenAIClient(
             api_key=config.api_key,
             model=config.model,
             base_url=config.base_url or "https://api.openai.com/v1",
@@ -115,13 +120,20 @@ def get_llm_client(config: LLMConfig) -> BaseLLMClient:
     elif provider == "bedrock":
         if not config.aws_region:
             raise ValueError("AWS region not specified for Bedrock provider")
-        return BedrockClient(
+        client = BedrockClient(
             region=config.aws_region,
             model=config.model
         )
 
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}")
+
+    # Wrap with Langfuse if tracing is enabled
+    if is_langfuse_enabled():
+        logger.debug(f"Wrapping {provider} client with Langfuse tracing")
+        return LangfuseWrapper(client)
+
+    return client
 
 
 def get_default_llm_client(config_dict: Dict[str, Any]) -> BaseLLMClient:

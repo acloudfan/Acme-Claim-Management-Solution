@@ -168,10 +168,17 @@ Complete setup in 5 steps to get your local environment running.
    ```bash
    ./scripts/start-api-server.sh --clean
    ```
+   
+   > **Note**: Wait for the API server to start before proceeding to the next step. You will see the message in console: "INFO:     Application startup complete."
 
 6. Start all UI portals
    ```bash
    ./scripts/start-portals.sh
+   ```
+
+7. Open the Admin portal in your browser
+   ```
+   http://localhost:5170/dashboard
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -253,8 +260,8 @@ Test images are provided in the `images/` directory. Use these when filing claim
 
 ### 1. Happy Path - Auto-Approved
 - **Customer**: John Doe (#100)
-- **Vehicle**: 2015 Toyota Corolla (Silver)
-- **Image**: `images/toyota-rear-end-damage.png`
+- **Vehicle**: 2015 Toyota Corolla (Red)
+- **Image**: `images/red-toyota-2015-rear-end-damage.png`
 - **Expected**: Auto-approved with AI estimate
 - **Outcome**: Customer accepts estimate
 

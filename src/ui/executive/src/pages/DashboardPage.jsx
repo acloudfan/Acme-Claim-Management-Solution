@@ -268,8 +268,8 @@ export default function DashboardPage() {
                   <div className="bg-red-100 p-3 rounded mt-2 font-mono text-xs space-y-2">
                     <div>
                       <p className="font-semibold mb-1">1. Start the API server:</p>
-                      <p className="text-red-900">cd /home/raj/workspace2026/Acme-Claim-Management-Solution</p>
-                      <p className="text-red-900">python -m src.api.main</p>
+                      <p className="text-red-900">cd &lt;project-root&gt;</p>
+                      <p className="text-red-900">./scripts/start-api-server.sh</p>
                     </div>
                     <div className="mt-2 pt-2 border-t border-red-200">
                       <p className="font-semibold mb-1">2. Verify it's running:</p>

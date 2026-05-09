@@ -292,7 +292,7 @@ def create_sample_data():
                 make="Toyota",
                 model="Corolla",
                 year=2015,
-                color="Silver"
+                color="Red"
             ),
             Vehicle(
                 vin="2HGFC2F50MH123456",

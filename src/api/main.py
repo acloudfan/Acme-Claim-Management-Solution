@@ -1,6 +1,10 @@
 """
 FastAPI main application for Insurance Claims API.
 """
+# Load environment variables from .env file before any other imports
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.api.routers import customers, claims, cost, adjustors, chatbot, admin, executive
@@ -8,6 +12,7 @@ from src.api.database import engine, Base
 from src.api.config import settings
 from src.api.exceptions import register_exception_handlers
 from src.api.utils.logging_config import setup_logging
+from src.api.agents.llm.langfuse_wrapper import initialize_langfuse
 import logging
 import os
 
@@ -74,6 +79,9 @@ app.include_router(
 async def startup_event():
     """Initialize application on startup"""
     logger.info("Starting Insurance Claims API...")
+
+    # Initialize Langfuse tracing if enabled
+    initialize_langfuse(settings.config)
 
     # Check for reseed marker file
     needs_reseed_marker = ".needs_reseed"

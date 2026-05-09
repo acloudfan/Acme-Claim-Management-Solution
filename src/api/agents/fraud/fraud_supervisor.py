@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from ..base_agent import BaseAgent, AgentResult
 from ..llm.base import BaseLLMClient
 from ..llm.config import load_llm_config, get_llm_client
+from ..tracking import start_agent_trace, end_agent_trace, update_trace_metadata
 from src.api.config import settings
 from src.api.models.fraud_signal import FraudSignal
 
@@ -95,108 +96,128 @@ class FraudDetectionSupervisor(BaseAgent):
             AgentResult with fraud detection results
         """
         start_time = datetime.now()
+        claim_id = input_data['claim_id']
+        session_id = input_data.get('session_id')
+        logger.info(f"=== FRAUD DETECTION STARTED for claim {claim_id} (session: {session_id}) ===")
 
-        try:
-            claim_id = input_data['claim_id']
-            logger.info(f"=== FRAUD DETECTION STARTED for claim {claim_id} ===")
-
-            # Load claim context and images
-            claim_context = get_claim_context(claim_id, self.db)
-            images = load_claim_images(claim_id)
-
-            if not images:
-                logger.warning(f"No images found for claim {claim_id}")
-                return self._create_no_images_result(claim_id)
-
-            # PHASE 1: Vision Agents (run enabled agents in parallel)
-            logger.info(f"Phase 1: Running vision agents in parallel...")
-            phase1_results = await self._run_phase1(images, claim_context)
-            phase1_signals = [r.data for r in phase1_results if r.success]
-
-            # Calculate Phase 1 risk score with enabled checks only
-            phase1_score = self._calculate_phase_score(phase1_signals, self.phase1_config)
-            logger.info(f"Phase 1 score: {phase1_score:.2f}")
-
-            # PHASE 2: Static Checks (run in parallel) - TODOs
-            logger.info(f"Phase 2: Running static checks... (TODOs - skipping for now)")
-            phase2_signals = []
-            phase2_score = 0.0
-
-            # Combine Phase 1 + 2 scores
-            combined_score = (phase1_score + phase2_score) / 2 if phase2_score > 0 else phase1_score
-            logger.info(f"Combined Phase 1+2 score: {combined_score:.2f}")
-
-            # Decision: Should we run Phase 3?
-            run_phase3 = self._should_run_phase3(combined_score)
-
-            # PHASE 3: Behavioral Analysis (conditional)
-            phase3_signal = None
-            phase3_score = 0.0
-
-            if run_phase3:
-                logger.info(f"Phase 3: Running behavioral analysis (borderline case: {combined_score:.2f})")
-                phase3_result = await self._run_phase3(claim_context, phase1_signals, phase2_signals)
-                if phase3_result.success:
-                    phase3_signal = phase3_result.data
-                    phase3_score = phase3_signal.get('severity', 0.0)
-                    logger.info(f"Phase 3 score: {phase3_score:.2f}")
-            else:
-                reason = "high risk" if combined_score >= self.skip_phase3_high else "low risk"
-                logger.info(f"Phase 3: SKIPPED (clear {reason})")
-
-            # Calculate final risk score
-            final_risk_score = self._calculate_final_risk(
-                combined_score,
-                phase3_score,
-                phase3_signal is not None
-            )
-
-            # Make recommendation
-            recommendation = self._make_recommendation(final_risk_score)
-
-            # Aggregate all evidence
-            all_signals = phase1_signals + phase2_signals
-            if phase3_signal:
-                all_signals.append(phase3_signal)
-
-            # Store fraud signals in database
-            self._store_fraud_signals(claim_id, final_risk_score, all_signals)
-
-            # Aggregate token usage
-            total_input_tokens = sum(r.input_tokens for r in phase1_results)
-            total_output_tokens = sum(r.output_tokens for r in phase1_results)
-
-            execution_time_ms = self._measure_execution_time(start_time)
-
-            result_data = {
-                'claim_id': claim_id,
-                'final_risk_score': final_risk_score,
-                'recommendation': recommendation,
-                'phase1_score': phase1_score,
-                'phase2_score': phase2_score,
-                'phase3_score': phase3_score,
-                'phase3_executed': phase3_signal is not None,
-                'all_signals': all_signals,
-                'summary': self._build_summary(final_risk_score, recommendation, all_signals)
+        # Start Langfuse trace for this agent execution with session context
+        with start_agent_trace(
+            agent_name="FraudDetectionSupervisor",
+            metadata={
+                "claim_id": claim_id,
+                "customer_id": input_data.get("customer_id"),
+                "vin": input_data.get("vin"),
+                "session_id": session_id,
+                "session_type": "fraud_detection"
             }
+        ):
+            try:
+                # Load claim context and images
+                claim_context = get_claim_context(claim_id, self.db)
+                images = load_claim_images(claim_id)
 
-            logger.info(f"=== FRAUD DETECTION COMPLETED: Risk={final_risk_score:.2f}, Recommendation={recommendation} ===")
+                if not images:
+                    logger.warning(f"No images found for claim {claim_id}")
+                    return self._create_no_images_result(claim_id)
 
-            return self._create_result(
-                success=True,
-                data=result_data,
-                execution_time_ms=execution_time_ms,
-                input_tokens=total_input_tokens,
-                output_tokens=total_output_tokens
-            )
+                # PHASE 1: Vision Agents (run enabled agents in parallel)
+                logger.info(f"Phase 1: Running vision agents in parallel...")
+                phase1_results = await self._run_phase1(images, claim_context)
+                phase1_signals = [r.data for r in phase1_results if r.success]
 
-        except Exception as e:
-            logger.error(f"Fraud detection supervisor failed: {e}", exc_info=True)
-            return self._create_result(
-                success=False,
-                data={'claim_id': input_data.get('claim_id'), 'error': str(e)},
-                error=str(e)
-            )
+                # Calculate Phase 1 risk score with enabled checks only
+                phase1_score = self._calculate_phase_score(phase1_signals, self.phase1_config)
+                logger.info(f"Phase 1 score: {phase1_score:.2f}")
+
+                # PHASE 2: Static Checks (run in parallel) - TODOs
+                logger.info(f"Phase 2: Running static checks... (TODOs - skipping for now)")
+                phase2_signals = []
+                phase2_score = 0.0
+
+                # Combine Phase 1 + 2 scores
+                combined_score = (phase1_score + phase2_score) / 2 if phase2_score > 0 else phase1_score
+                logger.info(f"Combined Phase 1+2 score: {combined_score:.2f}")
+
+                # Decision: Should we run Phase 3?
+                run_phase3 = self._should_run_phase3(combined_score)
+
+                # PHASE 3: Behavioral Analysis (conditional)
+                phase3_signal = None
+                phase3_score = 0.0
+
+                if run_phase3:
+                    logger.info(f"Phase 3: Running behavioral analysis (borderline case: {combined_score:.2f})")
+                    phase3_result = await self._run_phase3(claim_context, phase1_signals, phase2_signals)
+                    if phase3_result.success:
+                        phase3_signal = phase3_result.data
+                        phase3_score = phase3_signal.get('severity', 0.0)
+                        logger.info(f"Phase 3 score: {phase3_score:.2f}")
+                else:
+                    skip_high = self.phase3_config.get('skip_phase3_high_threshold', 0.8)
+                    skip_low = self.phase3_config.get('skip_phase3_low_threshold', 0.3)
+                    reason = "high risk" if combined_score >= skip_high else "low risk"
+                    logger.info(f"Phase 3: SKIPPED (clear {reason})")
+
+                # Calculate final risk score
+                final_risk_score = self._calculate_final_risk(
+                    combined_score,
+                    phase3_score,
+                    phase3_signal is not None
+                )
+
+                # Make recommendation
+                recommendation = self._make_recommendation(final_risk_score)
+
+                # Aggregate all evidence
+                all_signals = phase1_signals + phase2_signals
+                if phase3_signal:
+                    all_signals.append(phase3_signal)
+
+                # Store fraud signals in database
+                self._store_fraud_signals(claim_id, final_risk_score, all_signals)
+
+                # Aggregate token usage
+                total_input_tokens = sum(r.input_tokens for r in phase1_results)
+                total_output_tokens = sum(r.output_tokens for r in phase1_results)
+
+                execution_time_ms = self._measure_execution_time(start_time)
+
+                # Update trace with final results
+                update_trace_metadata({
+                    "final_risk_score": final_risk_score,
+                    "recommendation": recommendation,
+                    "phase3_executed": phase3_signal is not None
+                })
+
+                result_data = {
+                    'claim_id': claim_id,
+                    'final_risk_score': final_risk_score,
+                    'recommendation': recommendation,
+                    'phase1_score': phase1_score,
+                    'phase2_score': phase2_score,
+                    'phase3_score': phase3_score,
+                    'phase3_executed': phase3_signal is not None,
+                    'all_signals': all_signals,
+                    'summary': self._build_summary(final_risk_score, recommendation, all_signals)
+                }
+
+                logger.info(f"=== FRAUD DETECTION COMPLETED: Risk={final_risk_score:.2f}, Recommendation={recommendation} ===")
+
+                return self._create_result(
+                    success=True,
+                    data=result_data,
+                    execution_time_ms=execution_time_ms,
+                    input_tokens=total_input_tokens,
+                    output_tokens=total_output_tokens
+                )
+
+            except Exception as e:
+                logger.error(f"Fraud detection supervisor failed: {e}", exc_info=True)
+                return self._create_result(
+                    success=False,
+                    data={'claim_id': input_data.get('claim_id'), 'error': str(e)},
+                    error=str(e)
+                )
 
     async def _run_phase1(self, images: List[Dict], claim_context: Dict) -> List[AgentResult]:
         """Run enabled Phase 1 vision agents in parallel"""

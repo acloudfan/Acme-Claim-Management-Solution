@@ -91,6 +91,7 @@ Thumbs.db
 .claude/
 temp/
 tmp/
+langfuse-integration/langfuse/
 
 # Jupyter
 .ipynb_checkpoints/

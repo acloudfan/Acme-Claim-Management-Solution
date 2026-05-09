@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { loadConfig as loadApiConfig, saveConfig, reloadConfig } from '../api/admin';
-import { Settings, Code, RefreshCw } from 'lucide-react';
+import { Settings, Code, RefreshCw, MessageCircle, X } from 'lucide-react';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import Spinner from '../components/common/Spinner';
@@ -28,6 +28,7 @@ const DashboardPage = () => {
   const [isDirty, setIsDirty] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [showJson, setShowJson] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
 
   const portalConfig = getConfig();
 
@@ -182,40 +183,6 @@ const DashboardPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Main Content (80%) */}
           <div className="lg:col-span-3 space-y-6">
-            {/* Action Buttons */}
-            <Card>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Button
-                    onClick={handleSave}
-                    disabled={!isDirty || saving || Object.keys(fieldErrors).length > 0}
-                    loading={saving}
-                  >
-                    {saving ? 'Saving & Reloading...' : 'Save Configuration'}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={handleReset}
-                    disabled={!isDirty || saving}
-                  >
-                    Reset
-                  </Button>
-                </div>
-                <div className="flex items-center gap-3">
-                  {isDirty && (
-                    <span className="text-sm text-warning-600 font-medium">
-                      Unsaved changes
-                    </span>
-                  )}
-                  {Object.keys(fieldErrors).length > 0 && (
-                    <span className="text-sm text-red-600 font-medium">
-                      {Object.keys(fieldErrors).length} validation error{Object.keys(fieldErrors).length > 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Card>
-
             {/* Messages */}
             {error && (
               <Card>
@@ -226,8 +193,8 @@ const DashboardPage = () => {
                     <div className="bg-red-100 p-3 rounded mt-2 font-mono text-xs space-y-2">
                       <div>
                         <p className="font-semibold mb-1">1. Start the API server:</p>
-                        <p className="text-red-900">cd /home/raj/workspace2026/Acme-Claim-Management-Solution</p>
-                        <p className="text-red-900">python -m src.api.main</p>
+                        <p className="text-red-900">cd &lt;project-root&gt;</p>
+                        <p className="text-red-900">./scripts/start-api-server.sh</p>
                       </div>
                       <div className="mt-2 pt-2 border-t border-red-200">
                         <p className="font-semibold mb-1">2. Verify it's running:</p>
@@ -272,34 +239,67 @@ const DashboardPage = () => {
               </Card>
             )}
 
-            {/* Toggle: Form UI vs JSON */}
+            {/* Configuration Editor Header with Action Buttons */}
             <Card>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Configuration Editor
-                  </h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {showJson ? 'Advanced JSON editor' : 'Visual form-based editor'}
-                  </p>
+              <div className="space-y-4">
+                {/* Header and Buttons Row */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Configuration Editor
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {showJson ? 'Advanced JSON editor' : 'Visual form-based editor'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowJson(!showJson)}
+                      className="flex items-center gap-2 mr-6"
+                    >
+                      {showJson ? (
+                        <>
+                          <Settings className="w-4 h-4" />
+                          Show Form UI
+                        </>
+                      ) : (
+                        <>
+                          <Code className="w-4 h-4" />
+                          Show JSON
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      disabled={!isDirty || saving || Object.keys(fieldErrors).length > 0}
+                      loading={saving}
+                    >
+                      {saving ? 'Saving...' : 'Save Configuration'}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={handleReset}
+                      disabled={!isDirty || saving}
+                    >
+                      Reset
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowJson(!showJson)}
-                  className="flex items-center gap-2"
-                >
-                  {showJson ? (
-                    <>
-                      <Settings className="w-4 h-4" />
-                      Show Form UI
-                    </>
-                  ) : (
-                    <>
-                      <Code className="w-4 h-4" />
-                      Show JSON
-                    </>
+
+                {/* Status Messages */}
+                <div className="flex items-center gap-3">
+                  {isDirty && (
+                    <span className="text-sm text-warning-600 font-medium">
+                      ⚠️ Unsaved changes
+                    </span>
                   )}
-                </Button>
+                  {Object.keys(fieldErrors).length > 0 && (
+                    <span className="text-sm text-red-600 font-medium">
+                      ❌ {Object.keys(fieldErrors).length} validation error{Object.keys(fieldErrors).length > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
               </div>
             </Card>
 
@@ -693,6 +693,46 @@ const DashboardPage = () => {
             </Card>
           </div>
         </div>
+      </div>
+
+      {/* Floating Chatbot Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {showChatbot ? (
+          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 w-96 h-[500px] flex flex-col">
+            {/* Chatbot Header */}
+            <div className="bg-primary-600 text-white p-4 rounded-t-lg flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5" />
+                <h3 className="font-semibold">Admin Assistant</h3>
+              </div>
+              <button
+                onClick={() => setShowChatbot(false)}
+                className="text-white hover:bg-primary-700 rounded p-1 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Chatbot Body */}
+            <div className="flex-1 p-4 bg-gray-50 flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <p className="text-sm font-medium mb-1">Chatbot Coming Soon</p>
+                <p className="text-xs text-gray-400">
+                  Backend integration in progress
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowChatbot(true)}
+            className="bg-primary-600 hover:bg-primary-700 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group"
+            title="Open Admin Assistant"
+          >
+            <MessageCircle className="w-6 h-6" />
+          </button>
+        )}
       </div>
     </div>
   );

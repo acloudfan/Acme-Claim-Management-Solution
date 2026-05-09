@@ -390,7 +390,19 @@ cors:
     - "*"
   allow_headers:
     - "*"
+
+# Tracking Configuration
+tracking:
+  usage_logging_enabled: true
+  log_to_database: true
+  langfuse:
+    enabled: false  # Set to true to enable Langfuse tracing (credentials in .env)
 ```
+
+**Note:** Langfuse credentials are read from environment variables:
+- `LANGFUSE_PUBLIC_KEY` - Public API key from Langfuse project
+- `LANGFUSE_SECRET_KEY` - Secret API key from Langfuse project  
+- `LANGFUSE_HOST` - Langfuse server URL (http://localhost:3000 or https://cloud.langfuse.com)
 
 ### 4.3 Configuration Loader (`config.py`)
 

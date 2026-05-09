@@ -372,7 +372,48 @@ The idea of this Portal is to provide the "human reviewer" capability to review 
     
 
 # Langfuse integration
-T.B.D.
+
+## Objective
+Optional capability if you are interesting in agent tracing.
+
+* Observability of LLM integration, Agent behavior
+* Human annotation 
+* Evaluations
+* Evaluation dataset
+* Cost visibility
+
+# Implementation
+* Use the LangFuse docker-compose for local setup
+
+## Dependency
+We will be using docker version of LangFuse in our local setup. As an alternate, you may also use LangFuse cloud.
+
+## Setup instructions
+    0. Change folder to langfuse-integration
+    1. Clone the repo : git clone https://github.com/langfuse/langfuse.git
+    2. Change folder  : cd langfuse docker compose up -d
+    3. Launch langfuse: http://localhost:3000/
+    4. Organization & project setup
+        - Sign up with an e-mail/password
+        - Create organization: acme-org
+        - Create project : claims-project
+        - Create the secret key
+    5. Add  keys to .env : 
+        LANGFUSE_SECRET_KEY="sk-lf-af095a7...."
+        LANGFUSE_PUBLIC_KEY="pk-lf-a8121427..."
+         LANGFUSE_BASE_URL="http://localhost:3000"
+
+## Enabling 
+In the api-config.yaml set the parameter langfuse=enabled
+
+## Using Langfuse
+1. Run the Lanfuse server : http://localhost:3000/
+2. Add claims using customer portal
+3. Use the chatbots on portals
+4. Check out traces
+5. Annotate the traces
+6. Create datasets 
+7. Run evaluations
 
 
 

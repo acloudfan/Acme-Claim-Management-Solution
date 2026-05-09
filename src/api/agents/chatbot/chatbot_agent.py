@@ -8,6 +8,7 @@ from datetime import datetime
 from ..base_agent import BaseAgent, AgentResult
 from ..llm.base import BaseLLMClient, Message
 from .tools import get_chatbot_tools, execute_tool
+from ..tracking import start_agent_trace, end_agent_trace
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -53,104 +54,114 @@ class ChatbotAgent(BaseAgent):
         """
         start_time = datetime.now()
 
-        try:
-            customer_id = input_data['customer_id']
-            user_message = input_data['message']
-            history = input_data.get('conversation_history', [])
-            context = input_data.get('context')  # NEW: Optional context from frontend
+        customer_id = input_data['customer_id']
+        user_message = input_data['message']
+        history = input_data.get('conversation_history', [])
+        context = input_data.get('context')  # NEW: Optional context from frontend
 
-            logger.info(f"Chatbot processing message for customer {customer_id}")
+        # Start Langfuse trace for this agent execution with session context
+        with start_agent_trace(
+            agent_name="ChatbotAgent",
+            metadata={
+                "customer_id": customer_id,
+                "session_id": input_data.get("session_id"),
+                "session_type": "chatbot",
+                "message_preview": user_message[:100]  # First 100 chars
+            }
+        ):
+            try:
+                logger.info(f"Chatbot processing message for customer {customer_id}")
 
-            # Build conversation messages with context
-            messages = history.copy()
+                # Build conversation messages with context
+                messages = history.copy()
 
-            # If context provided, inject it before the user message
-            if context:
-                context_message = self._build_context_message(context)
-                messages.append(Message(role='user', content=context_message))
+                # If context provided, inject it before the user message
+                if context:
+                    context_message = self._build_context_message(context)
+                    messages.append(Message(role='user', content=context_message))
 
-            messages.append(Message(role='user', content=user_message))
+                messages.append(Message(role='user', content=user_message))
 
-            # System prompt
-            system_prompt = self._build_system_prompt(customer_id)
+                # System prompt
+                system_prompt = self._build_system_prompt(customer_id)
 
-            # Call LLM with tools
-            response = self.llm_client.chat_with_tools(
-                system=system_prompt,
-                messages=messages,
-                tools=self.tools,
-                temperature=0.3,
-                max_tokens=1024
-            )
-
-            # Handle tool calls if present
-            tool_results = []
-            if response.tool_calls:
-                for tool_call in response.tool_calls:
-                    logger.info(f"Chatbot calling tool: {tool_call.name}")
-                    result = await execute_tool(
-                        tool_call.name,
-                        tool_call.arguments,
-                        customer_id,
-                        self.db
-                    )
-                    tool_results.append({
-                        'tool': tool_call.name,
-                        'result': result
-                    })
-
-                # Make follow-up call with tool results
-                messages.append(Message(role='assistant', content=response.content or ''))
-
-                tool_result_content = "\n\n".join([
-                    f"Tool: {tr['tool']}\nResult: {tr['result']}"
-                    for tr in tool_results
-                ])
-
-                messages.append(Message(
-                    role='user',
-                    content=f"[TOOL RESULTS]\n{tool_result_content}\n\nPlease provide a helpful response to the user based on these results."
-                ))
-
-                final_response = self.llm_client.chat(
+                # Call LLM with tools
+                response = self.llm_client.chat_with_tools(
                     system=system_prompt,
                     messages=messages,
+                    tools=self.tools,
                     temperature=0.3,
                     max_tokens=1024
                 )
 
-                response_text = final_response.content
-                total_input_tokens = response.input_tokens + final_response.input_tokens
-                total_output_tokens = response.output_tokens + final_response.output_tokens
-            else:
-                response_text = response.content
-                total_input_tokens = response.input_tokens
-                total_output_tokens = response.output_tokens
+                # Handle tool calls if present
+                tool_results = []
+                if response.tool_calls:
+                    for tool_call in response.tool_calls:
+                        logger.info(f"Chatbot calling tool: {tool_call.name}")
+                        result = await execute_tool(
+                            tool_call.name,
+                            tool_call.arguments,
+                            customer_id,
+                            self.db
+                        )
+                        tool_results.append({
+                            'tool': tool_call.name,
+                            'result': result
+                        })
 
-            execution_time_ms = self._measure_execution_time(start_time)
+                    # Make follow-up call with tool results
+                    messages.append(Message(role='assistant', content=response.content or ''))
 
-            result_data = {
-                'response': response_text,
-                'tool_calls': tool_results if tool_results else None
-            }
+                    tool_result_content = "\n\n".join([
+                        f"Tool: {tr['tool']}\nResult: {tr['result']}"
+                        for tr in tool_results
+                    ])
 
-            logger.info(f"Chatbot completed in {execution_time_ms}ms with {len(tool_results)} tool calls")
+                    messages.append(Message(
+                        role='user',
+                        content=f"[TOOL RESULTS]\n{tool_result_content}\n\nPlease provide a helpful response to the user based on these results."
+                    ))
 
-            return self._create_result(
-                success=True,
-                data=result_data,
-                execution_time_ms=execution_time_ms,
-                input_tokens=total_input_tokens,
-                output_tokens=total_output_tokens
-            )
+                    final_response = self.llm_client.chat(
+                        system=system_prompt,
+                        messages=messages,
+                        temperature=0.3,
+                        max_tokens=1024
+                    )
 
-        except Exception as e:
-            logger.error(f"Chatbot failed: {e}", exc_info=True)
-            return self._create_result(
-                success=False,
-                data={'response': "I'm sorry, I'm having trouble processing your request right now. Please try again or contact support."},
-                error=str(e)
-            )
+                    response_text = final_response.content
+                    total_input_tokens = response.input_tokens + final_response.input_tokens
+                    total_output_tokens = response.output_tokens + final_response.output_tokens
+                else:
+                    response_text = response.content
+                    total_input_tokens = response.input_tokens
+                    total_output_tokens = response.output_tokens
+
+                execution_time_ms = self._measure_execution_time(start_time)
+
+                result_data = {
+                    'response': response_text,
+                    'tool_calls': tool_results if tool_results else None
+                }
+
+                logger.info(f"Chatbot completed in {execution_time_ms}ms with {len(tool_results)} tool calls")
+
+                return self._create_result(
+                    success=True,
+                    data=result_data,
+                    execution_time_ms=execution_time_ms,
+                    input_tokens=total_input_tokens,
+                    output_tokens=total_output_tokens
+                )
+
+            except Exception as e:
+                logger.error(f"Chatbot failed: {e}", exc_info=True)
+                return self._create_result(
+                    success=False,
+                    data={'response': "I'm sorry, I'm having trouble processing your request right now. Please try again or contact support."},
+                    error=str(e)
+                )
 
     def _build_system_prompt(self, customer_id: int) -> str:
         """Build system prompt for chatbot"""
@@ -162,6 +173,7 @@ Your role is to:
 - Look up real-time claim status and details using available tools
 - Explain cost estimates in simple language
 - Guide customers through the claims process
+- Encourage customers to use this AI-powered self-service portal instead of calling our call center
 
 Important Guidelines:
 - BE CONCISE: Keep responses brief and to the point. 2-3 sentences maximum unless more detail is requested
@@ -170,7 +182,7 @@ Important Guidelines:
 - Be conversational, empathetic, and address the customer by first name once you know it
 - Use simple language, avoid insurance jargon
 - When the customer asks about "my policies" or "my claims", use the appropriate list/search tools
-- If you don't know something, admit it briefly and offer to connect them with a human agent
+- PROMOTE SELF-SERVICE: When customers ask if they should call or visit, emphasize that you can help them right now through this AI portal - faster than waiting on hold! Only suggest contacting human agents for truly complex cases that require manual intervention
 - When context about the current page is provided, use it to give contextual answers
 - AVOID: Long explanations, multiple paragraphs, excessive details unless specifically asked
 - Answer the question directly first, then offer to elaborate if needed
