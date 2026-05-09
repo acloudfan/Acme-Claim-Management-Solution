@@ -1,426 +1,255 @@
-# ACME Insurance - AI Claims Management System
+<a id="readme-top"></a>
 
-**Purpose**: Demonstration of AI-based auto claim adjudication
+<!-- PROJECT SHIELDS -->
+[![MIT License][license-shield]][license-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
 
-This project showcases how AI can streamline insurance claims processing through automated damage detection, fraud analysis, cost estimation, and intelligent routing - reducing claim processing time from days to minutes while maintaining accuracy and fraud prevention.
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/rsakhuja/Acme-Claim-Management-Solution">
+    <img src="src/common/assets/ACME-logo.png" alt="ACME Logo" width="80" height="80">
+  </a>
+
+  <h3 align="center">ACME Insurance - AI Claims Management System</h3>
+
+  <p align="center">
+    Demonstration of AI-based auto claim adjudication that reduces claim processing time from days to minutes
+    <br />
+    <a href="specifications/"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="#demo-scenarios">View Demo Scenarios</a>
+    ·
+    <a href="https://github.com/rsakhuja/Acme-Claim-Management-Solution/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/rsakhuja/Acme-Claim-Management-Solution/issues">Request Feature</a>
+  </p>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#key-features">Key Features</a></li>
+        <li><a href="#built-with">Built With</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#configuration">Configuration</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#demo-scenarios">Demo Scenarios</a></li>
+    <li><a href="#documentation">Documentation</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
+
+<!-- ABOUT THE PROJECT -->
+## About The Project
+This project builds a complete **AI-powered auto insurance claims management system** with multiple portals serving different stakeholders. It showcases how AI can streamline insurance claims processing through automated damage detection, fraud analysis, cost estimation, and intelligent routing. The system demonstrates reducing claim processing time from days to minutes while maintaining accuracy and fraud prevention.
+
+**What Gets Built:**
+- **FastAPI Backend** - REST API with AI agents for damage detection (YOLO), fraud analysis (VLM), cost estimation, and customer chatbot
+- **Customer Portal** - Self-service claim filing with photo upload, real-time AI damage analysis, and instant estimates
+- **Adjustor Portal** - Review flagged claims, manual damage assessment, fraud investigation, and estimate adjustments
+- **Admin Portal** (shown below) - Central configuration hub for managing AI thresholds, business rules, and launching all portals
+- **Executive Portal** - Analytics dashboards with KPIs, fraud metrics, and 6-month historical insights
+
+The screenshot below shows the **Admin Portal**, which serves as the central configuration hub where users can manage system settings and launch the three operational portals for auto insurance customers, insurance adjustors, and executives.
 
 **Key Technologies**: YOLO damage detection, Vision Language Models for fraud detection, multi-portal architecture for different user roles.
 
----
+[![ACME Admin Portal][product-screenshot]](https://github.com/rsakhuja/Acme-Claim-Management-Solution)
 
-## Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Dependency Management](#dependency-management)
-- [Configuration](#configuration)
-  - [Minimum Setup - Environment Variables](#minimum-setup---environment-variables)
-  - [Supported LLM Providers](#supported-llm-providers)
-  - [How to Switch LLM Providers](#how-to-switch-llm-providers)
-- [Quick Start](#quick-start)
-- [What's Built](#whats-built)
-- [Demo Scenarios](#demo-scenarios)
-- [Project Structure](#project-structure)
-- [Technology Stack](#technology-stack)
-- [Key Features](#key-features)
-- [Configuration Management](#configuration-management)
-  - [Key Configuration Parameters](#key-configuration-parameters)
-  - [How to Configure](#how-to-configure)
-- [Documentation](#documentation)
-- [How This Prototype Was Built](#how-this-prototype-was-built)
-- [References](#references)
-  - [External Resources](#external-resources)
-  - [Technical Diagrams](#technical-diagrams)
-- [FAQ](#faq)
-- [License](#license)
 
----
 
-## Prerequisites
+### Key Features
 
-### Required Software
+* **Real-time Damage Detection** - YOLO v8 analyzes vehicle damage during image upload
+* **AI Fraud Detection** - Detects make/model mismatches and AI-generated images
+* **Instant Cost Estimation** - Automated repair cost calculation based on AI damage analysis
+* **Customer Chatbot** - Claude-powered assistant with RAG for policy questions
+* **Human Review Workflow** - Seamless handoff to adjustors for complex cases
+* **Executive Analytics** - Comprehensive dashboards with 6-month historical insights
+* **Configurable Business Rules** - Real-time parameter adjustments via Admin Portal
+* **Complete Audit Trail** - Track all claim activities and decisions
 
-#### 1. **Python 3.11+**
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-Check your version:
-```bash
-python3 --version  # Should be 3.11 or higher
-```
+### Built With
 
-If you need to install or upgrade:
-- **Linux/WSL**: `sudo apt-get install python3.11`
-- **macOS**: `brew install python@3.11`
-- **Windows**: Download from [python.org](https://www.python.org/downloads/)
+* [![Python][Python.org]][Python-url]
+* [![FastAPI][FastAPI.com]][FastAPI-url]
+* [![React][React.js]][React-url]
+* [![Vite][Vite.js]][Vite-url]
+* [![TailwindCSS][Tailwind.com]][Tailwind-url]
+* [![SQLite][SQLite.org]][SQLite-url]
+* [![AWS][AWS.amazon.com]][AWS-url]
+* [![Anthropic][Anthropic.com]][Anthropic-url]
 
-#### 2. **uv** (Python Package Manager)
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-Fast, reliable Python package installer (replaces pip):
+<!-- GETTING STARTED -->
+## Getting Started
 
-```bash
-# Install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
+Complete setup in 5 steps to get your local environment running.
 
-# Verify installation
-uv --version
+### Prerequisites
 
-# Or run the setup script (one-time setup)
-./scripts/setup_uv.sh
-```
-
-#### 3. **Node.js 18+** and **npm 9+**
-
-Check your versions:
-```bash
-node --version  # Should be v18.x or higher
-npm --version   # Should be 9.x or higher
-```
-
-If you need to install or upgrade:
-- **Recommended**: Use [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager)
+* **Python 3.11+**
   ```bash
-  # Install nvm
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-  
-  # Install Node 18 LTS
-  nvm install 18
-  nvm use 18
+  python3 --version  # Should be 3.11 or higher
   ```
-- **Direct Install**: Download from [nodejs.org](https://nodejs.org/) (includes npm)
-- **Linux/WSL**: 
+
+* **uv** (Python Package Manager)
   ```bash
-  curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-  sudo apt-get install -y nodejs
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  uv --version
   ```
-- **macOS**: `brew install node@18`
 
-#### 4. **Install UI Dependencies**
+* **Node.js 18+ and npm 9+**
+  ```bash
+  node --version  # Should be v18.x or higher
+  npm --version   # Should be 9.x or higher
+  ```
 
-After installing Node.js and npm:
+### Installation
 
-```bash
-# From project root - install and lock dependencies for all portals
-./scripts/install-ui-dependencies.sh --clean
-```
+1. Clone the repository
+   ```bash
+   git clone https://github.com/rsakhuja/Acme-Claim-Management-Solution.git
+   cd Acme-Claim-Management-Solution
+   ```
 
-This installs npm packages for all 4 UI portals (customer, adjustor, admin, executive) with:
-- ✅ Automatic version compatibility fixes
-- ✅ Exact version locking for reproducible builds
-- ✅ Verified installations
+2. Install UI dependencies for all portals
+   ```bash
+   ./scripts/install-ui-dependencies.sh --clean
+   ```
 
-**First-time setup?** The `--clean` flag ensures a fresh installation by removing any existing `node_modules`.
-
-### System Requirements
-
-- **Disk Space**: ~2GB for dependencies (node_modules + Python packages)
-- **RAM**: 4GB minimum, 8GB recommended
-- **OS**: Linux, macOS, or Windows (with WSL2 recommended)
-
----
-
-## Dependency Management
-
-This project uses **locked dependencies** for reproducible builds:
-- **NPM**: `package-lock.json` files ensure exact frontend dependency versions
-- **Python**: `uv.lock` file ensures exact backend dependency versions
-
-📖 **See [DEPENDENCY-MANAGEMENT.md](DEPENDENCY-MANAGEMENT.md) for complete guide on:**
-- Locking dependencies with `./scripts/lock-dependencies.sh`
-- Updating dependencies safely
-- CI/CD best practices
-- Troubleshooting lock file issues
-
----
-
-## Configuration
-
-⚠️ **REQUIRED**: Before starting the system, you MUST configure at least one LLM provider.
-
-### Minimum Setup - Environment Variables
-
-Create a `.env` file in the project root with API keys for at least one provider:
-
-**Option 1: AWS Bedrock**
-```bash
-# AWS Bedrock uses AWS CLI credentials
-AWS_ACCESS_KEY_ID=your_aws_access_key_id
-AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
-AWS_DEFAULT_REGION=us-east-1
-```
-*Default Model: `us.anthropic.claude-sonnet-4-5-20250929-v1:0`*
-
-**Note**: If you already have AWS credentials configured in `~/.aws/credentials`, you can skip adding AWS variables to `.env`. The system will automatically use your AWS CLI credentials.
-
-**Option 2: Anthropic Claude**
-```bash
-ANTHROPIC_API_KEY=sk-ant-api03-your_key_here
-```
-*Default Model: `claude-sonnet-4.5-20250929`*
-
-**Option 3: OpenAI**
-```bash
-OPENAI_API_KEY=sk-your_key_here
-```
-*Default Model: `gpt-4o`*
-
-### Quick Setup Steps
-
-1. **Create `.env` file** in project root:
+3. Create `.env` file with your LLM provider API keys
    ```bash
    touch .env
    ```
 
-2. **Add your API key** for one of the supported providers (see options above)
+4. Add at least one LLM provider configuration to `.env`:
 
-3. **Verify configuration** (optional):
-   ```bash
-   # Check that .env file exists and has content
-   cat .env
+   **AWS Bedrock (Default)**
+   ```env
+   AWS_ACCESS_KEY_ID=your_access_key
+   AWS_SECRET_ACCESS_KEY=your_secret_key
+   AWS_DEFAULT_REGION=us-east-1
+   ```
+   
+   > **Note**: If you already have AWS credentials in `~/.aws/credentials`, you can skip adding AWS variables to `.env`. The system checks `~/.aws/credentials` first, then falls back to `.env`.
+
+   **Anthropic Claude**
+   ```env
+   ANTHROPIC_API_KEY=sk-ant-api03-your_key_here
    ```
 
-### Supported LLM Providers
+   **OpenAI**
+   ```env
+   OPENAI_API_KEY=sk-your_key_here
+   ```
 
-| Provider | Default | Default Model | Required Variables | How to Get Keys |
-|----------|---------|---------------|-------------------|-----------------|
-| **AWS Bedrock** | ✅ Yes | Claude Sonnet 4.5 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | [AWS Console](https://aws.amazon.com/) → IAM → Access Keys |
-| **Anthropic** | No | Claude Sonnet 4.5 | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) → API Keys |
-| **OpenAI** | No | GPT-4o | `OPENAI_API_KEY` | [OpenAI Platform](https://platform.openai.com/) → API Keys |
+5. Start the API server
+   ```bash
+   ./scripts/start-api-server.sh --clean
+   ```
 
-### How to Switch LLM Providers
+6. Start all UI portals
+   ```bash
+   ./scripts/start-portals.sh
+   ```
 
-The system uses **AWS Bedrock** by default. To switch to a different provider:
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-**Method 1: Edit Configuration File (Recommended)**
+### Configuration
 
-1. Open `api-config.yaml` in the project root
-2. Find the `llm` section
-3. Change `default_provider` to your preferred provider:
+The system uses **AWS Bedrock** by default. To switch LLM providers:
 
+**Method 1: Configuration File**
 ```yaml
+# Edit api-config.yaml
 llm:
   default_provider: "anthropic"  # Options: "bedrock" | "anthropic" | "openai"
-  default_vision_model: "anthropic"  # Should match default_provider
 ```
 
-4. Save the file
-5. Restart API server: `./scripts/start-api-server.sh`
+**Method 2: Admin Portal**
+1. Open http://localhost:5170
+2. Navigate to **Technical Parameters**
+3. Select provider from **Default LLM Provider** dropdown
+4. Click **Save Configuration** (changes take effect immediately)
 
-**Method 2: Use Admin Portal (No Restart Required)**
+For detailed configuration options, see [Configuration Management](#configuration-management) in the full documentation.
 
-1. Open Admin Portal: http://localhost:5170
-2. Navigate to **Technical Parameters** section
-3. Find **Default LLM Provider**
-4. Select from dropdown: `bedrock`, `anthropic`, or `openai`
-5. Click **Save Configuration**
-6. Changes take effect immediately (automatic reload)
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-**Important**: Ensure you have the API key configured in `.env` for the provider you're switching to.
+<!-- USAGE -->
+## Usage
 
-### Important Notes
+### Access the Portals
 
-- **Security**: Never commit `.env` file to version control (already in `.gitignore`)
-- **Default Provider**: The system is configured to use AWS Bedrock by default
-- **AWS Credentials**: If you have `~/.aws/credentials` configured, you don't need to add AWS variables to `.env`
-- **Multiple Providers**: You can configure all three providers and switch between them anytime
+* **Customer Portal**: http://localhost:5173 - File claims, upload damage photos, chat with AI assistant
+* **Adjustor Portal**: http://localhost:5174 - Review flagged claims, adjust estimates, fraud analysis
+* **Admin Portal**: http://localhost:5170 - Configure AI thresholds, manage business rules
+* **Executive Portal**: http://localhost:5175 - View analytics dashboards and KPIs
 
-### Example `.env` File
+**Default password for all portals**: `password`
 
-```env
-# ==============================================================================
-# LLM PROVIDER SELECTION
-# ==============================================================================
-# To switch providers, set one of these values in api-config.yaml:
-# - llm.default_provider: "bedrock" | "anthropic" | "openai"
-# 
-# OR use Admin Portal (http://localhost:5170) → Technical Parameters → LLM Provider
-# ==============================================================================
+### What's Built
 
-# Choose ONE or MORE providers below:
-
-# ------------------------------------------------------------------------------
-# AWS Bedrock (Default Provider)
-# ------------------------------------------------------------------------------
-# If you have AWS CLI configured (~/.aws/credentials), you can skip these:
-AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS_DEFAULT_REGION=us-east-1
-
-# ------------------------------------------------------------------------------
-# Anthropic (Optional - to use, set llm.default_provider: "anthropic")
-# ------------------------------------------------------------------------------
-ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-# ------------------------------------------------------------------------------
-# OpenAI (Optional - to use, set llm.default_provider: "openai")
-# ------------------------------------------------------------------------------
-OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-**Without proper LLM configuration, the following features will not work:**
-- AI fraud detection (VLM analysis)
-- Customer chatbot
-- Damage analysis enhancement
-- Estimate explanations
-
----
-
-## Quick Start
-
-### Setup Summary
-
-Complete setup in 3 steps:
-
-1. **Prerequisites** ✓ (see [Prerequisites](#prerequisites) section above)
-   - Python 3.11+, uv, Node.js 18+, npm 9+
-2. **Install UI Dependencies** (below - first time only)
-3. **Start API Server** (creates database and seeds demo data)
-4. **Start UI Portals** (launches all 4 portals)
-5. **Configure LLM Provider** (add API keys to `.env` - see [Configuration](#configuration) section)
-
----
-
-### 1. Install UI Dependencies (First Time Only)
-
-```bash
-# From project root - install dependencies for all portals with automatic fixes
-./scripts/install-ui-dependencies.sh --clean
-```
-
-This script:
-- Installs npm packages for all 4 UI portals (customer, adjustor, admin, executive)
-- **Automatically detects and fixes version compatibility issues**:
-  - Downgrades unstable Vite versions (6.x/7.x/8.x → 5.4.21)
-  - Fixes React plugin compatibility (@vitejs/plugin-react 6.x → 5.2.0)
-  - Converts Tailwind v4 to v3 (package.json, postcss.config.js, tailwind.config.js, CSS files)
-
-**Why --clean?** It ensures a fresh installation by removing existing `node_modules` and `package-lock.json` files.
-
-📖 **For detailed portal setup information, see [PORTAL-SETUP-GUIDE.md](PORTAL-SETUP-GUIDE.md)**
-
-### 2. Start API Server
-
-```bash
-# From project root - create database and seed demo data
-./scripts/start-api-server.sh --clean
-
-# To continue with existing data (skip --clean flag)
-./scripts/start-api-server.sh
-```
-
-The API server will start on port 8000. Access API docs at: http://localhost:8000/docs
-
-### 3. Start All Portals
-
-```bash
-# From project root - starts all 4 portals
-./scripts/start-portals.sh
-```
-
-This starts:
-- Customer Portal: http://localhost:5173
-- Adjustor Portal: http://localhost:5174
-- Admin Portal: http://localhost:5170
-- Executive Portal: http://localhost:5175
-
-### 3. Open Admin Portal
-
-Navigate to **http://localhost:5170** in your browser:
-
-![Admin Portal](docs/images/admin-portal.png)
-
-From the Admin Portal, you can launch the Customer, Adjustor, and Executive portals using the **Quick Access** panel on the right side.
-
-## What's Built
-
-### Backend API (FastAPI)
+**Backend API (FastAPI)**
 - YOLO-based damage detection (real-time during upload)
 - AI fraud detection (VLM + multi-signal analysis)
 - Cost estimation engine
 - Customer chatbot (Claude + RAG)
 - Complete claim lifecycle management
 
-### Customer Portal
+**Customer Portal**
 - File claims with photo upload
 - Real-time AI damage analysis
 - Instant repair estimates
 - Appeal decisions
 - Mobile QR code support
 
-### Adjustor Portal
+**Adjustor Portal**
 - Review flagged claims
 - Manual damage assessment
 - Fraud signal analysis
 - Cost estimate adjustments
 - SOP reference viewer
 
-### Admin Portal
+**Admin Portal**
 - Configure AI thresholds
 - Toggle fraud detection features
 - Manage business rules
 - View demo scenarios
 
-### Executive Portal
+**Executive Portal**
 - 6-month historical analytics
 - KPI dashboards
 - Fraud detection metrics
 - Cost savings analysis
 
-## How This Prototype Was Built
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-This prototype was developed using a structured, research-driven approach combining domain expertise with AI-assisted implementation:
-
-### Development Process
-
-**(a) Research Phase**  
-Author conducted extensive research on how auto insurance claims are processed by insurance companies, studying traditional workflows, pain points, and inefficiencies.
-
-**(b) Performance Metrics**  
-Gathered key metrics that measure auto insurance claim performance, including cycle time, auto-adjudication rate, fraud detection rate, cost per claim, and customer satisfaction scores.
-
-**(c) Stakeholder Identification**  
-Identified key stakeholders and their needs:
-- **Customers**: Fast, transparent claim processing
-- **Adjustors**: Efficient review tools with AI assistance
-- **Executives**: Business insights and KPI tracking
-- **Operations Managers**: Configuration and policy management
-
-**(d) Conceptual Design**  
-Created a high-level conceptual design providing a comprehensive view of "AI-Adjudicated Claim Processing" from multiple stakeholder perspectives, ensuring each role had appropriate tools and insights.
-
-**(e) Design Documentation**  
-Captured initial thoughts and requirements in [specifications/Thoughts.md](specifications/Thoughts.md), establishing the foundation for detailed specification development.
-
-**(f) Specification Development**  
-Used Claude Code in plan mode to brainstorm and generate detailed specifications for each capability from a business perspective, including:
-- User workflows and journeys
-- Business rules and decision logic
-- UI/UX requirements
-- Integration points
-
-**(g) Technical Implementation**  
-Provided Claude with technical guidance for implementing each component:
-- Database schema design
-- API route definitions
-- AI agent architecture
-- Frontend component structure
-
-**(h) Validation & Review**  
-Validated all designs, specifications, and diagrams generated by Claude, ensuring alignment with insurance industry practices and technical feasibility.
-
-**(i) Iterative Build-Out**  
-Rolled forward with implementation of each component, testing and refining through multiple iterations to achieve a cohesive, working demonstration.
-
-### Key Documents
-
-- **[specifications/Thoughts.md](specifications/Thoughts.md)** - Original design document used for initiating design discussions
-- **[specifications/diagrams/](specifications/diagrams/)** - Technical workflow diagrams
-- **[specifications/policies/sop_damage_triage.md](specifications/policies/sop_damage_triage.md)** - Standard operating procedures
-
-This collaborative approach leveraged human domain expertise and strategic thinking with AI-powered implementation speed, resulting in a comprehensive demonstration system built in an accelerated timeframe.
-
----
-
+<!-- DEMO SCENARIOS -->
 ## Demo Scenarios
 
-Test images are provided in the `images/` directory. Use these images when filing claims through the Customer Portal.
+Test images are provided in the `images/` directory. Use these when filing claims through the Customer Portal.
 
 ### 1. Happy Path - Auto-Approved
 - **Customer**: John Doe (#100)
@@ -440,10 +269,8 @@ Test images are provided in the `images/` directory. Use these images when filin
 ### 3. Fraud Detection - Make Mismatch
 - **Customer**: Bob Johnson (#102)
 - **Vehicle**: 2012 Chevy Silverado (Red)
-- **Images**: 
-  - Upload: `images/red-ford-f150-ai-generated-damage.jpg` (Ford F-150)
-  - Note: Vehicle mismatch (Chevy ≠ Ford)
-- **Expected**: Fraud signals detected
+- **Images**: `images/red-ford-f150-ai-generated-damage.jpg` (Ford F-150)
+- **Expected**: Fraud signals detected (Chevy ≠ Ford)
 - **Outcome**: Routed to adjustor for fraud review
 
 ### 4. Fraud Detection - AI Generated Image
@@ -453,155 +280,9 @@ Test images are provided in the `images/` directory. Use these images when filin
 - **Expected**: AI-generated damage detected by VLM
 - **Outcome**: Routed to fraud review with AI generation analysis
 
-**Default password for all portals**: `password`
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-**Additional Test Images**:
-- `images/damaged-car-1.jpg` - General damage
-- `images/damaged-car-dent-2.jpg` - Dent damage
-- `images/damaged-car-front-bumper-3.jpg` - Front bumper
-- `images/damaged-car-back-bumper-4.jpg` - Back bumper
-- `images/damaged-car-door-5.jpg` - Door damage
-- `images/red-ford-f150-no-damage.jpg` - Undamaged Ford F-150
-
-## Project Structure
-
-```
-├── src/
-│   ├── api/              # FastAPI backend
-│   ├── ui/
-│   │   ├── customer/     # Customer portal (React)
-│   │   ├── adjustor/     # Adjustor portal (React)
-│   │   ├── admin/        # Admin portal (React)
-│   │   └── executive/    # Executive portal (React)
-│   └── data/             # Warehouse data, FAQs
-├── scripts/              # Setup and seed scripts
-├── specifications/       # Design docs and SOPs
-└── simulation/           # Data generation scripts
-```
-
-## Technology Stack
-
-- **Backend**: FastAPI, SQLAlchemy, SQLite
-- **AI/ML**: YOLO v8, Claude (Anthropic), AWS Bedrock
-- **Frontend**: React 18, Vite, Tailwind CSS, Recharts
-- **Data**: DuckDB (warehouse), SQLite (operational)
-
-## Key Features
-
-✅ Real-time damage detection (YOLO)  
-✅ AI fraud detection (make/model mismatch, AI-generated images)  
-✅ Instant cost estimation  
-✅ Customer chatbot with RAG  
-✅ Human review workflow  
-✅ Executive analytics dashboards  
-✅ Configurable business rules  
-✅ Complete audit trail
-
-## Configuration Management
-
-Configuration is managed through `api-config.yaml`, environment variables (`.env` file), and the **Admin Portal** (http://localhost:5170).
-
-See the **[Configuration](#configuration)** section above for setting up environment variables and LLM provider API keys.
-
-### Key Configuration Parameters
-
-#### AI Confidence Thresholds
-Controls automatic claim routing based on AI confidence levels.
-
-| Parameter | Description | Default | Example |
-|-----------|-------------|---------|---------|
-| `ai.confidence.high_threshold` | Auto-present estimate to customer | **0.55** | `0.55` (55% confidence) |
-| `ai.confidence.low_threshold` | Below this routes to traditional process | **0.35** | `0.35` (35% confidence) |
-
-#### Fraud Detection
-Controls fraud detection sensitivity and features.
-
-| Parameter | Description | Default | Example |
-|-----------|-------------|---------|---------|
-| `ai.fraud.risk_threshold` | Flag claims above this risk score | **0.1** | `0.1` (10% risk) |
-| `agents.fraud_detector.enabled` | Enable/disable fraud detection | **true** | `true` or `false` |
-| `agents.fraud_detector.high_risk_threshold` | High fraud risk threshold | **0.7** | `0.7` (70% risk) |
-| `agents.fraud_detector.medium_risk_threshold` | Medium fraud risk threshold | **0.4** | `0.4` (40% risk) |
-| `agents.fraud_detector.phase1_vision.color_verification.enabled` | Verify vehicle color | **true** | `true` or `false` |
-| `agents.fraud_detector.phase1_vision.make_model_verification.enabled` | Verify vehicle make/model | **true** | `true` or `false` |
-| `agents.fraud_detector.phase1_vision.ai_generated_detection.enabled` | Detect AI-generated images | **true** | `true` or `false` |
-
-#### Cost Estimation
-Controls when human review is required.
-
-| Parameter | Description | Default | Example |
-|-----------|-------------|---------|---------|
-| `ai.estimate.human_review_threshold` | Dollar amount requiring manual review | **5000** | `5000` ($5,000+) |
-
-#### YOLO Damage Detection
-Controls the YOLO model for damage detection.
-
-| Parameter | Description | Default | Example |
-|-----------|-------------|---------|---------|
-| `ai.yolo.model_path` | HuggingFace model identifier | **vineetsarpal/yolov11n-car-damage** | `username/model-name` |
-| `ai.yolo.confidence_threshold` | Minimum confidence for detection | **0.25** | `0.25` (25%) |
-| `ai.yolo.device` | Processing device | **cpu** | `cpu` or `cuda` |
-
-#### LLM Provider Configuration
-Configure which AI provider to use.
-
-| Parameter | Description | Default | Example |
-|-----------|-------------|---------|---------|
-| `llm.default_provider` | Default LLM provider | **bedrock** | `bedrock`, `anthropic`, or `openai` |
-| `llm.default_vision_model` | Default Vision Language Model | **bedrock** | `bedrock`, `anthropic`, or `openai` |
-| `llm.providers.bedrock.default_model` | AWS Bedrock model ID | **us.anthropic.claude-sonnet-4-5...** | See AWS Bedrock docs |
-| `llm.providers.bedrock.temperature` | LLM temperature (creativity) | **0.2** | `0.0` (deterministic) to `1.0` (creative) |
-
-#### AI Agents
-Enable or disable specific AI agents.
-
-| Parameter | Description | Default | Example |
-|-----------|-------------|---------|---------|
-| `agents.chatbot.enabled` | Customer chatbot | **true** | `true` or `false` |
-| `agents.fraud_detector.enabled` | Fraud detection agent | **true** | `true` or `false` |
-| `agents.damage_analyzer.enabled` | Enhanced damage analysis | **true** | `true` or `false` |
-| `agents.risk_estimator.enabled` | Actuarial risk analysis | **false** | `true` or `false` |
-
-#### Database
-Database connection settings.
-
-| Parameter | Description | Default | Example |
-|-----------|-------------|---------|---------|
-| `database.url` | Database connection string | **sqlite:///./test_insurance.db** | `sqlite:///./database.db` |
-| `database.pool_size` | Connection pool size | **5** | `5` connections |
-
-#### Storage
-File upload and storage settings.
-
-| Parameter | Description | Default | Example |
-|-----------|-------------|---------|---------|
-| `storage.images_root_folder` | Image upload directory | **uploads** | `uploads/` |
-| `storage.max_upload_size_mb` | Max image size per file | **10** | `10` MB |
-| `storage.max_images_per_claim` | Max images per claim | **20** | `20` images |
-
-### How to Configure
-
-**Option 1: Admin Portal (Recommended)**
-1. Open http://localhost:5170
-2. Navigate to Business Rules or Technical Parameters
-3. Adjust values using the UI
-4. Click "Save Configuration"
-5. Changes take effect immediately (automatic reload)
-
-**Option 2: Edit Configuration File**
-1. Edit `api-config.yaml` in project root
-2. Save changes
-3. Restart API server: `./scripts/start-api-server.sh`
-
-### Configuration Backup
-
-The system automatically creates timestamped backups when you save configuration through the Admin Portal:
-- Format: `api-config.YYYY-MM-DD-HH-MM-SS.bak`
-- Location: Project root directory
-- Restore: Use Admin Portal → Backup History (coming soon)
-
----
-
+<!-- DOCUMENTATION -->
 ## Documentation
 
 - [Quick Start Guide](specifications/QUICK-START-UV.md)
@@ -611,56 +292,46 @@ The system automatically creates timestamped backups when you save configuration
 - [Admin Portal](specifications/UI-ADMIN-PORTAL-DESIGN.md)
 - [Executive Portal](specifications/UI-EXECUTIVES-PORTAL-DESIGN.md)
 - [SOP - Damage Triage](specifications/policies/sop_damage_triage.md)
-
-## References
-
-### External Resources
-
-- [Car Damage Assessment AI](https://github.com/artemxdata/Car-Damage-Assessment-AI)
-- [AAA Mechanic Labor Rates](https://www.aaa.com/autorepair/articles/average-mechanic-labor-rate-repair-costs-in-your-state-2026)
-- [COCO Car Damage Dataset](https://www.kaggle.com/datasets/lplenka/coco-car-damage-detection-dataset)
-- [Mitchell International](https://www.mitchell.com/) - Industry standard repair time database
-- [CCC Intelligent Solutions](https://cccis.com/) - Claims and collision repair platform
-
-### Standard Operating Procedures
-
-- [Damage Triage SOP](specifications/policies/sop_damage_triage.md) - Comprehensive guide for AI agents and adjustors on claim triage, fraud detection, confidence thresholds, and damage assessment guidelines
+- [Dependency Management](DEPENDENCY-MANAGEMENT.md)
+- [Portal Setup Guide](PORTAL-SETUP-GUIDE.md)
 
 ### Technical Diagrams
 
-Mermaid diagrams illustrating system architecture and workflows:
+- [AI-Powered Claim Flow](specifications/diagrams/claim-flow-with-ai.mmd)
+- [Traditional Claims Process](specifications/diagrams/traditional-claims.mmd)
+- [Claim State Machine](specifications/diagrams/claims-state-machine.mmd)
+- [Image Upload Flow](specifications/diagrams/claim_image_upload.mmd)
+- [Fraud Detection Agent](specifications/diagrams/customer-fraud-ai-agent.mmd)
+- [Database ERD](specifications/diagrams/claim-database-erd.mmd)
 
-- [AI-Powered Claim Flow](specifications/diagrams/claim-flow-with-ai.mmd) - End-to-end claim processing with AI
-- [Traditional Claims Process](specifications/diagrams/traditional-claims.mmd) - Comparison: traditional vs AI workflow
-- [Claim State Machine](specifications/diagrams/claims-state-machine.mmd) - Claim lifecycle states and transitions
-- [Image Upload Flow](specifications/diagrams/claim_image_upload.mmd) - YOLO damage detection during upload
-- [Fraud Detection Agent](specifications/diagrams/customer-fraud-ai-agent.mmd) - AI fraud detection workflow
-- [Database ERD](specifications/diagrams/claim-database-erd.mmd) - Data model and relationships
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
----
-
+<!-- FAQ -->
 ## FAQ
 
-### Common Setup Issues
+**Q: How long did it take to build this prototype?**
 
-**Q: I get "Can't load plugin: sqlalchemy.dialects:sqlanywhere" error**
+A: Approximately 2 days, with most time spent waiting for Claude to finish thinking.
 
-A: This means your `api-config.yaml` has the wrong database URL. Edit the file and change:
-```yaml
-database:
-  url: "sqlite:///./test_insurance.db"
-```
+**Q: Is this production-ready?**
 
-**Q: Portal fails to start with "Cannot find module 'vite/dist/node/cli.js'" error**
+A: No, this is a demonstration and starting point. Production use requires enhanced security, scalability, compliance, and integration with existing systems.
 
-A: Dependencies are missing or corrupted. Run:
-```bash
-./scripts/install-ui-dependencies.sh --clean
-```
+**Q: Can I use my own images?**
+
+A: Yes! Upload any clear vehicle damage photos through the Customer Portal.
+
+**Q: Which YOLO version is used?**
+
+A: YOLO v8 from HuggingFace (vineetsarpal/yolov11n-car-damage), pre-trained on vehicle damage datasets.
+
+**Q: Is the Executive Portal data real?**
+
+A: No, it uses synthetically generated data based on auto industry averages to demonstrate analytics capabilities.
 
 **Q: How do I completely reset and start fresh?**
 
-A: Run these commands:
+A:
 ```bash
 # Clean UI dependencies
 ./scripts/install-ui-dependencies.sh --clean
@@ -669,74 +340,58 @@ A: Run these commands:
 ./scripts/start-api-server.sh --clean
 ```
 
-### Can I try my own images?
+For more FAQs, see the [full documentation](README-1.md#faq).
 
-Yes! You can upload your own vehicle damage images through the Customer Portal when filing a claim. The system will analyze any clear photos of vehicle damage.
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### How can I use my own LLM provider?
-
-The system supports multiple LLM providers (Anthropic, OpenAI, AWS Bedrock). You can configure your preferred provider and API keys in the `api-config.yaml` file or through the Admin Portal.
-
-### Where can I set the LLM or VLM to use?
-
-Configure LLM and Vision Language Model (VLM) settings in two ways:
-1. **Admin Portal**: Open JSON to adjust technical parameters
-2. **Configuration File**: Edit `api-config.yaml` in the project root
-
-You can set the default provider, model selection, temperature, tokens, and other parameters.
-
-### Which version of YOLO are you using?
-
-The system uses **YOLO v8** for real-time vehicle damage detection.
-
-### Did you fine-tune the YOLO model?
-
-No, we are using an open-source fine-tuned version of YOLO v8 from HuggingFace that has been pre-trained on vehicle damage detection datasets.
-
-### Are you showing real data in the Executive Portal?
-
-No, we are using **synthetically generated data** driven by multiple auto industry averages for realistic data generation. 
-
-We simulate a **Data Warehouse** for ACME claims data. This warehouse holds the data in a **flattened structure** optimized for analytics queries. The Executive dashboard runs off this warehouse structure, demonstrating how business intelligence and reporting would work in a production system.
-
-The 6-month historical analytics, KPIs, and metrics are simulated to demonstrate the types of insights an executive dashboard would provide.
-
-### Is this system ready for production?
-
-No, this is a **demonstration and starting point** for anyone interested in AI-based auto claim adjudication. For production use, you would need:
-- Enhanced security and authentication
-- Scalable infrastructure
-- Compliance with insurance regulations
-- Additional fraud prevention measures
-- Comprehensive testing and validation
-- Integration with existing insurance systems
-
-### How long did it take for you to build this prototype?
-
-It took me **~2 days** and most of that time was spent waiting for Claude to finish thinking :-)
-
----
-
+<!-- LICENSE -->
 ## License
 
-MIT License
+Distributed under the MIT License. See `LICENSE` file for more information.
 
-Copyright (c) 2026 ACME Insurance - AI Claims Management System
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+<!-- CONTACT -->
+## Contact
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Raj - [raj@acloudfan.com](raj@acloudfan.com)
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Project Link: [https://github.com/acloudfan/Acme-Claim-Management-Solution](https://github.com/acloudfan/Acme-Claim-Management-Solution)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- ACKNOWLEDGMENTS -->
+## Acknowledgments
+
+* [Car Damage Assessment AI](https://github.com/artemxdata/Car-Damage-Assessment-AI)
+* [AAA Mechanic Labor Rates](https://www.aaa.com/autorepair/articles/average-mechanic-labor-rate-repair-costs-in-your-state-2026)
+* [COCO Car Damage Dataset](https://www.kaggle.com/datasets/lplenka/coco-car-damage-detection-dataset)
+* [Mitchell International](https://www.mitchell.com/) - Industry standard repair time database
+* [CCC Intelligent Solutions](https://cccis.com/) - Claims and collision repair platform
+* [Best-README-Template](https://github.com/othneildrew/Best-README-Template)
+* [Claude Code](https://claude.com/claude-code) - AI-assisted development
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- MARKDOWN LINKS & IMAGES -->
+[license-shield]: https://img.shields.io/github/license/rsakhuja/Acme-Claim-Management-Solution.svg?style=for-the-badge
+[license-url]: https://github.com/rsakhuja/Acme-Claim-Management-Solution/blob/main/LICENSE
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/rsakhuja
+[product-screenshot]: docs/images/admin-portal.png
+[Python.org]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
+[Python-url]: https://python.org/
+[FastAPI.com]: https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white
+[FastAPI-url]: https://fastapi.tiangolo.com/
+[React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
+[React-url]: https://reactjs.org/
+[Vite.js]: https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white
+[Vite-url]: https://vitejs.dev/
+[Tailwind.com]: https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white
+[Tailwind-url]: https://tailwindcss.com/
+[SQLite.org]: https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white
+[SQLite-url]: https://sqlite.org/
+[AWS.amazon.com]: https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white
+[AWS-url]: https://aws.amazon.com/
+[Anthropic.com]: https://img.shields.io/badge/Anthropic-191919?style=for-the-badge&logo=anthropic&logoColor=white
+[Anthropic-url]: https://anthropic.com/

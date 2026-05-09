@@ -103,3 +103,6 @@ coverage.xml
 
 # Documentation builds
 docs/_build/
+
+# Assignment documents
+SE-Take-Home-Assignment.pdf

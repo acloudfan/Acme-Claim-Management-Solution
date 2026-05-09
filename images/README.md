@@ -24,9 +24,6 @@ These images contain actual vehicle damage and will trigger AI damage detection:
 11. **cat-dog.jpg** - Non-vehicle image (should fail damage detection)
 12. **man-car-ball.jpg** - Person with car/ball (tests irrelevant image)
 
-### Documentation
-13. **report-severity-detection.jpg** - Sample damage detection report image
-
 ## Usage
 
 ### From Customer Portal UI
