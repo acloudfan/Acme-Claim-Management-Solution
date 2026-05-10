@@ -261,7 +261,7 @@ For detailed configuration options, see [Configuration Management](#configuratio
 
 The video below walks throught AI enabled claim process implemented in the prototype.
 
-[![Process flow](https://img.youtube.com/vi/htb47B7IDjw/0.jpg)](https://www.youtube.com/watch?v=htb47B7IDjw)
+[![Process flow](https://img.youtube.com/vi/htb47B7IDjw/0.jpg)](https://www.youtu.be.com/watch?v=htb47B7IDjw)
 
 
 <a href="https://youtu.be/htb47B7IDjw">
