@@ -1,29 +1,36 @@
 %% AI-Powered Claims Processing - High-Level Block Diagram
 
 flowchart TD
-    Start([Customer Submits Claim]) --> Upload[Upload Damage Images]
-    Upload --> AI[AI Processing]
+    Start([Customer Files Claim]) --> Upload[Upload Damage Images]
 
-    subgraph AI[AI Analysis]
+    Upload --> AI1
+
+    subgraph AI1[AI Analysis : Image Upload]
         direction LR
         Damage[YOLO: Damage Detection] --> Summary[Damage Summary]
         Damage --> Estimate[Cost Estimation]
-        Damage --> Fraud[Fraud Detection]
+    end
 
-        Fraud --> MakeMismatch((Make/Model))
+    AI1 --> Submit[Customer Submits Claim]
+
+    Submit --> AI2
+
+    subgraph AI2[AI Analysis : Detect Fraud Signals]
+        direction LR
+        Fraud[Fraud Detection] --> MakeMismatch((Make/Model))
         Fraud --> ColorMismatch((Color))
         Fraud --> YearMismatch((Year))
         Fraud --> Behavioral((Behavioral))
     end
 
-    AI --> Decision{Customer<br/>Decision}
+    AI2 --> Decision{Customer<br/>Decision}
 
     Decision -->|Accept| Close1[Claim Closed ✓]
     Decision -->|Appeal| Human
 
-    AI -->|Low Confidence in Estimate | Human[Human Adjustor Review]
+    AI2 -->|Low Confidence in Estimate| Human[Human Adjustor Review]
 
-    AI -->|Fraud Signals Detected| Human[Human Adjustor Review]
+    AI2 -->|Fraud Signals Detected| Human[Human Adjustor Review]
 
    
 
@@ -38,7 +45,7 @@ flowchart TD
     classDef closeClass fill:#8b5cf6,stroke:#7c3aed,stroke-width:3px,color:#fff
     classDef fraudSignalClass fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff
 
-    class Start,Upload startClass
+    class Start,Upload,Submit startClass
     class Damage,Summary,Estimate,Fraud aiClass
     class Decision decisionClass
     class Human,AdjustorDecision humanClass
