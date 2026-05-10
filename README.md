@@ -256,6 +256,9 @@ https://github.com/user-attachments/assets/23e7123c-49c6-4ca3-b56f-4cf02473aede
 - **Appeal Reason**: "Radiator seems to be damaged beyond repair"
 - **Outcome**: Adjustor adds manual damage and revises estimate
 
+[Watch on YouTube](https://youtu.be/WSjkqIEg9Rs)
+
+
 ### 3. Fraud Detection - Make Mismatch
 - **Customer**: Bob Johnson (#102)
 - **Vehicle**: 2012 Chevy Silverado (Red)
