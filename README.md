@@ -261,7 +261,12 @@ For detailed configuration options, see [Configuration Management](#configuratio
 
 The video below walks throught AI enabled claim process implemented in the prototype.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/htb47B7IDjw" frameborder="0" allowfullscreen></iframe>
+[![Process flow](https://img.youtube.com/vi/htb47B7IDjw/0.jpg)](https://www.youtube.com/watch?v=htb47B7IDjw)
+
+
+<a href="https://youtu.be/htb47B7IDjw">
+  <img src="https://img.youtube.com/vi/htb47B7IDjw/0.jpg" alt="AI Claims Process Demo" width="560" />
+</a>
 
 <!-- DEMO SCENARIOS -->
 ## Demo Scenarios
