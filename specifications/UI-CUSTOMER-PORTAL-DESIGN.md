@@ -1,11 +1,21 @@
 # Customer Portal UI Design Document
 ## AI-Powered Auto Insurance Claims Management - ACME Insurance
 
-**Version:** 1.1  
-**Date:** 2026-05-05  
+**Version:** 1.2  
+**Date:** 2026-05-10  
 **Status:** Design Document  
 **Target Audience:** Customer Portal Users  
 **Company:** ACME Insurance
+
+**Changes in v1.2:**
+- Updated Image Upload Page (Step 2) UI layout
+- Added horizontal image card layout (image left, damage details right)
+- Added three-stage status indicators: Uploading → Assessing → Summarizing
+- Added damage summary display with blue header/light blue body cards
+- Added Mobile QR Code section with centered QR code
+- Moved Test Images note from QR box to separate yellow info box below drag & drop
+- Removed progress bar from uploading status (text-only indicators)
+- Updated implementation details with new status flow and timings
 
 ---
 
@@ -540,12 +550,17 @@ Step 1: Loss Details Form
   ├── Do you have damage photos? (yes/no)
   └── [Continue] → Step 2
 
-Step 2: Image Upload with Real-Time Analysis
+Step 2: Image Upload with Real-Time Per-Image Analysis
   ├── Drop zone for images (drag & drop or click)
   ├── For EACH uploaded image:
   │   ├── Upload file with progress bar
-  │   ├── Backend automatically runs YOLO detection
-  │   ├── Backend creates damage records in database
+  │   ├── Backend automatically runs YOLO detection (per image)
+  │   ├── Backend runs LLM Damage Assessment Agent (per image)
+  │   ├── Backend creates damage records in database with:
+  │   │   ├── YOLO detections (bounding boxes, confidence)
+  │   │   ├── LLM assessments (damage_summary, severity, etc.)
+  │   │   ├── Cost calculations (labor hours, parts cost, total)
+  │   │   └── All data saved immediately to database
   │   ├── Frontend waits ~1.5 seconds for analysis
   │   ├── Frontend refetches claim via GET /claims/{id}
   │   ├── Frontend extracts damages from damage_assessment.damages
@@ -577,7 +592,8 @@ Step 3: Claim Submission & Estimate Aggregation
   │   └── DAMAGES DETECTED:
   │       ├── Submit claim (draft → FNOL) - NOW that we know there are damages
   │       ├── Call POST /claims/{id}/estimate with claim_id + image_ids
-  │       ├── Backend aggregates all damage detections into final estimate
+  │       ├── Backend reads existing damage records from database (created during upload)
+  │       ├── Backend aggregates all damages into final estimate
   │       ├── Backend calculates average confidence across all damages
   │       ├── Backend routes based on confidence threshold (0.55):
   │       │   ├── If avg confidence >= 0.55 → status = 'loss_estimated_ai'
@@ -938,35 +954,45 @@ The Policy Detail Page includes a prominent "Quick Actions" section that allows 
 
 **Layout (Step 2 - Image Upload):**
 ```
-┌──────────────────────────────────────────────────┐
-│ File New Claim                                   │
-│                                                  │
-│ Step 2 of 3: Upload Damage Photos                │
-│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  67%           │
-│                                                  │
-│ ┌────────────────────────────────────────────┐  │
-│ │  📷 Drag & drop images here               │  │
-│ │       or click to browse                   │  │
-│ │                                            │  │
-│ │  Supported: JPG, PNG, HEIC                │  │
-│ │  Max size: 10MB per image                 │  │
-│ │  Max images: 20                           │  │
-│ └────────────────────────────────────────────┘  │
-│                                                  │
-│ Uploaded Images (2)                              │
-│ ┌────────────────┐  ┌────────────────┐         │
-│ │  [Thumbnail]   │  │  [Thumbnail]   │         │
-│ │  front.jpg     │  │  rear.jpg      │         │
-│ │  ✅ Analyzed   │  │  🔄 Analyzing  │         │
-│ │  ├─ bumper     │  │                │         │
-│ │  │  $1,750     │  │                │         │
-│ │  └─ door       │  │                │         │
-│ │     $1,500     │  │                │         │
-│ └────────────────┘  └────────────────┘         │
-│                                                  │
-│              [← Back]  [Save Draft]  [Continue →]│
-│                                                  │
-└──────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│ File New Claim                                                           │
+│                                                                          │
+│ Step 2 of 3: Upload Damage Photos                                       │
+│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  67%                                    │
+│                                                                          │
+│ ┌────────────────────────────────────────────────────────────────────┐ │
+│ │  📱 Continue on Mobile Device         [QR CODE]                    │ │
+│ │  You can continue filing this claim   Scan to continue             │ │
+│ │  on your mobile device...                                          │ │
+│ └────────────────────────────────────────────────────────────────────┘ │
+│                                                                          │
+│ ┌────────────────────────────────────────────┐                         │
+│ │  📷 Drag & drop images here                │                         │
+│ │       or click to browse                   │                         │
+│ │                                            │                         │
+│ │  Supported: JPG, PNG, HEIC                │                         │
+│ │  Max size: 10MB • Max images: 20          │                         │
+│ └────────────────────────────────────────────┘                         │
+│                                                                          │
+│ ⚠️  💡 Test Images Available: You can use sample damaged car images    │
+│     provided in the images/ folder under project root for testing.     │
+│                                                                          │
+│ Uploaded Images (1)                                                     │
+│ ┌──────────────────────────────────────────────────────────────────┐   │
+│ │ ┌────────┐  ⚪ 1 damage detected                                 │   │
+│ │ │  Image │  ┌────────────────────────────────────────────────┐  │   │
+│ │ │        │  │ Boot Dent                                      │  │   │
+│ │ │        │  ├────────────────────────────────────────────────┤  │   │
+│ │ └────────┘  │ The trunk lid exhibits significant impact...   │  │   │
+│ │ front.jpg   │ damage with deep denting and creasing across   │  │   │
+│ │ ✅ Complete │ the center panel. The metal shows substantial  │  │   │
+│ │             │ deformation with visible buckling...           │  │   │
+│ │             └────────────────────────────────────────────────┘  │   │
+│ └──────────────────────────────────────────────────────────────────┘   │
+│                                                                          │
+│              [← Back]  [Save Draft]  [Continue to Estimate →]           │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
 
 **Save Draft Button:**
 - Available on Image Upload page
@@ -992,44 +1018,93 @@ const claimData = {
 const claim = await createClaim(claimData);
 ```
 
-**Step 2: Upload Images with Real-Time Analysis**
+**Step 2: Upload Images with Real-Time Per-Image Analysis**
 ```javascript
 // For each image
 for (const file of files) {
-  // 1. Upload image
+  // 1. Upload image with status indicators
+  // Status: 'uploading' → 'assessing' → 'summarizing' → 'analyzed'
+  
   // POST /api/v1/customers/{id}/claims/{claimId}/images
   const formData = new FormData();
   formData.append('file', file);
   
-  await uploadImage(claimId, formData, {
-    onUploadProgress: (e) => {
-      setProgress((e.loaded / e.total) * 100);
-    }
-  });
+  // Show "Uploading..." status
+  setFileStatus(file.name, 'uploading');
   
-  // 2. Backend automatically runs YOLO analysis during upload
-  // 3. Backend creates damage records in database
-  // 4. Wait for analysis to complete
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  await uploadImage(claimId, formData);
   
-  // 5. Refresh claim to get updated damages
+  // 2. Show "Assessing damage..." status
+  //    Backend runs YOLO damage detection (~800ms)
+  setFileStatus(file.name, 'assessing');
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // 3. Show "Summarizing findings..." status
+  //    Backend runs LLM Damage Assessment Agent (~700ms)
+  //    - Generates customer-friendly damage_summary
+  //    - Provides severity, internal_damage_probability, recommended_action
+  //    - Creates damage records in database with all fields
+  setFileStatus(file.name, 'summarizing');
+  await new Promise(resolve => setTimeout(resolve, 700));
+  
+  // 4. Refresh claim to get updated damages
   // GET /api/v1/customers/{id}/claims/{claimId}
   const claim = await fetchClaimDetail(customerId, claimId);
   
-  // 6. Extract damages for this specific image
+  // 5. Extract damages for this specific image
   // Note: image_id field contains the filename
   const imageDamages = claim.damage_assessment?.damages.filter(
     d => d.image_id === file.name
   ) || [];
   
-  // 7. Display damages under thumbnail
-  displayDamages(imageDamages); // Shows damage_part + cost
+  // 6. Display damages with summaries
+  // Layout: Image on left, damage details on right
+  // - Image thumbnail (w-56 h-40)
+  // - Filename and status below image
+  // - Damage count badge on right
+  // - Each damage in card format:
+  //   - Blue header with damage part name
+  //   - Light blue body with damage_summary text
+  setFileStatus(file.name, 'analyzed');
+  setFileDamages(file.name, imageDamages);
 }
 
-// When user clicks "Continue"
+// When user clicks "Continue to Estimate"
 // Navigate to Step 3 (Submission & Estimate Aggregation)
 navigate(`/claims/${claimId}/submit`);
 ```
+
+**UI Layout Details:**
+
+**Mobile QR Code Box:**
+- Blue background box at top of page
+- Contains QR code and instructions
+- Centered vertically
+- User can scan to continue on mobile device
+
+**Test Images Note:**
+- Yellow info box below drag & drop zone
+- Shows location of sample test images
+- Helps users during testing/demo
+
+**Image Card Layout:**
+```
+┌──────────────────────────────────────────────┐
+│ ┌────────┐  ⚪ 1 damage detected            │
+│ │        │  ┌──────────────────────────┐   │
+│ │ Image  │  │ Boot Dent                │   │
+│ │        │  ├──────────────────────────┤   │
+│ └────────┘  │ The trunk lid exhibits...│   │
+│ filename.jpg│ (damage summary text)    │   │
+│ ✅ Complete └──────────────────────────┘   │
+└──────────────────────────────────────────────┘
+```
+
+**Status Indicators (shown under filename):**
+- 🔵 Uploading... (blue spinner)
+- 🟡 Assessing damage... (yellow spinner)
+- 🟣 Summarizing findings... (purple spinner)
+- ✅ Analysis complete (green checkmark)
 
 ---
 
@@ -1231,11 +1306,21 @@ const [analysisSteps, setAnalysisSteps] = useState([
 │ │ Damages from this image:                    │    │
 │ │ ┌──────────────────────────────────────┐    │    │
 │ │ │ 1. Front Bumper Dent                 │    │    │
+│ │ │                                      │    │    │
+│ │ │ [Blue Info Box - Damage Summary]     │    │    │
+│ │ │ "The front bumper shows moderate     │    │    │
+│ │ │  denting requiring panel repair..."  │    │    │
+│ │ │                                      │    │    │
 │ │ │    Severity: 60% | Cost: $750       │    │    │
 │ │ │    Labor: 2.5h | Parts: $400        │    │    │
 │ │ └──────────────────────────────────────┘    │    │
 │ │ ┌──────────────────────────────────────┐    │    │
 │ │ │ 2. Headlight Crack                   │    │    │
+│ │ │                                      │    │    │
+│ │ │ [Blue Info Box - Damage Summary]     │    │    │
+│ │ │ "The headlight assembly is cracked   │    │    │
+│ │ │  and requires replacement..."        │    │    │
+│ │ │                                      │    │    │
 │ │ │    Severity: 80% | Cost: $500       │    │    │
 │ │ │    Labor: 1.0h | Parts: $350        │    │    │
 │ │ └──────────────────────────────────────┘    │    │
@@ -1249,6 +1334,11 @@ const [analysisSteps, setAnalysisSteps] = useState([
 │ │ Damages from this image:                    │    │
 │ │ ┌──────────────────────────────────────┐    │    │
 │ │ │ 3. Rear Door Scratch                 │    │    │
+│ │ │                                      │    │    │
+│ │ │ [Blue Info Box - Damage Summary]     │    │    │
+│ │ │ "The rear door has deep scratches    │    │    │
+│ │ │  requiring sanding and repainting..."│    │    │
+│ │ │                                      │    │    │
 │ │ │    Severity: 40% | Cost: $2,000     │    │    │
 │ │ │    Labor: 5.0h | Parts: $1,250      │    │    │
 │ │ └──────────────────────────────────────┘    │    │
@@ -1432,6 +1522,56 @@ const annotatedImageUrl = `${API_BASE_URL}/api/v1/customers/${customerId}/claims
   </div>
 ))}
 ```
+
+**Damage Summary Display (NEW - 2026-05-10):**
+
+Each damage now includes a customer-friendly summary generated by the LLM Damage Assessment Agent:
+
+```jsx
+{/* Damage Card Component */}
+<div className="damage-card">
+  <h5 className="damage-part-name">
+    {damage.damage_part.replace(/-/g, ' ').toUpperCase()}
+  </h5>
+  
+  {/* LLM-generated damage summary - NEW */}
+  {damage.damage_summary && (
+    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <p className="text-sm text-gray-700 leading-relaxed">
+        {damage.damage_summary}
+      </p>
+    </div>
+  )}
+  
+  {/* Technical details */}
+  <div className="damage-details">
+    <p>Severity: {(damage.severity * 100).toFixed(0)}%</p>
+    <p>Cost: ${damage.estimated_total_cost.toFixed(2)}</p>
+    <p>Labor: {damage.labor_hours}h | Parts: ${damage.estimated_parts_cost.toFixed(2)}</p>
+  </div>
+</div>
+```
+
+**Damage Summary Features:**
+- **Plain Language**: LLM generates 2-3 sentence customer-friendly explanation
+- **Assessment Details**: Explains what's damaged, repair approach, and secondary concerns
+- **Visual Distinction**: Blue info box positioned above technical details
+- **Optional Display**: Only shows if `damage_summary` field is populated
+- **Graceful Degradation**: If LLM agent fails, summary is omitted (no error shown)
+
+**API Response Structure (Updated):**
+```json
+{
+  "damage_id": 1,
+  "damage_part": "front-bumper-dent",
+  "damage_summary": "The front bumper shows moderate denting with visible creasing. Repair requires panel beating to restore structural integrity followed by repainting. Inspect for potential damage to internal mounting brackets.",
+  "severity": 0.60,
+  "estimated_total_cost": 750.00,
+  "labor_hours": 2.5,
+  "estimated_parts_cost": 400.00
+}
+```
+
 
 **Human Review Banner:**
 

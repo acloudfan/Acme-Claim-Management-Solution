@@ -30,13 +30,13 @@ class Damage(Base):
     bounding_box_width = Column(Integer, nullable=True)
     bounding_box_height = Column(Integer, nullable=True)
 
-    # VLM Assessment Fields (heuristic-based for now, VLM in future)
-    internal_damage_probability = Column(Numeric(5, 2), nullable=True)  # 0.0-1.0
-    severity = Column(Numeric(5, 2), nullable=False)  # 0.0 to 1.0
-    recommended_action = Column(String(50), nullable=True)  # repaint|de-dent|replace|de-dent-and-paint
-    reasoning = Column(Text, nullable=True)  # AI assessment reasoning
-    car_side = Column(String(20), nullable=True)  # front|back|driver_side|passenger_side
-    assessment_confidence = Column(Numeric(5, 2), nullable=True)  # VLM confidence (0.0-1.0)
+    # LLM Assessment Fields (populated by Damage Assessment Agent if enabled, otherwise YOLO heuristics)
+    internal_damage_probability = Column(Numeric(5, 2), nullable=True)  # LLM: Probability of internal damage (0.0-1.0)
+    severity = Column(Numeric(5, 2), nullable=False)  # LLM: Damage severity score (0.0-1.0)
+    recommended_action = Column(String(50), nullable=True)  # LLM: repaint|de-dent|replace|de-dent-and-paint
+    reasoning = Column(Text, nullable=True)  # LLM: Detailed assessment reasoning
+    car_side = Column(String(20), nullable=True)  # LLM: front|back|driver_side|passenger_side
+    assessment_confidence = Column(Numeric(5, 2), nullable=True)  # LLM: Assessment confidence (0.0-1.0)
 
     # Agent-Enhanced Fields (nullable for backward compatibility)
     enhanced_severity = Column(Numeric(3, 2), nullable=True)  # Agent-refined severity score
@@ -45,6 +45,7 @@ class Damage(Base):
     risk_score = Column(Numeric(3, 2), nullable=True)  # Actuarial risk score
     agent_reasoning = Column(Text, nullable=True)  # Agent's reasoning for assessments
     secondary_damages_predicted = Column(Text, nullable=True)  # JSON string of predicted secondary damages
+    damage_summary = Column(Text, nullable=True)  # Damage assessment summary from LLM agent
 
     # Annotated Image Reference
     annotated_image_id = Column(String(255), nullable=True)  # Filename with BB- prefix

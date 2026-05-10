@@ -10,7 +10,7 @@ import Button from '../components/common/Button';
 import CostSummary from '../components/claims/CostSummary';
 import NotesEditor from '../components/claims/NotesEditor';
 import Modal from '../components/common/Modal';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 
 const ReviewCompletePage = () => {
   const location = useLocation();
@@ -235,13 +235,30 @@ const ReviewCompletePage = () => {
       {/* Actions */}
       <Card>
         <div className="flex justify-end gap-3">
-          <Button variant="secondary" onClick={() => navigate(-1)} disabled={loading}>
+          <button
+            onClick={() => navigate(-1)}
+            disabled={loading}
+            className="px-6 py-3 text-base font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all duration-200 disabled:opacity-50"
+          >
             Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSubmit} loading={loading}>
-            <CheckCircle className="h-5 w-5 mr-2" />
-            Submit Review
-          </Button>
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="px-6 py-3 text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transition-all duration-200 inline-flex items-center disabled:opacity-50"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="h-5 w-5 mr-2" />
+                Submit Review
+              </>
+            )}
+          </button>
         </div>
       </Card>
 
@@ -274,12 +291,26 @@ const ReviewCompletePage = () => {
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+            <button
+              onClick={() => setShowConfirmModal(false)}
+              className="px-6 py-3 text-base font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all duration-200"
+            >
               Go Back
-            </Button>
-            <Button variant="primary" onClick={handleSubmit} loading={loading}>
-              Confirm & Submit
-            </Button>
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="px-6 py-3 text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transition-all duration-200 inline-flex items-center disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Confirm & Submit'
+              )}
+            </button>
           </div>
         </div>
       </Modal>

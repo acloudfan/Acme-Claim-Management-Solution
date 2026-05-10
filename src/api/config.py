@@ -234,6 +234,17 @@ class Settings:
         """Check if fraud detector is enabled"""
         return self._config.get('agents', {}).get('fraud_detector', {}).get('enabled', True)
 
+    # Damage Assessment Configuration
+    @property
+    def DAMAGE_ASSESSMENT_ENABLED(self) -> bool:
+        """Check if damage assessment supervisor is enabled"""
+        return self._config.get('agents', {}).get('damage_assessment', {}).get('enabled', True)
+
+    @property
+    def SUMMARY_AGENT_ENABLED(self) -> bool:
+        """Check if damage summary agent is enabled"""
+        return self._config.get('agents', {}).get('damage_assessment', {}).get('summary_agent', {}).get('enabled', True)
+
     # Expose full config dictionary for advanced use cases
     @property
     def config(self) -> dict:

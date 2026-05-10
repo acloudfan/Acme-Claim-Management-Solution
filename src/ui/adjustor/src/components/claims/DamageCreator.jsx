@@ -265,12 +265,19 @@ const DamageCreator = ({ isOpen, onClose, onAdd, images = [], laborRate = 0 }) =
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button variant="secondary" onClick={handleClose} type="button">
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-6 py-3 text-base font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all duration-200"
+          >
             Cancel
-          </Button>
-          <Button variant="primary" type="submit">
+          </button>
+          <button
+            type="submit"
+            className="px-6 py-3 text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transition-all duration-200"
+          >
             Add Damage
-          </Button>
+          </button>
         </div>
       </form>
     </Modal>

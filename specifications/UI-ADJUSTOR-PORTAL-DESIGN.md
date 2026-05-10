@@ -1,11 +1,19 @@
 # Adjustor Portal UI Design Document
 ## AI-Powered Auto Insurance Claims Management - Human Review Interface
 
-**Version:** 1.1  
-**Date:** 2026-05-05  
+**Version:** 1.2  
+**Date:** 2026-05-10  
 **Status:** Design Document  
 **Target Audience:** Insurance Adjustors (Human Reviewers)  
 **Company:** ACME Insurance
+
+**Changes in v1.2:**
+- Enhanced DamageList component with LLM-generated assessment details
+- Added AI Assessment Summary display (customer-friendly damage description)
+- Added Additional Assessment Details section (recommended action, car side, confidence)
+- Added collapsible reasoning section for detailed AI explanations
+- Updated damage data structure to include LLM assessment fields
+- Improved appeal review and fraud detection workflows with richer AI insights
 
 ---
 
@@ -724,18 +732,34 @@ On component mount, the login page checks if adjustors exist in the database:
 │  │ ┌─────────────────────────────────────────────────┐│ │
 │  │ │ 1. Dent - Rear Bumper               [Edit]     ││ │
 │  │ │    Severity: Moderate | Confidence: 87%        ││ │
-│  │ │    Labor Cost: $312                            ││ │
-│  │ │    Parts: $500                                 ││ │
-│  │ │    Total: $812                                 ││ │
+│  │ │                                                ││ │
+│  │ │    📘 AI Assessment Summary:                   ││ │
+│  │ │    The rear bumper shows moderate denting...   ││ │
+│  │ │                                                ││ │
+│  │ │    Additional Details:                         ││ │
+│  │ │    • Recommended Action: de-dent-and-paint     ││ │
+│  │ │    • Car Side: back                            ││ │
+│  │ │    • Assessment Confidence: 90%                ││ │
+│  │ │    Reasoning ▼ (click to expand)               ││ │
+│  │ │                                                ││ │
+│  │ │    Labor Cost: $312 | Parts: $500 | Total: $812││ │
 │  │ │    Image: IMG_001.jpg                          ││ │
 │  │ └─────────────────────────────────────────────────┘│ │
 │  │                                                     │ │
 │  │ ┌─────────────────────────────────────────────────┐│ │
 │  │ │ 2. Scratch - Rear Quarter Panel     [Edit]     ││ │
 │  │ │    Severity: Light | Confidence: 92%           ││ │
-│  │ │    Labor Cost: $234                            ││ │
-│  │ │    Parts: $188                                 ││ │
-│  │ │    Total: $422                                 ││ │
+│  │ │                                                ││ │
+│  │ │    📘 AI Assessment Summary:                   ││ │
+│  │ │    Minor surface scratch on quarter panel...   ││ │
+│  │ │                                                ││ │
+│  │ │    Additional Details:                         ││ │
+│  │ │    • Recommended Action: repaint               ││ │
+│  │ │    • Car Side: passenger_side                  ││ │
+│  │ │    • Assessment Confidence: 95%                ││ │
+│  │ │    Reasoning ▼ (click to expand)               ││ │
+│  │ │                                                ││ │
+│  │ │    Labor Cost: $234 | Parts: $188 | Total: $422││ │
 │  │ │    Image: IMG_002.jpg                          ││ │
 │  │ └─────────────────────────────────────────────────┘│ │
 │  └─────────────────────────────────────────────────────┘ │
@@ -1171,7 +1195,7 @@ export const Header = () => {
 
 **File:** `src/components/claims/DamageList.jsx`
 
-**Purpose:** Display list of damages with costs
+**Purpose:** Display list of damages with costs and LLM-generated assessment details
 
 **Props:**
 ```typescript
@@ -1185,11 +1209,54 @@ export const Header = () => {
 
 **Rendering:**
 - Map over damages array
-- Show each damage as a card:
-  - Title: Damage type + location
-  - Metadata: Severity, confidence (AI only), image ID
-  - Costs: Labor (hours × rate), Parts, Total
-  - Actions: [Edit] [Delete] buttons (if not readOnly)
+- Show each damage as a card with enhanced AI assessment information:
+  - **Header:**
+    - Title: Damage type + location
+    - Severity badge (light/moderate/severe)
+    - "Reviewed by Adjustor" badge (if applicable)
+    - AI Confidence percentage
+    - Edit button (if editable)
+  
+  - **LLM Assessment Section (NEW - 2026-05-10):**
+    - **AI Assessment Summary** (blue box):
+      - Customer-friendly damage description from LLM
+      - 2-3 sentences explaining what's damaged and why repair is needed
+      - Only shown if `damage_summary` field exists
+    
+    - **Additional Assessment Details** (gray box):
+      - Recommended Action: repair type (de-dent, replace, etc.)
+      - Car Side: damage location (front, back, driver_side, passenger_side)
+      - Assessment Confidence: LLM confidence in its assessment (0-100%)
+      - **Reasoning (collapsible)**:
+        - Initially collapsed with "Reasoning ▼" button
+        - Click to expand/collapse detailed AI reasoning
+        - Shows complete explanation of damage assessment and recommended action
+        - Helps adjustor validate AI decision for appeals/fraud cases
+  
+  - **AI Estimate Baseline:**
+    - Gray box showing original AI estimate
+    - Format: "AI Estimated: Xh × $Y + $Z = $Total"
+  
+  - **Cost Breakdown:**
+    - Labor Cost (hours × rate)
+    - Parts Cost
+    - Current Total
+    - Variance from AI (if adjustor modified)
+  
+  - **Adjustor Note:**
+    - Amber box with adjustor's explanation (if exists)
+
+**State Management:**
+```javascript
+const [expandedReasoning, setExpandedReasoning] = useState({});
+// Tracks which damages have reasoning section expanded
+// Key: damage_id, Value: boolean (expanded state)
+```
+
+**Usage Notes:**
+- All LLM fields are optional (graceful degradation if AI assessment fails)
+- Collapsible reasoning keeps interface clean while providing deep insights
+- Assessment details support fraud detection and appeal review workflows
 
 ---
 

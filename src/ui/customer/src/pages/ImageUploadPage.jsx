@@ -98,7 +98,7 @@ const ImageUploadPage = () => {
     const newFiles = files.map((file) => ({
       file,
       name: file.name,
-      status: 'pending', // pending, uploading, analyzing, analyzed, error
+      status: 'pending', // pending, uploading, assessing, summarizing, analyzed, error
       progress: 0,
       error: null,
       damages: [],
@@ -134,15 +134,25 @@ const ImageUploadPage = () => {
         });
       });
 
-      // Update status to analyzing (backend runs YOLO automatically)
+      // Update status to assessing (backend runs YOLO automatically)
       setUploadedFiles((prev) => {
         const updated = [...prev];
-        updated[index] = { ...updated[index], status: 'analyzing', progress: 100 };
+        updated[index] = { ...updated[index], status: 'assessing', progress: 100 };
         return updated;
       });
 
-      // Wait a moment for backend to complete YOLO analysis
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Wait for YOLO analysis
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Update status to summarizing (backend runs LLM damage assessment)
+      setUploadedFiles((prev) => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], status: 'summarizing' };
+        return updated;
+      });
+
+      // Wait for LLM summarization
+      await new Promise((resolve) => setTimeout(resolve, 700));
 
       // Fetch claim details to get updated damages (don't use loadClaim as it replaces the array)
       const claimResponse = await fetchClaimDetail(customerId, claimId);
@@ -303,7 +313,7 @@ const ImageUploadPage = () => {
 
         {/* Mobile QR Code Section */}
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
+          <div className="flex flex-col md:flex-row items-center gap-4">
             <div className="flex-1">
               <h3 className="text-base font-semibold text-blue-900 mb-2">
                 📱 Continue on Mobile Device
@@ -327,20 +337,10 @@ const ImageUploadPage = () => {
               <p className="text-xs text-center text-blue-600 mt-1">Scan to continue</p>
             </div>
           </div>
-
-          {/* Sample Images Info - Inside QR Code Box */}
-          <div className="pt-4 border-t border-blue-200">
-            <h3 className="text-sm font-semibold text-blue-900 mb-1">
-              💡 Test Images Available
-            </h3>
-            <p className="text-sm text-blue-800">
-              You can use sample damaged car images provided in the <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">images/</code> folder under project root for testing this feature.
-            </p>
-          </div>
         </div>
 
         {/* Drag & Drop Zone - 50% smaller */}
-        <label className="block mb-6">
+        <label className="block mb-2">
           <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors">
             <Upload className="w-8 h-8 mx-auto text-gray-400 mb-3" />
             <p className="text-base text-gray-700 mb-1">
@@ -360,6 +360,13 @@ const ImageUploadPage = () => {
           </div>
         </label>
 
+        {/* Test Images Note */}
+        <div className="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-800">
+            <span className="font-semibold">💡 Test Images Available:</span> You can use sample damaged car images provided in the <code className="bg-yellow-100 px-1.5 py-0.5 rounded text-xs font-mono">images/</code> folder under project root for testing this feature.
+          </p>
+        </div>
+
         {/* Uploaded Files Grid */}
         {uploadedFiles.length > 0 && (
           <div>
@@ -367,7 +374,7 @@ const ImageUploadPage = () => {
               Uploaded Images ({uploadedFiles.length})
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <div className="space-y-4 mb-6">
               {uploadedFiles.map((fileData, idx) => (
                 <div key={idx} className="border border-gray-200 rounded-lg p-4 bg-white relative">
                   {/* Delete Button - Show for existing, analyzed, or error status */}
@@ -381,91 +388,126 @@ const ImageUploadPage = () => {
                     </button>
                   )}
 
-                  {/* Thumbnail */}
-                  <div className="w-full h-32 bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                    {fileData.file ? (
-                      <img
-                        src={URL.createObjectURL(fileData.file)}
-                        alt={fileData.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : fileData.status === 'existing' || fileData.status === 'analyzed' ? (
-                      <img
-                        src={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1/customers/${customerId}/claims/${claimId}/images/${fileData.imageId || fileData.name}`}
-                        alt={fileData.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Fallback to placeholder if image fails to load
-                          e.target.style.display = 'none';
-                          e.target.parentElement.innerHTML = '<div class="flex items-center justify-center w-full h-full bg-gray-200"><svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>';
-                        }}
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-full bg-gray-200">
-                        <FileText className="w-12 h-12 text-gray-400" />
+                  {/* Horizontal layout: Image on left, details on right */}
+                  <div className="flex gap-4">
+                    {/* Left side: Image with filename and status below */}
+                    <div className="flex-shrink-0 w-56">
+                      {/* Thumbnail */}
+                      <div className="w-full h-40 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden mb-2">
+                        {fileData.file ? (
+                          <img
+                            src={URL.createObjectURL(fileData.file)}
+                            alt={fileData.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : fileData.status === 'existing' || fileData.status === 'analyzed' ? (
+                          <img
+                            src={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1/customers/${customerId}/claims/${claimId}/images/${fileData.imageId || fileData.name}`}
+                            alt={fileData.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Fallback to placeholder if image fails to load
+                              e.target.style.display = 'none';
+                              e.target.parentElement.innerHTML = '<div class="flex items-center justify-center w-full h-full bg-gray-200"><svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>';
+                            }}
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full bg-gray-200">
+                            <FileText className="w-12 h-12 text-gray-400" />
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Filename */}
-                  <p className="text-sm font-medium text-gray-900 truncate mb-2">
-                    {fileData.name}
-                  </p>
+                      {/* Filename */}
+                      <p className="text-sm font-medium text-gray-900 truncate mb-2">
+                        {fileData.name}
+                      </p>
 
-                  {/* Status */}
-                  {fileData.status === 'pending' && (
-                    <div className="flex items-center gap-2 text-gray-600 text-sm">
-                      <div className="w-4 h-4 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin"></div>
-                      Pending...
+                      {/* Status - under image */}
+                      {fileData.status === 'pending' && (
+                        <div className="flex items-center gap-2 text-gray-600 text-xs">
+                          <div className="w-3 h-3 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin"></div>
+                          Pending...
+                        </div>
+                      )}
+
+                      {fileData.status === 'uploading' && (
+                        <div className="flex items-center gap-2 text-blue-600 text-xs">
+                          <Loader className="w-3 h-3 animate-spin" />
+                          Uploading...
+                        </div>
+                      )}
+
+                      {fileData.status === 'assessing' && (
+                        <div className="flex items-center gap-2 text-yellow-600 text-xs">
+                          <Loader className="w-3 h-3 animate-spin" />
+                          Assessing damage...
+                        </div>
+                      )}
+
+                      {fileData.status === 'summarizing' && (
+                        <div className="flex items-center gap-2 text-purple-600 text-xs">
+                          <Loader className="w-3 h-3 animate-spin" />
+                          Summarizing findings...
+                        </div>
+                      )}
+
+                      {(fileData.status === 'analyzed' || fileData.status === 'existing') && (
+                        <div className="flex items-center gap-2 text-green-600 text-xs">
+                          <CheckCircle className="w-3 h-3" />
+                          {fileData.status === 'existing' ? 'Previously uploaded' : 'Analysis complete'}
+                        </div>
+                      )}
+
+                      {fileData.status === 'error' && (
+                        <div className="flex items-center gap-2 text-error-600 text-xs">
+                          <XCircle className="w-3 h-3" />
+                          {fileData.error}
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  {fileData.status === 'uploading' && (
-                    <div>
-                      <div className="flex items-center gap-2 text-blue-600 text-sm mb-2">
-                        <Loader className="w-4 h-4 animate-spin" />
-                        Uploading... {fileData.progress}%
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all"
-                          style={{ width: `${fileData.progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                    {/* Right side: Damage details */}
+                    <div className="flex-1">
+                      {(fileData.status === 'analyzed' || fileData.status === 'existing') && fileData.damages && fileData.damages.length > 0 ? (
+                        <div>
+                          {/* Damage count badge */}
+                          <div className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full mb-3">
+                            {fileData.damages.length} damage{fileData.damages.length > 1 ? 's' : ''} detected
+                          </div>
 
-                  {fileData.status === 'analyzing' && (
-                    <div className="flex items-center gap-2 text-yellow-600 text-sm">
-                      <Loader className="w-4 h-4 animate-spin" />
-                      Analyzing damage...
-                    </div>
-                  )}
-
-                  {(fileData.status === 'analyzed' || fileData.status === 'existing') && (
-                    <div>
-                      <div className="flex items-center gap-2 text-green-600 text-sm mb-2">
-                        <CheckCircle className="w-4 h-4" />
-                        {fileData.status === 'existing' ? 'Previously uploaded' : 'Analysis complete'}
-                      </div>
-                      {fileData.damages && fileData.damages.length > 0 ? (
-                        <p className="text-xs text-gray-600">
-                          {fileData.damages.length} damage{fileData.damages.length > 1 ? 's' : ''} detected
-                        </p>
-                      ) : (
+                          {/* Display damage summaries - New layout */}
+                          <div className="space-y-3">
+                            {fileData.damages.map((damage, idx) => (
+                              <div key={idx} className="border border-blue-200 rounded-lg overflow-hidden">
+                                {/* Damage header with blue background */}
+                                <div className="bg-blue-100 px-3 py-2 border-b border-blue-200">
+                                  <div className="font-semibold text-gray-900 text-sm">
+                                    {damage.damage_part?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </div>
+                                </div>
+                                {/* Summary content */}
+                                <div className="bg-blue-50 px-3 py-2">
+                                  {damage.damage_summary ? (
+                                    <p className="text-xs text-gray-700 leading-relaxed">
+                                      {damage.damage_summary}
+                                    </p>
+                                  ) : (
+                                    <p className="text-xs text-gray-600">
+                                      Severity: {(Number(damage.severity || 0) * 100).toFixed(0)}% •
+                                      Est. ${Number(damage.estimated_total_cost || 0).toFixed(2)}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (fileData.status === 'analyzed' || fileData.status === 'existing') && (
                         <p className="text-xs text-gray-500">No damage detected</p>
                       )}
                     </div>
-                  )}
-
-                  {fileData.status === 'error' && (
-                    <div>
-                      <div className="flex items-center gap-2 text-error-600 text-sm mb-2">
-                        <XCircle className="w-4 h-4" />
-                        {fileData.error}
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
               ))}
             </div>

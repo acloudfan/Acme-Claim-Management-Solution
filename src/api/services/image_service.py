@@ -3,7 +3,7 @@ Image service for image upload/delete operations.
 """
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
-from src.api.models.claim import ClaimImage
+from src.api.models.claim import ClaimImage, Claim
 from src.api.models.damage import Damage
 from src.api.services.base_service import BaseService
 from src.api.services.claim_service import ClaimService
@@ -231,6 +231,56 @@ class ImageService(BaseService):
             self.logger.warning(f"No damages detected in image {image_id} for claim {claim_id}")
             return
 
+        # Run damage assessment supervisor for this image (NEW - after YOLO, before cost calc)
+        if settings.DAMAGE_ASSESSMENT_ENABLED:
+            try:
+                import asyncio
+                from sqlalchemy import text
+                # Get claim and vehicle info
+                claim = self.db.query(Claim).filter(Claim.claim_id == claim_id).first()
+                vehicle_data = self.db.execute(
+                    text("SELECT year, make, model, color FROM vehicles WHERE vin = :vin"),
+                    {"vin": claim.vin}
+                ).fetchone()
+
+                vehicle_info = {
+                    'year': vehicle_data[0] if vehicle_data else 'Unknown',
+                    'make': vehicle_data[1] if vehicle_data else 'Unknown',
+                    'model': vehicle_data[2] if vehicle_data else 'Unknown',
+                    'color': vehicle_data[3] if vehicle_data else 'Unknown'
+                }
+
+                # Add image path to detections
+                for detection in detections:
+                    detection['image_path'] = str(image_path)
+
+                # Run supervisor for this image's detections
+                assessment_result = asyncio.run(self._run_damage_assessment_for_image(
+                    claim_id=claim_id,
+                    detections=detections,
+                    image_path=str(image_path),
+                    vehicle_info=vehicle_info
+                ))
+
+                # Update detections with LLM assessments
+                if assessment_result and assessment_result.get('success'):
+                    summaries = assessment_result.get('data', {}).get('summaries', [])
+                    for idx, summary in enumerate(summaries):
+                        if idx < len(detections):
+                            detections[idx].update({
+                                'damage_summary': summary.get('damage_summary'),
+                                'internal_damage_probability': summary.get('internal_damage_probability', detections[idx].get('internal_damage_probability')),
+                                'severity': summary.get('severity', detections[idx].get('severity')),
+                                'recommended_action': summary.get('recommended_action', detections[idx].get('recommended_action')),
+                                'reasoning': summary.get('reasoning', detections[idx].get('reasoning')),
+                                'car_side': summary.get('car_side', detections[idx].get('car_side')),
+                                'assessment_confidence': summary.get('assessment_confidence')
+                            })
+                    self.logger.info(f"Updated {len(summaries)} detections with LLM assessments")
+            except Exception as e:
+                self.logger.error(f"Damage assessment supervisor failed: {e}", exc_info=True)
+                # Continue without LLM assessments - graceful degradation
+
         # Create damage reports for each detection
         cost_service = CostService(self.db)
         estimate_id = f"{claim_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -242,9 +292,14 @@ class ImageService(BaseService):
                 "confidence": detection.get("confidence", 0.0)
             }
 
+            # Ensure severity is never None - fallback to 0.5
+            severity = detection.get("severity")
+            if severity is None:
+                severity = 0.5
+
             assessment = {
-                "severity": detection.get("severity", 0.5),
-                "internal_damage_probability": detection.get("internal_damage_probability", 0.0)
+                "severity": severity,
+                "internal_damage_probability": detection.get("internal_damage_probability") or 0.0
             }
 
             # Calculate cost
@@ -287,13 +342,14 @@ class ImageService(BaseService):
                 bounding_box_width=bbox.get("width"),
                 bounding_box_height=bbox.get("height"),
 
-                # Assessment data (heuristic for now)
+                # Assessment data (LLM-powered if enabled, heuristic fallback)
                 severity=detection.get("severity"),
                 internal_damage_probability=detection.get("internal_damage_probability"),
                 recommended_action=detection.get("recommended_action"),
                 reasoning=detection.get("reasoning"),
                 car_side=detection.get("car_side"),
                 assessment_confidence=detection.get("assessment_confidence"),
+                damage_summary=detection.get("damage_summary"),  # LLM-generated summary
 
                 # AI estimates (IMMUTABLE)
                 ai_labor_hours=rounded_labor_hours,
@@ -316,6 +372,62 @@ class ImageService(BaseService):
             self.db.add(damage)
 
         self.logger.info(f"Created {len(detections)} damage report(s) for claim {claim_id}, image {image_id}")
+
+    async def _run_damage_assessment_for_image(
+        self,
+        claim_id: int,
+        detections: list,
+        image_path: str,
+        vehicle_info: dict
+    ) -> dict:
+        """
+        Run damage assessment supervisor for a single image's detections.
+
+        Args:
+            claim_id: Claim ID
+            detections: List of YOLO detection dictionaries
+            image_path: Path to the image file
+            vehicle_info: Vehicle information dict
+
+        Returns:
+            Supervisor result dictionary
+        """
+        from src.api.agents.damage_assessment import DamageAssessmentSupervisor
+        from src.api.agents.llm.config import load_llm_config, get_llm_client
+
+        try:
+            # Get vision LLM client
+            vision_provider = settings.DEFAULT_VISION_MODEL
+            vision_config = load_llm_config(vision_provider, settings.config)
+            vision_client = get_llm_client(vision_config)
+
+            # Initialize supervisor
+            supervisor = DamageAssessmentSupervisor(
+                llm_client=vision_client,
+                config=settings.config,
+                db=self.db
+            )
+
+            # Run supervisor
+            result = await supervisor.execute({
+                'claim_id': claim_id,
+                'damages': detections,
+                'images': [image_path],
+                'vehicle_info': vehicle_info
+            })
+
+            return {
+                'success': result.success,
+                'data': result.data,
+                'error': result.error
+            }
+        except Exception as e:
+            self.logger.error(f"Failed to run damage assessment: {e}", exc_info=True)
+            return {
+                'success': False,
+                'data': {},
+                'error': str(e)
+            }
 
     def delete_image(
         self,

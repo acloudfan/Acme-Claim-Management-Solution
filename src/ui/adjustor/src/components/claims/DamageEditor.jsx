@@ -208,7 +208,11 @@ const DamageEditor = ({ isOpen, onClose, damage, onSave }) => {
           <Button variant="secondary" onClick={handleClose} type="button">
             Cancel
           </Button>
-          <Button variant="primary" type="submit">
+          <Button
+            variant="primary"
+            type="submit"
+            className="!bg-blue-600 !text-white hover:!bg-blue-700"
+          >
             Save Changes
           </Button>
         </div>

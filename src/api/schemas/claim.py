@@ -72,6 +72,7 @@ class DamageDetail(BaseModel):
     reasoning: Optional[str] = None
     car_side: Optional[str] = None
     assessment_confidence: Optional[float] = None
+    damage_summary: Optional[str] = None  # LLM-generated customer-friendly summary
 
     # Effective Cost Breakdown (adjustor if available, else AI)
     estimated_total_cost: Decimal

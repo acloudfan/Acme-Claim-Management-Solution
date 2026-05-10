@@ -1,15 +1,27 @@
 stateDiagram-v2
     [*] --> FNOL
     FNOL : Customer reports loss (FNOL)
-    FNOL --> UploadImages
+    FNOL --> ImageProcessing
 
-    UploadImages --> AI_Estimate
+    state ImageProcessing {
+        [*] --> UploadImages
+        UploadImages : Customer uploads damage photos
+        UploadImages --> YOLO_Detection
+        YOLO_Detection : YOLO v11 detects damages
+        YOLO_Detection --> DamageSummary
+        DamageSummary : LLM generates customer summary
+        DamageSummary --> CostEstimation
+        CostEstimation : Calculate parts + labor costs
+        CostEstimation --> [*]
+    }
+
+    ImageProcessing --> AI_Estimate
 
     state AI_Estimate {
         [*] --> CheckRiskFraud
         CheckRiskFraud --> HighRiskFraud : risk>0.1 or fraud>0.9
         CheckRiskFraud --> CheckConfidence : else
-        
+
         CheckConfidence --> HighConf : conf > 0.55
         CheckConfidence --> MedConf : 0.35 < conf ≤ 0.55
         CheckConfidence --> LowConf : conf ≤ 0.35

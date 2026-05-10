@@ -1,10 +1,17 @@
 # API Backend Design Document
 ## AI-Powered Auto Insurance Claims System - Implementation Guide
 
-**Version:** 1.1 (Prototype)  
-**Last Updated:** 2026-05-07  
+**Version:** 1.2 (Prototype)  
+**Last Updated:** 2026-05-10  
 **Status:** Design Document  
 **Security:** ⚠️ **NO AUTHENTICATION - PROTOTYPE ONLY**
+
+**Changes in v1.2:**
+- Updated Section 11.3: Damage Assessment Agent documentation
+- Added per-image architecture details (vs aggregate processing)
+- Added API schema requirements for `damage_summary` field
+- Added troubleshooting section (11.3.9) for common issues
+- Documented LLM integration fixes and fallback patterns
 
 **Changes in v1.1:**
 - Added Section 17: Admin Portal API Endpoints
@@ -1102,13 +1109,16 @@ class Damage(Base):
     bounding_box_width = Column(Integer, nullable=True)
     bounding_box_height = Column(Integer, nullable=True)
     
-    # VLM Assessment Fields
-    internal_damage_probability = Column(Numeric(5, 2), nullable=True)
-    severity = Column(Numeric(5, 2), nullable=False)
-    recommended_action = Column(String(50), nullable=True)
-    reasoning = Column(Text, nullable=True)
-    car_side = Column(String(20), nullable=True)
-    assessment_confidence = Column(Numeric(5, 2), nullable=True)
+    # LLM Assessment Fields (populated by Damage Assessment Agent - NEW 2026-05-10)
+    # These fields are populated by the LLM vision agent when damage_assessment is enabled
+    # Falls back to YOLO heuristics if agent is disabled or fails
+    internal_damage_probability = Column(Numeric(5, 2), nullable=True)  # LLM: Probability of internal damage (0.0-1.0)
+    severity = Column(Numeric(5, 2), nullable=False)  # LLM: Damage severity score (0.0-1.0)
+    recommended_action = Column(String(50), nullable=True)  # LLM: repaint|de-dent|replace|de-dent-and-paint
+    reasoning = Column(Text, nullable=True)  # LLM: Detailed assessment reasoning
+    car_side = Column(String(20), nullable=True)  # LLM: front|back|driver_side|passenger_side
+    assessment_confidence = Column(Numeric(5, 2), nullable=True)  # LLM: Assessment confidence (0.0-1.0)
+    damage_summary = Column(Text, nullable=True)  # LLM: Customer-friendly damage summary (2-3 sentences)
     
     # Annotated Image Reference
     annotated_image_id = Column(String(255), nullable=True)
@@ -2765,7 +2775,7 @@ def _extract_actor_identity(*args, **kwargs) -> str:
 
 **Business Rule - Critical:** Images can **ONLY** be uploaded when claim is in `draft` state. Any attempt to upload to a claim not in draft state will result in an error.
 
-**Upload Flow (7 steps):**
+**Upload Flow (8 steps - per image processing):**
 
 1. **Customer uploads image**
    - `POST /api/v1/customers/{customer_id}/claims/{claim_id}/images`
@@ -2782,19 +2792,34 @@ def _extract_actor_identity(*args, **kwargs) -> str:
 
 4. **YOLO analyzes image** (AI damage detection)
    - Image processed by YOLO model
-   - Returns damage detections (part, severity, confidence, etc.)
+   - Returns damage detections (part, confidence, bounding boxes, etc.)
 
-5. **Add damage report to claim**
-   - Insert damage report into `damages` table
-   - Links damage to claim and image
-   - Includes: damage_part, severity, confidence, cost estimates
+5. **LLM Damage Assessment Agent analyzes image** (NEW - 2026-05-10)
+   - **If damage_assessment is enabled:** Run LLM vision agent for each detection
+   - Generates customer-friendly damage summaries (2-3 sentences)
+   - Provides detailed expert assessments (severity, internal damage probability, reasoning)
+   - Updates YOLO heuristics with LLM-powered analysis
+   - **If disabled or fails:** Falls back to YOLO heuristic values (graceful degradation)
 
-6. **Log event**
+6. **Calculate repair costs**
+   - Cost service calculates labor hours and parts cost for each damage
+   - Labor hours rounded to nearest 0.5 increment (industry standard)
+   - Uses claim's state-specific labor rate
+
+7. **Add damage reports to claim**
+   - Insert damage records into `damages` table with:
+     - YOLO detection data (bounding boxes, confidence)
+     - LLM assessment data (damage_summary, severity, reasoning, etc.)
+     - Cost breakdown (labor_hours, parts_cost, total_cost)
+   - Links damages to claim, image, and estimate_id
+   - All data saved immediately to database (per-image processing)
+
+8. **Log event**
    - Insert event into `claims_events` table
    - Action: `upload_damage_photos`
    - Records who uploaded and when
 
-7. **NO status change**
+9. **NO status change**
    - ⚠️ **Important:** Claim status remains `draft`
    - Multiple images can be uploaded while claim stays in draft
    - Status only changes during claim submission (separate process)
@@ -2802,13 +2827,22 @@ def _extract_actor_identity(*args, **kwargs) -> str:
 **Key Points:**
 - ✅ Only draft claims can receive image uploads
 - ✅ YOLO analyzes every uploaded image automatically
-- ✅ Damage reports created and stored in database
+- ✅ LLM Damage Assessment Agent generates summaries (if enabled)
+- ✅ Cost calculations performed immediately per image
+- ✅ Damage reports created and stored in database with complete data
 - ✅ Events logged for complete audit trail
 - ❌ Claim status does NOT change (remains `draft`)
+
+**Architectural Change (2026-05-10):**
+- **Before:** Damage assessment and cost calculation occurred during estimate generation (aggregate operation)
+- **After:** Damage assessment and cost calculation occur per-image during upload
+- **Benefit:** Customers see damage summaries and costs immediately after each image upload
+- **Implementation:** See `src/api/services/image_service.py` - lines 235-282 (damage assessment call)
 
 **When Does Status Change?**
 Status change happens during **Claim Submission** (not image upload):
 - `draft` → `FNOL` when customer submits claim for processing
+- Estimate generation now reads existing damage records from database (aggregation only)
 - Claim submission is a separate API endpoint and process
 
 ### 10.1.1 Image Upload Business Rules
@@ -3655,6 +3689,311 @@ class EstimateService(BaseService):
             "damages_count": len(damages)
         }
 ```
+
+### 11.3 Damage Assessment Agent (`agents/damage_assessment/`)
+
+**NEW - 2026-05-10**: LLM-powered damage assessment agent that enhances YOLO detection with detailed analysis.
+
+#### 11.3.1 Architecture
+
+The Damage Assessment feature follows a **Supervisor Pattern**:
+
+```
+┌─────────────────────────────────────────────────┐
+│         Damage Assessment Supervisor            │
+│  - Orchestrates sub-agents                      │
+│  - Runs after YOLO, before cost calculation     │
+│  - Tracks tokens and execution time             │
+└─────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────┐
+│           Damage Summary Agent                  │
+│  - Analyzes damage images with LLM              │
+│  - Returns structured JSON assessment           │
+│  - Generates customer-friendly summaries        │
+└─────────────────────────────────────────────────┘
+```
+
+#### 11.3.2 Integration Point
+
+**ARCHITECTURE CHANGE (2026-05-10):** The supervisor is now called **per-image during upload** in `ImageService.upload_image()`, not during estimate generation.
+
+**Previous Architecture (Deprecated):**
+- Damage assessment ran during `EstimateService.generate_ai_estimate()` (aggregate operation)
+- All images analyzed together when customer clicked "Continue"
+- Customer didn't see summaries until final estimate page
+
+**Current Architecture (Per-Image Processing):**
+```python
+# In ImageService.upload_image() - after YOLO detection (line ~228)
+# Step 3: YOLO analyzes image
+detections = detector.detect_damages(image_path)
+
+# Step 4: Run damage assessment supervisor for this image (NEW)
+if settings.DAMAGE_ASSESSMENT_ENABLED:
+    try:
+        # Get claim and vehicle info
+        claim = self.db.query(Claim).filter(Claim.claim_id == claim_id).first()
+        vehicle_info = {...}  # Extract from database
+        
+        # Add image path to detections
+        for detection in detections:
+            detection['image_path'] = str(image_path)
+        
+        # Run supervisor for THIS IMAGE's detections
+        assessment_result = asyncio.run(self._run_damage_assessment_for_image(
+            claim_id=claim_id,
+            detections=detections,
+            image_path=str(image_path),
+            vehicle_info=vehicle_info
+        ))
+        
+        # Update detections with LLM assessments
+        if assessment_result and assessment_result.get('success'):
+            summaries = assessment_result.get('data', {}).get('summaries', [])
+            for idx, summary in enumerate(summaries):
+                if idx < len(detections):
+                    detections[idx].update({
+                        'damage_summary': summary.get('damage_summary'),
+                        'internal_damage_probability': summary.get('internal_damage_probability'),
+                        'severity': summary.get('severity'),
+                        'recommended_action': summary.get('recommended_action'),
+                        'reasoning': summary.get('reasoning'),
+                        'car_side': summary.get('car_side'),
+                        'assessment_confidence': summary.get('assessment_confidence')
+                    })
+    except Exception as e:
+        logger.error(f"Damage assessment supervisor failed: {e}")
+        # Graceful degradation - continue without LLM assessments
+
+# Step 5: Calculate costs and save to database
+# All damage records created immediately with complete data
+```
+
+**Estimate Generation Now (Simplified):**
+```python
+# In EstimateService.generate_ai_estimate()
+# NO LONGER runs YOLO or damage assessment
+# Simply reads existing damage records from database
+
+existing_damages = self.db.query(Damage).filter(
+    Damage.claim_id == claim_id,
+    Damage.image_id.in_(image_ids)
+).all()
+
+# Aggregate totals from pre-existing damages
+for damage in existing_damages:
+    total_cost += float(damage.ai_total_cost or 0.0)
+    damages.append(damage)
+```
+
+**Benefits of New Architecture:**
+- ✅ Customers see damage summaries immediately after each image upload
+- ✅ Real-time feedback during upload process
+- ✅ Estimate generation is faster (just aggregation, no AI processing)
+- ✅ Database contains complete damage data before claim submission
+- ✅ Better user experience with progressive disclosure
+
+#### 11.3.3 Agent Prompt Structure
+
+The Damage Summary Agent uses a structured prompt to ensure consistent JSON output:
+
+```python
+SYSTEM_PROMPT = """You are an expert auto claim adjustor.
+
+You receive damage assessment report from the field.
+
+The damage assessment report consists of 2 parts:
+1. A list of damages along with the confidence score assigned to each damage
+   Example: [{'id': 1, 'class': 10, 'confidence': 0.52}]
+2. Image of the damage with each damage enclosed in a bounding box
+
+Your task is to analyze the provided image and return a structured JSON response.
+
+Field guidance:
+- damage_summary: Overall summary of the damage in 2-3 sentences (customer-friendly)
+- internal_damage_probability: Score between 0 and 1
+- severity: How bad is the damage, score between 0 and 1
+- recommended_action: categorical - repaint|de-dent|replace|de-dent-and-paint
+- reasoning: Assessment report explaining the damage and recommended action
+- car_side: categorical - front|back|passenger_side|driver_side
+- damage_assessment_confidence: Confidence score between 0 and 1
+
+Output MUST be valid JSON only. No explanations, no extra text.
+Do NOT wrap JSON in markdown or code fences.
+"""
+```
+
+#### 11.3.4 Response Structure
+
+```json
+{
+  "damage_summary": "The trunk lid shows significant denting with visible creasing and deformation concentrated in the center. Repair requires panel beating to restore structural integrity followed by repainting. Internal components including the trunk latch assembly should be inspected for damage.",
+  "assessment": {
+    "internal_damage_probability": 0.7,
+    "severity": 0.8,
+    "recommended_action": "de-dent-and-paint",
+    "reasoning": "The trunk lid shows significant denting with visible creasing...",
+    "car_side": "back",
+    "damage_assessment_confidence": 0.9
+  }
+}
+```
+
+#### 11.3.5 Database and API Schema Updates
+
+**Database Schema (`damages` table):**
+
+All assessment fields are stored in the `damages` table:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `damage_summary` | TEXT | Customer-friendly 2-3 sentence summary (NEW) |
+| `internal_damage_probability` | NUMERIC(5,2) | LLM assessment (was heuristic) |
+| `severity` | NUMERIC(5,2) | LLM assessment (overrides YOLO) |
+| `recommended_action` | VARCHAR(50) | LLM recommendation (overrides YOLO) |
+| `reasoning` | TEXT | LLM detailed reasoning (was generic) |
+| `car_side` | VARCHAR(20) | LLM vision analysis (was heuristic) |
+| `assessment_confidence` | NUMERIC(5,2) | LLM confidence score |
+
+**API Response Schema (`src/api/schemas/claim.py`):**
+
+The `DamageDetail` Pydantic schema must include `damage_summary` field for FastAPI response validation:
+
+```python
+class DamageDetail(BaseModel):
+    """Individual damage detail from damages table"""
+    damage_id: int
+    estimate_id: str
+    image_id: str
+    estimate_type: str
+    
+    # YOLO Detection Fields
+    damage_class: Optional[int] = None
+    damage_confidence: Optional[float] = None
+    damage_part: str
+    bounding_box: Optional[BoundingBox] = None
+    
+    # Assessment Fields
+    internal_damage_probability: Optional[float] = None
+    severity: Decimal
+    recommended_action: Optional[str] = None
+    reasoning: Optional[str] = None
+    car_side: Optional[str] = None
+    assessment_confidence: Optional[float] = None
+    damage_summary: Optional[str] = None  # LLM-generated customer-friendly summary (REQUIRED)
+    
+    # ... cost fields ...
+```
+
+**CRITICAL:** If `damage_summary` is missing from the Pydantic schema, FastAPI will filter it out during response serialization even if it exists in the database and service layer. This will result in `null` values in the API response despite successful LLM generation.
+
+#### 11.3.6 Configuration
+
+Enable/disable via `api-config.yaml`:
+
+```yaml
+agents:
+  damage_assessment:
+    enabled: true  # Master toggle
+    summary_agent:
+      enabled: true  # Agent-specific toggle
+      model: default  # Uses DEFAULT_VISION_MODEL from config
+      temperature: 0.3
+      max_tokens: 500
+```
+
+#### 11.3.7 Graceful Degradation
+
+If the agent fails or is disabled:
+- `damage_summary` remains NULL
+- Other fields fall back to YOLO heuristic values
+- System continues without error
+- Customer still sees damage assessment (without LLM summary)
+
+#### 11.3.8 Future Extensions
+
+The supervisor pattern allows for easy addition of new agents:
+
+**Immediate Future (TBD):**
+- **ClaimSummaryAgent**: Runs when "Continue" button is clicked on claim submission
+  - Generates aggregate claim-level summary across all damages
+  - Different from per-damage summaries (which run per-image during upload)
+  - See placeholder in `src/api/services/estimate_service.py` (line ~308)
+
+**Longer-term Future:**
+- Secondary Damage Predictor Agent
+- Severity Refinement Agent
+- Repair Strategy Optimizer Agent
+- Parts Availability Agent
+
+#### 11.3.9 Troubleshooting Common Issues
+
+**Issue 1: `damage_summary` is NULL in API response despite LLM running successfully**
+
+**Symptoms:**
+- Logs show "Assessment completed for [damage_part]: severity=X.XX"
+- Database query shows `damage_summary` contains text (e.g., 279 characters)
+- API response shows `"damage_summary": null`
+
+**Root Cause:**
+The `DamageDetail` Pydantic schema in `src/api/schemas/claim.py` is missing the `damage_summary` field. FastAPI uses this schema for response validation and filters out any fields not defined in the schema.
+
+**Fix:**
+Add `damage_summary: Optional[str] = None` to the `DamageDetail` class in `src/api/schemas/claim.py` (see section 11.3.5).
+
+**Verification:**
+```bash
+# Check database has data
+sqlite3 test_insurance.db "SELECT damage_part, length(damage_summary) FROM damages WHERE damage_summary IS NOT NULL LIMIT 1;"
+
+# Check API response includes it
+curl -s 'http://localhost:8000/api/v1/customers/100/claims/1' | jq '.damage_assessment.damages[0].damage_summary'
+```
+
+**Issue 2: TypeError about NoneType in cost calculation**
+
+**Symptoms:**
+- Error: `unsupported operand type(s) for *: 'float' and 'NoneType'`
+- Occurs during `cost_service.calculate_cost()`
+
+**Root Cause:**
+When LLM assessment fails, `severity` might be returned as `None`, breaking cost calculation.
+
+**Fix:**
+Ensure fallback values in three places:
+1. `summary_agent.py` - Return fallback result on exception (severity=0.5)
+2. `damage_supervisor.py` - Return fallback values instead of None on error
+3. `image_service.py` - Add explicit None check before cost calculation (lines 295-302)
+
+**Issue 3: SQLAlchemy text() wrapper error**
+
+**Symptoms:**
+- Error: "Textual SQL expression should be explicitly declared as text(...)"
+- Occurs in `image_service.py` when fetching vehicle data
+
+**Root Cause:**
+SQLAlchemy 2.0 requires explicit `text()` wrapper for raw SQL queries.
+
+**Fix:**
+```python
+from sqlalchemy import text
+
+vehicle_data = self.db.execute(
+    text("SELECT year, make, model, color FROM vehicles WHERE vin = :vin"),
+    {"vin": claim.vin}
+).fetchone()
+```
+
+**Issue 4: LLM wrapping JSON in markdown code fences**
+
+**Symptoms:**
+- Error: "Failed to parse LLM JSON response: Expecting value: line 1 column 1"
+- LLM returns: ` ```json\n{...}\n``` `
+
+**Fix:**
+1. Updated prompt with "CRITICAL RULES" section emphasizing no markdown (see section 11.3.3)
+2. Added markdown stripping fallback in `summary_agent.py` (lines 132-142)
 
 ---
 

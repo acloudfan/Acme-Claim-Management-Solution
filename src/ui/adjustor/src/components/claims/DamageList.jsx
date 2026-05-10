@@ -1,12 +1,14 @@
 /**
  * DamageList component - displays list of damages with costs
  */
-import { Edit2 } from 'lucide-react';
+import { useState } from 'react';
+import { Edit2, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { DAMAGE_TYPE_LABELS, SEVERITY_LABELS, SEVERITY_COLORS } from '../../utils/constants';
 import Badge from '../common/Badge';
 
 const DamageList = ({ damages, onEdit, editable = true }) => {
+  const [expandedReasoning, setExpandedReasoning] = useState({});
   if (!damages || damages.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -63,6 +65,66 @@ const DamageList = ({ damages, onEdit, editable = true }) => {
                   <p className="text-sm text-gray-600 mt-2">
                     {damage.description}
                   </p>
+                )}
+
+                {/* Damage Summary (Customer-friendly description from LLM) */}
+                {damage.damage_summary && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs font-medium text-blue-800 mb-1">AI Assessment Summary:</p>
+                    <p className="text-sm text-blue-900">{damage.damage_summary}</p>
+                  </div>
+                )}
+
+                {/* Additional Assessment Details */}
+                {(damage.recommended_action || damage.reasoning || damage.car_side || damage.assessment_confidence) && (
+                  <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <p className="text-xs font-medium text-gray-700 mb-2">Additional Assessment Details:</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {damage.recommended_action && (
+                        <div>
+                          <span className="text-gray-600">Recommended Action:</span>
+                          <span className="ml-1 font-medium text-gray-900">{damage.recommended_action}</span>
+                        </div>
+                      )}
+                      {damage.car_side && (
+                        <div>
+                          <span className="text-gray-600">Car Side:</span>
+                          <span className="ml-1 font-medium text-gray-900">{damage.car_side}</span>
+                        </div>
+                      )}
+                      {damage.assessment_confidence !== null && damage.assessment_confidence !== undefined && (
+                        <div>
+                          <span className="text-gray-600">Assessment Confidence:</span>
+                          <span className="ml-1 font-medium text-gray-900">
+                            {Math.round(damage.assessment_confidence * 100)}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {damage.reasoning && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => setExpandedReasoning(prev => ({
+                            ...prev,
+                            [damage.damage_id]: !prev[damage.damage_id]
+                          }))}
+                          className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                        >
+                          <span>Reasoning</span>
+                          {expandedReasoning[damage.damage_id] ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </button>
+                        {expandedReasoning[damage.damage_id] && (
+                          <p className="text-sm text-gray-800 mt-2 leading-relaxed">
+                            {damage.reasoning}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 

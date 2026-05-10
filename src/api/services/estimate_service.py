@@ -16,6 +16,7 @@ from typing import List, Dict
 from pathlib import Path
 from datetime import datetime, date
 import math
+import asyncio
 
 class EstimateService(BaseService):
     """Service for generating damage estimates"""
@@ -83,71 +84,21 @@ class EstimateService(BaseService):
         damages = []
         total_cost = 0.0
 
-        for image_id in image_ids:
-            image_path = Path(settings.IMAGES_ROOT_FOLDER) / str(claim_id) / image_id
+        # NOTE: Damage assessment now runs per-image during upload (see image_service.py)
+        # This method only reads existing damage records from database that were created during upload
 
-            if not image_path.exists():
-                self.logger.warning(f"Image not found: {image_path}")
-                continue
+        # Retrieve existing damage records for this claim (created during image upload)
+        existing_damages = self.db.query(Damage).filter(
+            Damage.claim_id == claim_id,
+            Damage.image_id.in_(image_ids)
+        ).all()
 
-            detections = detector.detect_damages(image_path)
-
-            for detection in detections:
-                # Call cost service API with claim's labor rate
-                cost_info = self.cost_service.calculate_cost(
-                    damage_report={
-                        "part": detection["damage_part"],
-                        "class": detection["damage_class"],
-                        "confidence": detection["confidence"]
-                    },
-                    assessment={
-                        "severity": detection["severity"],
-                        "internal_damage_probability": 0.5,  # From AI model
-                        "confidence": detection["confidence"],
-                        "recommended_action": "repair",
-                        "reasoning": "AI detected damage",
-                        "car_side": "unknown"
-                    },
-                    labor_rate=labor_rate  # Use claim's labor rate
-                )
-
-                # Round labor hours to nearest 0.5 increment (industry standard)
-                raw_labor_hours = float(cost_info["labor_hours"])
-                rounded_labor_hours = self.round_labor_hours(raw_labor_hours)
-                parts_cost = float(cost_info["estimated_parts_cost"])
-                total_cost_rounded = (rounded_labor_hours * labor_rate) + parts_cost
-
-                self.logger.info(
-                    f"Labor hours rounded: {raw_labor_hours:.2f}h → {rounded_labor_hours:.1f}h "
-                    f"(cost: ${total_cost_rounded:.2f})"
-                )
-
-                # Create damage record with AI estimates (immutable)
-                damage = Damage(
-                    claim_id=claim_id,
-                    estimate_id=estimate_id,
-                    estimate_type=EstimateType.AI.value,
-                    image_id=image_id,
-                    damage_part=detection["damage_part"],
-                    damage_class=detection.get("damage_class"),
-                    damage_confidence=float(detection["confidence"]),
-                    severity=float(detection["severity"]),
-                    # AI estimates (IMMUTABLE)
-                    ai_labor_hours=rounded_labor_hours,
-                    ai_parts_cost=parts_cost,
-                    ai_total_cost=total_cost_rounded,
-                    # Adjustor estimates (NULL initially)
-                    adjustor_labor_hours=None,
-                    adjustor_parts_cost=None,
-                    adjustor_total_cost=None,
-                    reviewed_by_adjustor=False,
-                    reviewed_at=None,
-                    avg_labor_cost=None  # DEPRECATED: Use claim.state_avg_labor_cost
-                )
-
-                self.db.add(damage)
+        # Process existing damage records
+        for damage in existing_damages:
+                # Damage records already exist with assessments and costs from upload
+                # Just accumulate totals and add to list
                 damages.append(damage)
-                total_cost += total_cost_rounded
+                total_cost += float(damage.ai_total_cost or 0.0)
 
         # Update claim with estimate info
         claim.active_estimate_id = estimate_id
@@ -267,3 +218,8 @@ class EstimateService(BaseService):
             Damage.claim_id == claim_id
         ).distinct().all()
         return [r[0] for r in results]
+
+    # TODO: ClaimSummaryAgent - TBD
+    # When continue button is clicked, run aggregate claim-level summary agent
+    # This will generate an overall claim summary based on all damages
+    # See: src/api/agents/damage_assessment/ for reference implementation

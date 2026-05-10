@@ -441,6 +441,19 @@ const ClaimDetailPage = () => {
         <Card className="mb-6">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">AI Damage Assessment</h2>
 
+          {/* Vehicle Information */}
+          {vehicle && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-2 text-gray-700">
+                <span className="font-semibold text-gray-900">Vehicle:</span>
+                <span className="text-base">
+                  {vehicle.year} {vehicle.make} {vehicle.model}
+                  {vehicle.color && <span className="text-gray-600"> ({vehicle.color})</span>}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Summary */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
             <div className="grid grid-cols-2 gap-6">
@@ -514,6 +527,15 @@ const ClaimDetailPage = () => {
                           ${Number(damage.estimated_total_cost || 0).toFixed(2)}
                         </span>
                       </div>
+
+                      {/* Damage assessment summary */}
+                      {damage.damage_summary && (
+                        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            {damage.damage_summary}
+                          </p>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>

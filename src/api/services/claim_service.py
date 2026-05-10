@@ -191,6 +191,7 @@ class ClaimService(BaseService):
                         'reasoning': d.reasoning,
                         'car_side': d.car_side,
                         'assessment_confidence': float(d.assessment_confidence) if d.assessment_confidence else None,
+                        'damage_summary': d.damage_summary,  # Damage assessment summary from LLM agent
 
                         # Effective Cost Breakdown (adjustor if available, else AI)
                         'labor_hours': effective['labor_hours'],

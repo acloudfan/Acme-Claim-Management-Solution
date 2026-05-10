@@ -6,8 +6,14 @@ flowchart TD
 
     subgraph AI[AI Analysis]
         direction LR
-        Damage[Damage Detection] --> Estimate[Cost Estimation]
-        Estimate --> Fraud[Fraud Detection]
+        Damage[YOLO: Damage Detection] --> Summary[Damage Summary]
+        Damage --> Estimate[Cost Estimation]
+        Damage --> Fraud[Fraud Detection]
+
+        Fraud --> MakeMismatch((Make/Model))
+        Fraud --> ColorMismatch((Color))
+        Fraud --> YearMismatch((Year))
+        Fraud --> Behavioral((Behavioral))
     end
 
     AI --> Decision{Customer<br/>Decision}
@@ -30,9 +36,11 @@ flowchart TD
     classDef decisionClass fill:#f59e0b,stroke:#d97706,stroke-width:3px,color:#fff
     classDef humanClass fill:#ef4444,stroke:#dc2626,stroke-width:3px,color:#fff
     classDef closeClass fill:#8b5cf6,stroke:#7c3aed,stroke-width:3px,color:#fff
+    classDef fraudSignalClass fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff
 
-    class Start startClass
-    class Upload,Damage,Estimate,Fraud aiClass
+    class Start,Upload startClass
+    class Damage,Summary,Estimate,Fraud aiClass
     class Decision decisionClass
     class Human,AdjustorDecision humanClass
     class Close1,Close2 closeClass
+    class MakeMismatch,ColorMismatch,YearMismatch,Behavioral fraudSignalClass

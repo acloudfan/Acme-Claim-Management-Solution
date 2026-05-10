@@ -139,6 +139,13 @@ const ClaimDetailPage = () => {
           estimated_total_cost: totalCost,
           source: 'ai',
           bounding_box: dmg.bounding_box,
+          // LLM Assessment fields
+          damage_summary: dmg.damage_summary,
+          internal_damage_probability: dmg.internal_damage_probability,
+          recommended_action: dmg.recommended_action,
+          reasoning: dmg.reasoning,
+          car_side: dmg.car_side,
+          assessment_confidence: dmg.assessment_confidence,
         };
       });
 
@@ -498,10 +505,13 @@ const ClaimDetailPage = () => {
           <Card
             title="Damages"
             actions={
-              <Button size="sm" onClick={() => setShowDamageCreator(true)}>
+              <button
+                onClick={() => setShowDamageCreator(true)}
+                className="px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-all duration-200 inline-flex items-center"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Manual Damage
-              </Button>
+              </button>
             }
           >
             <DamageList damages={damages} onEdit={handleEditDamage} editable={true} />

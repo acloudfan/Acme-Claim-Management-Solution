@@ -60,10 +60,10 @@
 This project builds a complete **AI-powered auto insurance claims management system** with multiple portals serving different stakeholders. It showcases how AI can streamline insurance claims processing through automated damage detection, fraud analysis, cost estimation, and intelligent routing. The system demonstrates reducing claim processing time from days to minutes while maintaining accuracy and fraud prevention.
 
 **What Gets Built:**
+- **Admin Portal** (shown below) - Central configuration hub for managing AI thresholds, business rules, and launching all portals
 - **FastAPI Backend** - REST API with AI agents for damage detection (YOLO), fraud analysis (VLM), cost estimation, and customer chatbot
 - **Customer Portal** - Self-service claim filing with photo upload, real-time AI damage analysis, and instant estimates
 - **Adjustor Portal** - Review flagged claims, manual damage assessment, fraud investigation, and estimate adjustments
-- **Admin Portal** (shown below) - Central configuration hub for managing AI thresholds, business rules, and launching all portals
 - **Executive Portal** - Analytics dashboards with KPIs, fraud metrics, and 6-month historical insights
 
 The screenshot below shows the **Admin Portal**, which serves as the central configuration hub where users can manage system settings and launch the three operational portals for auto insurance customers, insurance adjustors, and executives.
@@ -98,6 +98,8 @@ The screenshot below shows the **Admin Portal**, which serves as the central con
 * [![SQLite][SQLite.org]][SQLite-url]
 * [![AWS][AWS.amazon.com]][AWS-url]
 * [![Anthropic][Anthropic.com]][Anthropic-url]
+
+These components were chosen for speed and ease of development. **SQLite** simplifies setup and cleanup during prototyping with zero configuration. **FastAPI** and **Vite** provide hot-reloading, allowing code changes to reflect instantly without server restarts—critical for rapid iteration. Since UI is essential for effective demos, **React** and **TailwindCSS** enable building polished interfaces quickly with reusable components. 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
