@@ -5,7 +5,7 @@ flowchart TD
 
     Upload --> AI1
 
-    subgraph AI1[AI Analysis : Image Upload]
+    subgraph AI1[AI Analysis : Damage]
         direction LR
         Damage[YOLO: Damage Detection] --> Summary[Damage Summary]
         Damage --> Estimate[Cost Estimation]
@@ -15,7 +15,7 @@ flowchart TD
 
     Submit --> AI2
 
-    subgraph AI2[AI Analysis : Detect Fraud Signals]
+    subgraph AI2[AI Analysis : Fraud Signals]
         direction LR
         Fraud[Fraud Detection] --> MakeMismatch((Make/Model))
         Fraud --> ColorMismatch((Color))
@@ -25,17 +25,19 @@ flowchart TD
 
     AI2 --> Decision{Customer<br/>Decision}
 
-    Decision -->|Accept| Close1[Claim Closed ✓]
+    Decision -->|Accept| Close[Claim Closed ✓]
     Decision -->|Appeal| Human
 
     AI2 -->|Low Confidence in Estimate| Human[Human Adjustor Review]
 
     AI2 -->|Fraud Signals Detected| Human[Human Adjustor Review]
 
-   
 
-    Human --> AdjustorDecision[Adjustor Makes Decision]
-    AdjustorDecision --> Close2[Claim Closed ✓]
+
+    Human --> AdjustorDecision{Adjustor<br/>Decision}
+    AdjustorDecision -->|Route to Traditional| Traditional[Traditional Claim Processing]
+    AdjustorDecision -->|Updated Estimate| Decision
+    Traditional --> Close[Claim Closed ✓]
 
     %% Styling
     classDef startClass fill:#3b82f6,stroke:#1e40af,stroke-width:3px,color:#fff
@@ -44,10 +46,12 @@ flowchart TD
     classDef humanClass fill:#ef4444,stroke:#dc2626,stroke-width:3px,color:#fff
     classDef closeClass fill:#8b5cf6,stroke:#7c3aed,stroke-width:3px,color:#fff
     classDef fraudSignalClass fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff
+    classDef traditionalClass fill:#6b7280,stroke:#4b5563,stroke-width:3px,color:#fff
 
     class Start,Upload,Submit startClass
     class Damage,Summary,Estimate,Fraud aiClass
-    class Decision decisionClass
-    class Human,AdjustorDecision humanClass
-    class Close1,Close2 closeClass
+    class Decision,AdjustorDecision decisionClass
+    class Human humanClass
+    class Close closeClass
     class MakeMismatch,ColorMismatch,YearMismatch,Behavioral fraudSignalClass
+    class Traditional traditionalClass
