@@ -262,6 +262,7 @@ For detailed configuration options, see [Configuration Management](#configuratio
 The video below walks throught AI enabled claim process implemented in the prototype.
 
 
+<a href="https://youtu.be/htb47B7IDjw target="_blank">Link Text</a>
 [Watch on YouTube](https://youtu.be/htb47B7IDjw)
 
 https://github.com/user-attachments/assets/cdd8051c-33b3-4039-b17b-f691d5a69ba3
