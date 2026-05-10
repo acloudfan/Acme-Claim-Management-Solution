@@ -256,7 +256,18 @@ https://github.com/user-attachments/assets/23e7123c-49c6-4ca3-b56f-4cf02473aede
 - **Appeal Reason**: "Radiator seems to be damaged beyond repair"
 - **Outcome**: Adjustor adds manual damage and revises estimate
 
-[Watch on YouTube](https://youtu.be/WSjkqIEg9Rs)
+[Watch on YouTube : Hi-resolution](https://youtu.be/WSjkqIEg9Rs)
+
+https://github.com/user-attachments/assets/6fea72e9-61b1-481e-86a3-29671c7f1630
+
+
+
+
+
+
+
+
+
 
 
 ### 3. Fraud Detection - Make Mismatch
