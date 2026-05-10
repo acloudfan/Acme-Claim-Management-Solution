@@ -218,42 +218,6 @@ For detailed configuration options, see [Configuration Management](#configuratio
 
 **Default password for all portals**: `password`
 
-### What's Built
-
-**Backend API (FastAPI)**
-- YOLO-based damage detection (real-time during upload)
-- AI fraud detection (VLM + multi-signal analysis)
-- Cost estimation engine
-- Customer chatbot (Claude + RAG)
-- Complete claim lifecycle management
-
-**Customer Portal**
-- File claims with photo upload
-- Real-time AI damage analysis
-- Instant repair estimates
-- Appeal decisions
-- Mobile QR code support
-
-**Adjustor Portal**
-- Review flagged claims
-- Manual damage assessment
-- Fraud signal analysis
-- Cost estimate adjustments
-- SOP reference viewer
-
-**Admin Portal**
-- Configure AI thresholds
-- Toggle fraud detection features
-- Manage business rules
-- View demo scenarios
-
-**Executive Portal**
-- 6-month historical analytics
-- KPI dashboards
-- Fraud detection metrics
-- Cost savings analysis
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
@@ -305,6 +269,44 @@ https://github.com/user-attachments/assets/23e7123c-49c6-4ca3-b56f-4cf02473aede
 - **Image**: `images/honda-acord-ex-2022-ai-generated-damage.jpg`
 - **Expected**: AI-generated damage detected by VLM
 - **Outcome**: Routed to fraud review with AI generation analysis
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+### What's Built
+
+**Backend API (FastAPI)**
+- YOLO-based damage detection (real-time during upload)
+- AI fraud detection (VLM + multi-signal analysis)
+- Cost estimation engine
+- Customer chatbot (Claude + RAG)
+- Complete claim lifecycle management
+
+**Customer Portal**
+- File claims with photo upload
+- Real-time AI damage analysis
+- Instant repair estimates
+- Appeal decisions
+- Mobile QR code support
+
+**Adjustor Portal**
+- Review flagged claims
+- Manual damage assessment
+- Fraud signal analysis
+- Cost estimate adjustments
+- SOP reference viewer
+
+**Admin Portal**
+- Configure AI thresholds
+- Toggle fraud detection features
+- Manage business rules
+- View demo scenarios
+
+**Executive Portal**
+- 6-month historical analytics
+- KPI dashboards
+- Fraud detection metrics
+- Cost savings analysis
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
