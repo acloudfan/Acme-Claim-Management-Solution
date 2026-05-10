@@ -280,6 +280,7 @@ Test images are provided in the `images/` directory. Use these when filing claim
 - **Expected**: Auto-approved with AI estimate
 - **Outcome**: Customer accepts estimate
 
+[Watch on YouTube](https://youtu.be/Yk1wFukofPg)
 
 https://github.com/user-attachments/assets/23e7123c-49c6-4ca3-b56f-4cf02473aede
 
