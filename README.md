@@ -280,6 +280,9 @@ Test images are provided in the `images/` directory. Use these when filing claim
 - **Expected**: Auto-approved with AI estimate
 - **Outcome**: Customer accepts estimate
 
+
+https://github.com/user-attachments/assets/23e7123c-49c6-4ca3-b56f-4cf02473aede
+
 ### 2. Customer Appeal - Human Review
 - **Customer**: Jane Smith (#101)
 - **Vehicle**: 2006 BMW 1 Series E87 (Silver)
