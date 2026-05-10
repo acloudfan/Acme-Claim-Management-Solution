@@ -255,6 +255,14 @@ For detailed configuration options, see [Configuration Management](#configuratio
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+
+
+## AI Enabled Claims Process Flow
+
+The video below walks throught AI enabled claim process implemented in the prototype.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/htb47B7IDjw" frameborder="0" allowfullscreen></iframe>
+
 <!-- DEMO SCENARIOS -->
 ## Demo Scenarios
 
