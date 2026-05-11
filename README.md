@@ -277,6 +277,13 @@ https://github.com/user-attachments/assets/6fea72e9-61b1-481e-86a3-29671c7f1630
 - **Expected**: Fraud signals detected (Chevy ≠ Ford)
 - **Outcome**: Routed to adjustor for fraud review
 
+[Watch on YouTube : Hi-resolution](https://youtu.be/QlnPHKyolm0)
+
+
+
+https://github.com/user-attachments/assets/2f1c393c-6beb-4eb9-9c7e-bf49411c3989
+
+
 ### 4. Fraud Detection - AI Generated Image
 - **Customer**: Alice Williams (#103)
 - **Vehicle**: 2022 Honda Accord (Black)
