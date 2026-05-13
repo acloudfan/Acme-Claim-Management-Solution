@@ -19,41 +19,59 @@
     <a href="specifications/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="#demo-scenarios">View Demo Scenarios</a>
+    <a href="#demo-scenarios">View Demo Videos</a>
     ·
-    <a href="https://github.com/rsakhuja/Acme-Claim-Management-Solution/issues">Report Bug</a>
+    <a href="#ai-enabled-claims-process-flow">Claim Proces flow video</a>
     ·
-    <a href="https://github.com/rsakhuja/Acme-Claim-Management-Solution/issues">Request Feature</a>
+    <a href="#getting-started">Get started</a>
   </p>
 </div>
 
 <!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#key-features">Key Features</a></li>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-        <li><a href="#configuration">Configuration</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#demo-scenarios">Demo Scenarios</a></li>
-    <li><a href="#documentation">Documentation</a></li>
-    <li><a href="#faq">FAQ</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
+## Table of Contents
+<ol>
+  <li>
+    <a href="#about-the-project">About The Project</a>
+    <ul>
+      <li><a href="#key-features">Key Features</a></li>
+      <li><a href="#built-with">Built With</a></li>
+    </ul>
+  </li>
+  <li>
+    <a href="#getting-started">Getting Started</a>
+    <ul>
+      <li><a href="#prerequisites">Prerequisites</a></li>
+      <li><a href="#installation">Installation</a></li>
+      <li><a href="#configuration">Configuration</a></li>
+    </ul>
+  </li>
+  <li><a href="#usage">Usage</a></li>
+  <li><a href="#ai-enabled-claims-process-flow">AI Enabled Claims Process Flow</a></li>
+  <li><a href="#demo-scenarios">Demo Scenarios</a></li>
+  <li>
+    <a href="#executive-dashboard">Executive Dashboard</a>
+    <ul>
+      <li><a href="#synthetic-data-generation">Synthetic Data Generation</a></li>
+    </ul>
+  </li>
+  <li>
+    <a href="#how-this-prototype-was-built">How This Prototype Was Built</a>
+    <ul>
+      <li><a href="#development-process">Development Process</a></li>
+    </ul>
+  </li>
+  <li><a href="#whats-built">What's Built</a></li>
+  <li>
+    <a href="#documentation">Documentation</a>
+    <ul>
+      <li><a href="#technical-diagrams">Technical Diagrams</a></li>
+    </ul>
+  </li>
+  <li><a href="#faq">FAQ</a></li>
+  <li><a href="#license">License</a></li>
+  <li><a href="#contact">Contact</a></li>
+  <li><a href="#acknowledgments">Acknowledgments</a></li>
+</ol>
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
@@ -166,19 +184,26 @@ Complete setup in 5 steps to get your local environment running.
    OPENAI_API_KEY=sk-your_key_here
    ```
 
-5. Start the API server
+5. Set the LLM provider in the api-config.yaml
+    ```yaml
+    # Edit api-config.yaml
+    llm:
+      default_provider: "bedrock"  # Options: "bedrock" | "anthropic" | "openai"
+    ```
+
+6. Start the API server
    ```bash
    ./scripts/start-api-server.sh --clean
    ```
    
    > **Note**: Wait for the API server to start before proceeding to the next step. You will see the message in console: "INFO:     Application startup complete."
 
-6. Start all UI portals
+7. Start all UI portals
    ```bash
    ./scripts/start-portals.sh
    ```
 
-7. Open the Admin portal in your browser
+8. Open the Admin portal in your browser
    ```
    http://localhost:5170/dashboard
    ```
@@ -211,9 +236,13 @@ For detailed configuration options, see [Configuration Management](#configuratio
 
 ### Access the Portals
 
+Admin portal is the main portal. Access this portal and you can open other portals from there.
+* **Admin Portal**: http://localhost:5170 - Configure AI thresholds, manage business rules
+
+Direct access to other portals.
+
 * **Customer Portal**: http://localhost:5173 - File claims, upload damage photos, chat with AI assistant
 * **Adjustor Portal**: http://localhost:5174 - Review flagged claims, adjust estimates, fraud analysis
-* **Admin Portal**: http://localhost:5170 - Configure AI thresholds, manage business rules
 * **Executive Portal**: http://localhost:5175 - View analytics dashboards and KPIs
 
 **Default password for all portals**: `password`
@@ -294,7 +323,101 @@ https://github.com/user-attachments/assets/2f1c393c-6beb-4eb9-9c7e-bf49411c3989
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-### What's Built
+## Executive Dashboard
+
+The Executive Dashboard provides comprehensive analytics and KPIs for insurance leadership to monitor the performance and impact of the AI-powered claims management system. Access the dashboard at http://localhost:5176/dashboard to explore key metrics including:
+
+- **Cycle Time Trends** - Track average claim processing time reduction from traditional (19 days) to AI-assisted (~3 days)
+- **Cost Savings Analysis** - Monitor operational cost reductions and cost per claim metrics
+- **Fraud Detection Performance** - Measure fraud detection rates, signal accuracy, and prevention impact
+- **Customer Satisfaction (CSAT)** - Track satisfaction scores for AI-processed claims vs. traditional workflow
+- **Auto-Adjudication Rates** - Percentage of claims fully resolved without human intervention
+- **Volume and Capacity Metrics** - Claims processed over time with breakdown by resolution path
+
+**⚠️ Important Note**: The Executive Dashboard uses **synthetically generated data** to demonstrate analytics capabilities. This data is based on industry research and represents realistic scenarios but does not reflect actual production claims data.
+
+![Executive dashboard screenshot](specifications/ui-sample-images/executive-dashboard.png)
+
+### Synthetic Data Generation
+
+The synthetic data was created through a research-driven approach to ensure realistic and representative metrics:
+
+1. **Industry Research** - Gathered baseline metrics from auto insurance industry reports:
+   - Average cycle time: 19 days (pre-AI)
+   - Industry average cost per claim: $325
+   - Typical fraud detection rates: 2-5% of claims
+   - Customer satisfaction baselines: 2.5/5 for traditional body damage claims
+
+2. **AI Impact Modeling** - Applied projected improvements from AI transformation:
+   - 85% cycle time reduction for AI-processed claims
+   - 70% operational cost reduction where customers accept AI estimates
+   - 75% improvement in fraud detection accuracy
+   - 1.5-point CSAT improvement target
+
+3. **Time Series Generation** - Created 6-month historical trends showing:
+   - Gradual AI adoption curve (phased rollout simulation)
+   - Seasonal claim volume variations
+   - Progressive improvement in metrics as the system learns
+   - Realistic variance in day-to-day performance
+
+4. **Stakeholder Scenarios** - Generated diverse claim outcomes:
+   - Happy path: Auto-approved claims (~60% of opt-in volume)
+   - Customer appeals: Manual review required (~25%)
+   - Fraud signals: Routed to investigation (~10%)
+   - Complex cases: Adjustor-led resolution (~5%)
+
+The synthetic data provides a realistic demonstration of how the Executive Dashboard would track performance in a production environment, enabling stakeholders to visualize the business impact of AI-powered claims transformation.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+
+## How This Prototype Was Built
+
+This prototype was developed using a structured, research-driven approach combining domain expertise with AI-assisted implementation:
+
+**PS:** Author has extensive experience in Insurance industry 
+
+### Development Process
+
+**(a) Research Phase**  
+Author conducted high-level research on how auto insurance claims are processed by insurance companies, studying traditional workflows, pain points, and inefficiencies. In addition, author gathered key auto insurance industry data and specific metrics of interest (Refer: Executive dashboard for details)
+
+**(b) Performance Metrics (KPI)**  
+Gathered key metrics that measure auto insurance claim performance, including cycle time, auto-adjudication rate, fraud detection rate, cost per claim, and customer satisfaction scores.
+
+**(c) Stakeholder Identification**  
+Identified key stakeholders and their needs:
+- **Customers**: Fast, transparent auto claim processing
+- **Adjustors**: Efficient review tools with AI assistance
+- **Executives**: Business insights and KPI tracking
+- **Operations Managers**: Configuration and policy management
+
+**(d) Conceptual Design**  
+Created a high-level conceptual design providing a comprehensive view of "AI-Adjudicated Claim Processing" from multiple stakeholder perspectives, ensuring each role had appropriate tools and insights.
+
+**(e) Design Documentation**  
+Captured initial thoughts and requirements in [specifications/Thoughts.md](specifications/Thoughts.md), establishing the foundation for detailed specification development.
+
+**(f) Specification Development**  
+Used Claude Code in plan mode to brainstorm and generate detailed specifications for each capability from a business perspective, including:
+- User workflows and journeys
+- Business rules and decision logic
+- UI/UX requirements
+- Integration points
+
+**(g) Technical Implementation**  
+Provided Claude with technical guidance for implementing each component:
+- Database schema design  *(Refer: specifications/diagrams/claim-database-erd.mmd)*
+- API route definitions   *(Refer: specifications/API-BACKEND-DESIGN.md)*
+- AI agent architecture   *(Refer: specifications/CUSTOMER-LLM-AGENTS-DESIGN.md)*
+- Frontend component structure
+
+**(h) Iterative Build-Out**  
+Rolled forward with implementation of each component, testing and refining through multiple iterations to achieve a cohesive, working demonstration.
+
+## What's Built
 
 **Backend API (FastAPI)**
 - YOLO-based damage detection (real-time during upload)

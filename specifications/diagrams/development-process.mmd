@@ -1,0 +1,34 @@
+%% Development Process Flow
+%% Shows the structured, research-driven approach to building the AI Claims Management System
+
+graph TD
+    Start([Start: Domain Understanding]) --> A
+
+    A[Research Phase<br/>Study traditional workflows<br/>Identify pain points<br/>Gather industry data]
+
+    A --> B[Performance Metrics KPI<br/>Define success metrics<br/>- Cycle time<br/>- Auto-adjudication rate<br/>- Fraud detection rate<br/>- Cost per claim]
+
+    B --> C[Stakeholder Identification<br/>Map user needs<br/>- Customers<br/>- Adjustors<br/>- Executives<br/>- Operations Managers]
+
+    C --> D[Conceptual Design<br/>High-level architecture<br/>Multi-stakeholder perspectives<br/>AI-adjudicated flow]
+
+    D --> E[Design Documentation<br/>Capture requirements<br/>specifications/Thoughts.md<br/>Foundation for specs]
+
+    E --> F[Specification Development<br/>Claude Code in plan mode<br/>- User workflows<br/>- Business rules<br/>- UI/UX requirements<br/>- Integration points]
+
+    F --> G[Technical Implementation<br/>Claude-assisted coding<br/>- Database schema<br/>- API routes<br/>- AI agents<br/>- Frontend components]
+
+    G --> H[Iterative Build-Out<br/>Test and refine<br/>Multiple iterations<br/>Cohesive demonstration]
+
+    H --> End([Complete Prototype])
+
+    %% Styling
+    classDef research fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef design fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef implementation fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef iteration fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+
+    class A,B,C research
+    class D,E,F design
+    class G implementation
+    class H iteration

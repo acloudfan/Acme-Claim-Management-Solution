@@ -136,7 +136,7 @@ async def get_kpis(
         change_percent=round((days_saved_per_claim / traditional_baseline * 100), 1),  # % of baseline saved
         previous_value=round(traditional_baseline, 1) if compare_to_previous else None,
         target=15.8,  # Target: Save 15.8 days (get AI to 3.5 days)
-        status="good" if days_saved_per_claim > 14 else "warning" if days_saved_per_claim > 9 else "critical"
+        status="good" if days_saved_per_claim > 11 else "warning" if days_saved_per_claim > 9 else "critical"
     )
 
     # KPI 2: Auto-Adjudication Rate

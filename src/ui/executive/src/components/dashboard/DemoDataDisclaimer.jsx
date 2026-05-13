@@ -6,24 +6,47 @@ import { Info } from 'lucide-react';
 
 export default function DemoDataDisclaimer() {
   const handleLearnMoreClick = () => {
-    const element = document.getElementById('sample-data-distribution');
-    if (element) {
-      // First, try to expand the section by clicking the header
-      const header = element.querySelector('[data-expandable-header]');
-      if (header) {
-        header.click();
+    // Function to try finding and scrolling to the element
+    const scrollToElement = (attempts = 0) => {
+      const element = document.getElementById('sample-data-distribution');
+
+      if (!element) {
+        if (attempts < 10) {
+          // Try again in 100ms (max 10 attempts = 1 second)
+          setTimeout(() => scrollToElement(attempts + 1), 100);
+        } else {
+          alert('Unable to find the methodology section. Please scroll down to view it manually.');
+        }
+        return;
       }
+
+      // Element found! Now proceed with expansion and scroll
+      const header = element.querySelector('[data-expandable-header]');
+
+      if (!header) {
+        // Still scroll to the element even if we can't expand it
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      // Trigger the click to expand
+      header.click();
 
       // Wait a moment for expansion animation, then scroll
       setTimeout(() => {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
         // Add highlight effect
         element.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+
         setTimeout(() => {
           element.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
         }, 2000);
-      }, 100);
-    }
+      }, 300);
+    };
+
+    // Start the process
+    scrollToElement();
   };
 
   return (

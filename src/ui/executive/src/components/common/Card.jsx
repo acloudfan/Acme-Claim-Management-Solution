@@ -2,9 +2,10 @@
  * Card component for content containers
  */
 
-const Card = ({ children, className = '', title, actions, padding = true, onClick }) => {
+const Card = ({ children, className = '', title, actions, padding = true, onClick, id }) => {
   return (
     <div
+      id={id}
       className={`bg-white rounded-xl card-shadow border border-gray-200 ${padding ? 'p-6' : ''} ${className}`}
       onClick={onClick}
     >
