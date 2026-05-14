@@ -255,9 +255,28 @@ class LangfuseWrapper(BaseLLMClient):
                     max_tokens=max_tokens
                 )
 
+                # If the response has formatted Langfuse input (with image URL), return it for logging
+                # The observe decorator will capture this dict
+                if hasattr(response, '_langfuse_input'):
+                    return {
+                        "input": response._langfuse_input,
+                        "output": response.content,
+                        "usage": {
+                            "input": response.input_tokens,
+                            "output": response.output_tokens
+                        },
+                        "_response": response
+                    }
+
                 return response
 
-            return _traced_chat_with_image()
+            result = _traced_chat_with_image()
+
+            # If we wrapped the response, extract it
+            if isinstance(result, dict) and "_response" in result:
+                return result["_response"]
+
+            return result
         else:
             return self.wrapped_client.chat_with_image(
                 system=system,

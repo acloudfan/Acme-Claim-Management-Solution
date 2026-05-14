@@ -46,7 +46,7 @@ export const FIELD_DESCRIPTIONS = {
   // Agent Toggles
   'agents.fraud_detector.enabled': 'Run fraud detection on all claims',
   'agents.risk_estimator.enabled': 'Analyze claims for actuarial risk (NOT IMPLEMENTED - Coming Soon)',
-  'agents.damage_analyzer.enabled': 'Enhance damage assessments with LLM (NOT IMPLEMENTED - Coming Soon)',
+  'agents.damage_analyzer.enabled': 'Agent generates damage summary, refines severity scores, estimates internal damage, and recommends repair strategies',
   'agents.damage_analyzer.enhance_all_damages': 'Apply analyzer to all damage reports vs. low-confidence only (NOT IMPLEMENTED - Coming Soon)',
   'agents.chatbot.enabled': 'Customer-facing chatbot in portal',
 

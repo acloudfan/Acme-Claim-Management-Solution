@@ -83,6 +83,9 @@ api-config.yaml
 .env
 .env.local
 
+# Backup files
+*.bak
+
 # OS
 .DS_Store
 Thumbs.db

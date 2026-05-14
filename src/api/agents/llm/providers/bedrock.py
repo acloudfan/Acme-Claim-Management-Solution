@@ -207,6 +207,9 @@ class BedrockClient(BaseLLMClient):
             # Encode image to base64
             image_base64 = base64.standard_b64encode(image_data).decode('utf-8')
 
+            # Extract media type (e.g., 'image/jpeg' -> 'jpeg')
+            media_type = image_format.split('/')[-1] if '/' in image_format else image_format
+
             # Build messages with image
             bedrock_messages = []
             for msg in messages:
@@ -263,13 +266,41 @@ class BedrockClient(BaseLLMClient):
                 if block['type'] == 'text':
                     content_text += block['text']
 
-            return ChatResponse(
+            chat_response = ChatResponse(
                 content=content_text,
                 role='assistant',
                 input_tokens=response_body['usage']['input_tokens'],
                 output_tokens=response_body['usage']['output_tokens'],
                 stop_reason=response_body.get('stop_reason', 'end_turn')
             )
+
+            # Store formatted input for Langfuse (OpenAI-compatible format with image URL)
+            # This will be captured by the observe decorator in the wrapper
+            image_url = f"data:image/{media_type};base64,{image_base64}"
+            chat_response._langfuse_input = {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": f"System: {system}\n\n{messages[0].content if messages else ''}"
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": image_url
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "model": self.model,
+                "temperature": temperature,
+                "max_tokens": max_tokens
+            }
+
+            return chat_response
 
         except Exception as e:
             logger.error(f"Bedrock vision chat error: {e}")

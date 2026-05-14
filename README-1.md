@@ -621,6 +621,7 @@ The system automatically creates timestamped backups when you save configuration
 - [COCO Car Damage Dataset](https://www.kaggle.com/datasets/lplenka/coco-car-damage-detection-dataset)
 - [Mitchell International](https://www.mitchell.com/) - Industry standard repair time database
 - [CCC Intelligent Solutions](https://cccis.com/) - Claims and collision repair platform
+- [Damage car dataset](https://universe.roboflow.com/automobile-damage-detection/automobile-damage-detection) - 
 
 ### Standard Operating Procedures
 

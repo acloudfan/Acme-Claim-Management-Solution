@@ -219,7 +219,7 @@ const DashboardPage = () => {
                   <p className="text-sm text-success-dark font-medium">{successMessage}</p>
                   {successMessage.includes('activated') && (
                     <p className="text-xs text-success-dark mt-2">
-                      ℹ️ Changes are now active in the API server. No restart required!
+                      ⚠️ Please restart the API server to apply changes!!
                     </p>
                   )}
                   {successMessage.includes('reload failed') && (
@@ -404,12 +404,11 @@ const DashboardPage = () => {
                     />
 
                     <ConfigField
-                      label="Enable Damage Analyzer (Coming Soon)"
-                      description="LLM-enhanced damage assessment - Not yet implemented. Agent will refine severity scores, estimate internal damage, and recommend repair strategies."
-                      value={false}
-                      onChange={() => {}}
+                      label="Enable Damage Analyzer"
+                      description={FIELD_DESCRIPTIONS['agents.damage_analyzer.enabled']}
+                      value={getNestedValue(editedConfig, 'agents.damage_analyzer.enabled')}
+                      onChange={(val) => handleFieldChange('agents.damage_analyzer.enabled', val)}
                       variant="checkbox"
-                      disabled={true}
                     />
 
                     <ConfigField

@@ -54,13 +54,23 @@
       <li><a href="#synthetic-data-generation">Synthetic Data Generation</a></li>
     </ul>
   </li>
+  <li><a href="#langfuse-integration">Langfuse Integration</a></li>
   <li>
     <a href="#how-this-prototype-was-built">How This Prototype Was Built</a>
     <ul>
       <li><a href="#development-process">Development Process</a></li>
     </ul>
   </li>
+  <li>
+    <a href="#architecture--ai-flow">Architecture & AI Flow</a>
+    <ul>
+      <li><a href="#data-flow-overview">Data Flow Overview</a></li>
+      <li><a href="#why-these-tools">Why These Tools?</a></li>
+      <li><a href="#ai-agent-coordination">AI Agent Coordination</a></li>
+    </ul>
+  </li>
   <li><a href="#whats-built">What's Built</a></li>
+  <li><a href="#future-enhancements">Future Enhancements</a></li>
   <li>
     <a href="#documentation">Documentation</a>
     <ul>
@@ -260,6 +270,8 @@ The video below walks throught AI enabled claim process implemented in the proto
 https://github.com/user-attachments/assets/cdd8051c-33b3-4039-b17b-f691d5a69ba3
 
 
+[Checkout the flow on GitHub](./specifications/diagrams/claim-flow-with-ai.mmd)
+
 
 <!-- DEMO SCENARIOS -->
 ## Demo Scenarios
@@ -371,7 +383,54 @@ The synthetic data provides a realistic demonstration of how the Executive Dashb
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+<!-- LANGFUSE INTEGRATION -->
+## Langfuse Integration
 
+[Langfuse](https://langfuse.com/) provides observability and analytics for LLM applications. This integration enables tracing of AI agent interactions, LLM calls, and claim processing workflows.
+
+### Prerequisites
+
+* **Docker** installed on your machine
+* Or use **Langfuse Cloud** (no local setup required)
+
+### Local Setup with Docker
+
+1. Start the Langfuse server locally:
+   ```bash
+   cd langfuse-integration/langfuse
+   docker compose up
+   ```
+
+2. Open the Langfuse portal in your browser:
+   ```
+   http://localhost:3000
+   ```
+
+3. Enable Langfuse in `api-config.yaml`:
+   ```yaml
+   langfuse:
+     enabled: true  # Set to true to enable Langfuse tracing
+   ```
+
+4. Add Langfuse credentials to your `.env` file:
+   ```env
+   LANGFUSE_SECRET_KEY="sk-lf-xxxx"
+   LANGFUSE_PUBLIC_KEY="pk-lf-xxxx"
+   LANGFUSE_BASE_URL="http://localhost:3000"   # Change this for Langfuse cloud
+   ```
+
+### Testing the Integration
+
+1. File a new claim through the Customer Portal
+2. Navigate to the Langfuse portal at http://localhost:3000
+3. View traces and sessions showing:
+   - AI agent execution flows
+   - LLM API calls with prompts and responses
+   - Damage detection analysis
+   - Fraud detection signals
+   - Cost estimation calculations
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## How This Prototype Was Built
 
@@ -417,6 +476,125 @@ Provided Claude with technical guidance for implementing each component:
 **(h) Iterative Build-Out**  
 Rolled forward with implementation of each component, testing and refining through multiple iterations to achieve a cohesive, working demonstration.
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- ARCHITECTURE & AI FLOW -->
+## Architecture & AI Flow
+
+This section explains how the AI components work together and the rationale behind key technology choices.
+
+### Data Flow Overview
+
+The claim processing pipeline follows this sequence:
+
+1. **Image Upload (Customer Portal)**
+   - Customer uploads damage photos through React web interface
+   - Images stored in local filesystem with claim-specific directories
+   - Frontend shows real-time upload progress with file validation
+
+2. **YOLO Damage Detection (Real-time)**
+   - YOLO v11 model analyzes each image immediately upon upload
+   - Detects damage types: dent, scratch, crack, shatter, lamp broken, etc.
+   - Returns bounding boxes, damage classification, and confidence scores
+   - Model runs on CPU with ~2-3 second inference time per image
+
+3. **LLM Enhancement (Vision Model)**
+   - Claude Sonnet 4.5 (via AWS Bedrock) performs deeper analysis
+   - Takes YOLO detections + original image + vehicle context
+   - Generates human-readable damage summaries
+   - Refines severity scores (0.0-1.0 scale)
+   - Estimates internal damage probability
+   - Recommends repair actions: repaint, de-dent, replace, de-dent-and-paint
+
+4. **Cost Estimation Engine**
+   - Calculates repair costs using damage severity + labor hours
+   - Labor rates vary by US state (loaded from configuration)
+   - Parts costs estimated based on damage type and severity
+   - Formula: `Total Cost = (Labor Hours × Labor Rate) + Parts Cost`
+   - Labor hours rounded to nearest 0.5 increment (industry standard)
+
+5. **Fraud Detection (Multi-Phase Pipeline)**
+   - **Phase 1 - Vision Analysis**: VLM checks make/model match, color verification, AI-generated image detection
+   - **Phase 2 - Static Checks**: VIN validation, claim frequency analysis, policyholder history
+   - **Phase 3 - Behavioral Analysis**: LLM analyzes claim narrative for inconsistencies
+   - Each phase produces weighted risk signals
+   - Final fraud score: weighted combination of all signals (0.0-1.0 scale)
+
+6. **Intelligent Routing**
+   - **High Confidence (≥0.55)**: Auto-present estimate to customer
+   - **Low Confidence (<0.35)**: Route to adjustor for manual review
+   - **High Fraud Risk (≥0.7)**: Flag for fraud investigation
+   - **Customer Appeal**: Adjustor can add manual damages and revise estimate
+
+### Why These Tools?
+
+**YOLO v11 (HuggingFace: vineetsarpal/yolov11n-car-damage)**
+- Pre-trained on car damage datasets with 7 damage classes
+- Fast inference (~2-3 seconds on CPU)
+- High accuracy for visible damage detection
+- Lightweight model suitable for prototyping without GPU
+
+**Claude Sonnet 4.5**
+- Tried Haiku 4 but performance was not up to mark
+- Best-in-class vision understanding model
+- Generates natural language summaries that customers can understand
+- Refines YOLO's quantitative detections with qualitative insights
+- AWS Bedrock provides enterprise-grade reliability and compliance
+
+**FastAPI (Python Backend)**
+- Async support critical for parallel AI agent execution
+- Fast development with automatic API documentation (Swagger)
+- Native support for Pydantic validation
+- Hot-reload during development accelerates iteration
+
+**SQLite (Development Database)**
+- Zero configuration setup - perfect for prototyping
+- File-based database simplifies cleanup and reset
+- Full SQL support with good performance for demo scale
+- Easy migration path to PostgreSQL for production
+
+**React + Vite (Frontend)**
+- Vite provides instant hot-module replacement (HMR)
+- Component-based architecture enables rapid UI iteration
+- TailwindCSS utility classes speed up styling
+- Modern tooling reduces build times from minutes to seconds
+
+**Multi-Portal Architecture**
+- Separate portals for different user roles (Customer, Adjustor, Admin, Executive)
+- Each portal optimized for specific workflows and permissions
+- Independent deployment and scaling per portal in production
+
+### AI Agent Coordination
+
+The system uses a **Supervisor Pattern** to orchestrate multiple specialized AI agents:
+
+**Damage Assessment Supervisor**
+- Coordinates YOLO detection → LLM summary generation
+- Runs summary agents in parallel for multiple damages
+- Aggregates confidence scores across all damage assessments
+- Handles failures gracefully with fallback to heuristic values
+
+**Fraud Detection Supervisor**
+- Orchestrates 3-phase fraud analysis pipeline
+- Each phase can run independently or be skipped based on risk scores
+- Phase 1 (Vision) runs 4 sub-agents in parallel: color verification, make/model check, AI-generated detection, manipulation detection
+- Phase 3 (Behavioral) invoked only for medium-risk cases (optimization)
+- Aggregates signals with configurable weights per detection type
+
+**Customer Chatbot Agent**
+- RAG (Retrieval Augmented Generation) pattern
+- Retrieves relevant policy documents and SOPs
+- Context-aware responses based on customer's claim status
+- Tool-use pattern for structured data queries (claim status, estimate details)
+
+**Agent Communication**
+- Async execution using Python `asyncio`
+- Agents communicate via structured `AgentResult` objects
+- Langfuse integration tracks agent execution, token usage, and latency
+- Error isolation: One agent failure doesn't crash the entire pipeline
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## What's Built
 
 **Backend API (FastAPI)**
@@ -451,6 +629,38 @@ Rolled forward with implementation of each component, testing and refining throu
 - KPI dashboards
 - Fraud detection metrics
 - Cost savings analysis
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- FUTURE ENHANCEMENTS -->
+## Future Enhancements
+
+If given additional time and resources, the following improvements would transform this into a more valuable prototype.
+
+### AI/ML Improvements
+
+**Model Fine-Tuning**
+- Fine-tune YOLO on company-specific damage patterns and vehicle types
+- Collect ground truth data from adjustor corrections
+
+**Feedback Loop**
+- Capture adjustor corrections as training data
+- Human-in-the-loop (HITL) annotation workflow
+- Track accuracy improvements over time in Executive Dashboard
+
+**Advanced AI Features**
+- Similar claims retrieval for cost benchmarking
+
+**Evaluations**
+- Data driven decisions for managing changes to AI (prompt, model, parameters, agents,...)
+- Calibrate AI confidence scores against actual adjustor agreement rates
+- Human annotations & LLM-as-Judge
+
+
+### Business Intelligence
+- Predictive modeling for fraud risk (XGBoost, Random Forest)
+- NLP : Self-service BI tools 
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -542,6 +752,7 @@ Project Link: [https://github.com/acloudfan/Acme-Claim-Management-Solution](http
 * [CCC Intelligent Solutions](https://cccis.com/) - Claims and collision repair platform
 * [Best-README-Template](https://github.com/othneildrew/Best-README-Template)
 * [Claude Code](https://claude.com/claude-code) - AI-assisted development
+* [Damage car dataset](https://universe.roboflow.com/automobile-damage-detection/automobile-damage-detection) - Roboflow dataset for YOLO fine-tuning
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

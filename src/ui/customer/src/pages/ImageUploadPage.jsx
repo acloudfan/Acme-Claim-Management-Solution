@@ -504,7 +504,7 @@ const ImageUploadPage = () => {
                           </div>
                         </div>
                       ) : (fileData.status === 'analyzed' || fileData.status === 'existing') && (
-                        <p className="text-xs text-gray-500">No damage detected</p>
+                        <p className="text-xs text-gray-500">No vehicle/damage was detected!!</p>
                       )}
                     </div>
                   </div>
