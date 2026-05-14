@@ -270,7 +270,7 @@ The video below walks throught AI enabled claim process implemented in the proto
 https://github.com/user-attachments/assets/cdd8051c-33b3-4039-b17b-f691d5a69ba3
 
 
-[Checkout the flow on GitHub](./specifications/diagrams/claim-flow-with-ai.mmd)
+[Checkout the flow on GitHub](./specifications/diagrams/claims-process-flow.mmd)
 
 
 <!-- DEMO SCENARIOS -->
@@ -633,7 +633,7 @@ The system uses a **Supervisor Pattern** to orchestrate multiple specialized AI 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- FUTURE ENHANCEMENTS -->
-## Future Enhancements
+## Potential improvements (prototype)
 
 If given additional time and resources, the following improvements would transform this into a more valuable prototype.
 
