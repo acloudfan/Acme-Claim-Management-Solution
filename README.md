@@ -282,28 +282,11 @@ While the primary focus of this prototype is the AI-enabled customer claims fili
 ### (a) Adjustor Workflow
 
 The Adjustor Portal provides a comprehensive workspace for insurance adjustors to review flagged claims, perform manual assessments, and override AI decisions when necessary.
-
-**Key Features:**
-- **Claims Review Queue** - Prioritized list of claims requiring human review (appeals, fraud signals, low confidence)
-- **Manual Damage Assessment** - Add or modify damage items with custom severity and repair actions
-- **Fraud Signal Analysis** - Detailed view of fraud detection signals with confidence scores and reasoning
-- **Cost Estimate Adjustments** - Override AI estimates with manual calculations and justifications
-- **SOP Reference Viewer** - Quick access to Standard Operating Procedures and policy guidelines
-- **Audit Trail** - Complete history of all adjustor actions and decisions
-
 This workflow demonstrates how AI augments rather than replaces human expertise, providing a safety net for edge cases and building trust through transparency.
 
 ### (b) Executive Dashboard
 
 The Executive Dashboard provides leadership with comprehensive analytics and KPIs to monitor the business impact of AI-powered claims transformation.
-
-**Key Metrics:**
-- **Cycle Time Savings** - Track reduction from traditional (19 days) to AI-assisted (~3 days) processing
-- **LAE (Loss Adjustment Expense) Savings** - Monitor operational cost reductions and ROI
-- **Auto-Adjudication Rate** - Percentage of claims resolved without human intervention
-- **AI Adoption Rate** - Track customer opt-in rates and AI usage trends
-- **Processing Path Distribution** - Breakdown of traditional vs. AI-auto vs. AI+human review claims
-- **Sample Data Extrapolation** - Demonstrates 1% sample (4,500 claims) extrapolated to production scale (450K claims)
 
 **Important Note:** The Executive Dashboard uses **synthetic data for scenario simulation** generated through industry research to demonstrate analytics capabilities. This data represents realistic scenarios but does not reflect actual production claims.
 
@@ -311,15 +294,9 @@ The Executive Dashboard provides leadership with comprehensive analytics and KPI
 
 ### (c) Langfuse Integration for Tracing & Evaluations
 
-[Langfuse](https://langfuse.com/) integration provides observability and analytics for LLM applications, enabling detailed tracing of AI agent interactions and performance monitoring.
+[Langfuse](https://langfuse.com/) integration provides observability and analytics for LLM applications, enabling detailed tracing of AI agent interactions and performance monitoring. The data captured on LangFuse can be used for creating annotated datasets that can be used for continuous evals during the time of development.
 
-**Capabilities:**
-- **Agent Execution Tracing** - Track the complete flow of damage detection, fraud analysis, and cost estimation agents
-- **LLM Call Monitoring** - Capture prompts, responses, token usage, and latency for every Claude API call
-- **Multi-Agent Coordination** - Visualize how supervisor agents orchestrate specialized sub-agents
-- **Performance Analytics** - Identify bottlenecks, optimize prompts, and track accuracy improvements
-- **Cost Tracking** - Monitor LLM token consumption and associated costs per claim
-- **Evaluation Framework** - Foundation for building automated evals using human annotations or LLM-as-Judge
+
 
 **Setup:** See [Langfuse Integration](#langfuse-integration) section for local Docker setup or cloud configuration.
 
