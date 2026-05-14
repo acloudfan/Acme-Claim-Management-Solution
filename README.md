@@ -1,15 +1,15 @@
-<a id="readme-top"></a>
+<!-- <a id="readme-top"></a> -->
 
 <!-- PROJECT SHIELDS -->
-[![MIT License][license-shield]][license-url]
+<!-- [![MIT License][license-shield]][license-url] -->
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/rsakhuja/Acme-Claim-Management-Solution">
+  <!-- <a href="https://github.com/rsakhuja/Acme-Claim-Management-Solution"> -->
     <img src="src/common/assets/ACME-logo.png" alt="ACME Logo" width="80" height="80">
-  </a>
+  <!-- </a> -->
 
   <h3 align="center">ACME Insurance - AI Claims Management System</h3>
 
