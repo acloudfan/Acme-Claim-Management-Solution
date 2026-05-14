@@ -70,7 +70,7 @@
     </ul>
   </li>
   <li><a href="#whats-built">What's Built</a></li>
-  <li><a href="#future-enhancements">Future Enhancements</a></li>
+  <li><a href="#potential-improvements-prototype">Potential improvements (prototype)</a></li>
   <li>
     <a href="#documentation">Documentation</a>
     <ul>
@@ -632,7 +632,7 @@ The system uses a **Supervisor Pattern** to orchestrate multiple specialized AI 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<!-- FUTURE ENHANCEMENTS -->
+<!-- POTENTIAL IMPROVEMENTS -->
 ## Potential improvements (prototype)
 
 If given additional time and resources, the following improvements would transform this into a more valuable prototype.
