@@ -649,7 +649,8 @@ If given additional time and resources, the following improvements would transfo
 - Track accuracy improvements over time in Executive Dashboard
 
 **Advanced AI Features**
-- Similar claims retrieval for cost benchmarking
+- Similar claims retrieval for cost benchmarking | adjustor guidance
+- AI assistant for adjustor for productivity boost | efficiency
 
 **Evaluations**
 - Data driven decisions for managing changes to AI (prompt, model, parameters, agents,...)
@@ -659,7 +660,7 @@ If given additional time and resources, the following improvements would transfo
 
 ### Business Intelligence
 - Predictive modeling for fraud risk (XGBoost, Random Forest)
-- NLP : Self-service BI tools 
+- NLP : Self-service BI tool on executive & operator portal
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

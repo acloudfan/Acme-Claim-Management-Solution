@@ -347,10 +347,10 @@ export default function DashboardPage() {
                 </div>
                 <div id={`chart-${KPI_NAMES.TOTAL_SAVINGS}`} className="transition-all duration-300">
                   <TrendChart
-                    title="Total Savings Trend"
-                    subtitle="Cumulative operational cost savings from AI processing"
+                    title="LAE Savings Trend"
+                    subtitle="Cumulative Loss Adjustment Expense reduction from AI processing"
                     data={trendData[KPI_NAMES.TOTAL_SAVINGS] || []}
-                    yAxisLabel="Savings ($)"
+                    yAxisLabel="LAE Savings ($)"
                     color="green"
                     onShowNarrative={() => handleShowNarrative('TREND_CHART_TOTAL_SAVINGS')}
                   />
@@ -380,17 +380,18 @@ export default function DashboardPage() {
               )}
 
               {/* Sample Data Distribution - Bottom of Dashboard */}
+              {/* 75K/month × 6 months = 450K actual volume */}
               <SampleDataDistribution
                 sampleSize={4500}
                 actualVolume={450000}
                 extrapolationFactor={100}
                 monthlyDistribution={[
-                  { month: 'Oct 2025', claims: 750, autoAdjPct: 2.9, threshold: 4000, fraudPct: 60.0 },
-                  { month: 'Nov 2025', claims: 750, autoAdjPct: 6.5, threshold: 4500, fraudPct: 100.0 },
-                  { month: 'Dec 2025', claims: 750, autoAdjPct: 15.5, threshold: 5000, fraudPct: 55.0 },
-                  { month: 'Jan 2026', claims: 750, autoAdjPct: 42.8, threshold: 5500, fraudPct: 73.9 },
-                  { month: 'Feb 2026', claims: 750, autoAdjPct: 47.3, threshold: 6000, fraudPct: 80.9 },
-                  { month: 'Mar 2026', claims: 750, autoAdjPct: 59.6, threshold: 6500, fraudPct: 80.0 },
+                  { month: 'Oct 2025', claims: 750, autoAdjPct: 6.8, threshold: 5000, fraudPct: 33.3 },
+                  { month: 'Nov 2025', claims: 750, autoAdjPct: 7.2, threshold: 5000, fraudPct: 44.4 },
+                  { month: 'Dec 2025', claims: 750, autoAdjPct: 8.1, threshold: 5000, fraudPct: 50.0 },
+                  { month: 'Jan 2026', claims: 750, autoAdjPct: 9.2, threshold: 5000, fraudPct: 71.4 },
+                  { month: 'Feb 2026', claims: 750, autoAdjPct: 8.4, threshold: 5000, fraudPct: 33.3 },
+                  { month: 'Mar 2026', claims: 750, autoAdjPct: 8.1, threshold: 5000, fraudPct: 69.2 },
                 ]}
               />
 

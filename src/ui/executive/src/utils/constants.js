@@ -18,7 +18,7 @@ export const KPI_NAMES = {
 
 export const KPI_LABELS = {
   [KPI_NAMES.CYCLE_TIME_SAVINGS]: 'Cycle Time Savings',
-  [KPI_NAMES.TOTAL_SAVINGS]: 'Total Savings',
+  [KPI_NAMES.TOTAL_SAVINGS]: 'LAE Savings',
   [KPI_NAMES.AUTO_ADJUDICATION]: 'Auto-Adjudication Rate'
 };
 

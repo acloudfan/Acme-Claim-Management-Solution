@@ -21,13 +21,15 @@ fake = Faker()
 random.seed(42)  # For reproducibility
 
 # Constants from synthetic-data-rules.md
+# Threshold fixed at $5,000 for all months (per requirement)
+# Auto-approval rate set to 0.667 to achieve 8% auto-approved, 4% human review (67/33 split)
 MONTHS = [
-    {'date': '2025-10', 'month': 10, 'year': 2025, 'threshold': 5500, 'fraud_detection_rate': 0.40, 'auto_approval_rate': 0.70},
-    {'date': '2025-11', 'month': 11, 'year': 2025, 'threshold': 6000, 'fraud_detection_rate': 0.50, 'auto_approval_rate': 0.80},
-    {'date': '2025-12', 'month': 12, 'year': 2025, 'threshold': 6500, 'fraud_detection_rate': 0.60, 'auto_approval_rate': 0.88},
-    {'date': '2026-01', 'month': 1, 'year': 2026, 'threshold': 7000, 'fraud_detection_rate': 0.70, 'auto_approval_rate': 0.94},
-    {'date': '2026-02', 'month': 2, 'year': 2026, 'threshold': 7500, 'fraud_detection_rate': 0.80, 'auto_approval_rate': 0.97},
-    {'date': '2026-03', 'month': 3, 'year': 2026, 'threshold': 8000, 'fraud_detection_rate': 0.85, 'auto_approval_rate': 0.99},
+    {'date': '2025-10', 'month': 10, 'year': 2025, 'threshold': 5000, 'fraud_detection_rate': 0.40, 'auto_approval_rate': 0.667},
+    {'date': '2025-11', 'month': 11, 'year': 2025, 'threshold': 5000, 'fraud_detection_rate': 0.50, 'auto_approval_rate': 0.667},
+    {'date': '2025-12', 'month': 12, 'year': 2025, 'threshold': 5000, 'fraud_detection_rate': 0.60, 'auto_approval_rate': 0.667},
+    {'date': '2026-01', 'month': 1, 'year': 2026, 'threshold': 5000, 'fraud_detection_rate': 0.70, 'auto_approval_rate': 0.667},
+    {'date': '2026-02', 'month': 2, 'year': 2026, 'threshold': 5000, 'fraud_detection_rate': 0.80, 'auto_approval_rate': 0.667},
+    {'date': '2026-03', 'month': 3, 'year': 2026, 'threshold': 5000, 'fraud_detection_rate': 0.85, 'auto_approval_rate': 0.667},
 ]
 
 CLAIMS_PER_MONTH = 750
@@ -37,16 +39,17 @@ INDUSTRY_CYCLE_TIME_AVG = 19.3
 
 # AI Eligibility Constraints
 AI_ELIGIBLE_RATE = 0.35  # Only 35% of claims are body damage (AI-eligible)
-CUSTOMER_AI_CONSENT_RATE = 0.80  # 80% of eligible customers opt-in to AI
+CUSTOMER_AI_CONSENT_RATE = 0.50  # 50% of eligible customers opt-in to AI (Pilot target)
 
-# Operational cost configurations (cost to PROCESS the claim, not claim loss amount)
-COST_TRADITIONAL = 325.00  # Traditional/standard processing baseline
-COST_AI_AUTO_APPROVED = 32.50  # 90% cheaper (10% of traditional)
-COST_AI_HUMAN_REVIEW = 48.75  # 85% cheaper (15% of traditional)
+# LAE configurations (Loss Adjustment Expense - cost to PROCESS the claim, not claim loss amount)
+# SOW v5: Acme's current LAE is ~10% above $325 industry average
+LAE_TRADITIONAL = 357.50  # Acme's current LAE baseline (10% above $325 industry avg)
+LAE_AI_AUTO_APPROVED = 35.75  # 90% cheaper (10% of traditional)
+LAE_AI_HUMAN_REVIEW = 107.25  # 70% cheaper (30% of traditional)
 
 # Cost savings factors (what percentage of traditional cost is spent)
 SAVINGS_FACTOR_AUTO = 0.10  # AI auto-approved costs 10% of traditional
-SAVINGS_FACTOR_REVIEWED = 0.15  # AI + human review costs 15% of traditional
+SAVINGS_FACTOR_REVIEWED = 0.30  # AI + human review costs 30% of traditional
 SAVINGS_FACTOR_TRADITIONAL = 1.0  # Traditional costs 100% (baseline)
 
 ACCURACY_TOLERANCE = 0.10  # ±10%
@@ -85,16 +88,19 @@ def generate_claim(claim_id, month_config):
         customer_ai_consent = None  # Not applicable for non-eligible claims
 
     # 4. Determine AI enablement (progressive adoption for eligible + consented claims)
-    # Oct 2025: 20% AI, Nov 2025: 30%, Dec 2025: 50%, Jan-Mar 2026: 100%
+    # Target: 12% total AI adoption = 88% Traditional, 8% Auto-Approved, 4% Human Review
+    # With 35% eligible × 50% opt-in = 17.5% maximum, need 68.6% adoption to get 12% actual
+    # Auto-approval rate of 66.7% gives 8%/4% split (67/33)
+    # Fixed adoption rate across all months for consistent distribution
     ai_adoption_rates = {
-        '2025-10': 0.20,
-        '2025-11': 0.30,
-        '2025-12': 0.50,
-        '2026-01': 1.00,
-        '2026-02': 1.00,
-        '2026-03': 1.00
+        '2025-10': 0.686,
+        '2025-11': 0.686,
+        '2025-12': 0.686,
+        '2026-01': 0.686,
+        '2026-02': 0.686,
+        '2026-03': 0.686
     }
-    ai_adoption_rate = ai_adoption_rates.get(month_config['date'], 1.00)
+    ai_adoption_rate = ai_adoption_rates.get(month_config['date'], 0.686)
 
     # AI is enabled only if: eligible AND customer consented AND monthly adoption rate
     if ai_eligible and customer_ai_consent:
@@ -103,25 +109,24 @@ def generate_claim(claim_id, month_config):
         ai_enabled = False
 
     # 5. Determine if auto-adjudicated (only for AI-enabled claims)
+    # Target: 50/50 split between auto-approved and human review
     if ai_enabled:
-        auto_adjudicated = claim_amount < threshold
-
-        if auto_adjudicated:
-            # Progressive auto-approval rate: improves from 40% (Oct) to 90% (Mar)
-            # This simulates improving AI confidence over time
-            if random.random() < auto_approval_rate:
-                processing_path = 'ai_auto_approved'
-                human_review_required = False
-                human_review_reason = None
-            else:
-                processing_path = 'ai_human_reviewed'
-                human_review_required = True
-                human_review_reason = random.choice(['customer_appeal', 'low_confidence', 'fraud_detected'])
+        # Use auto_approval_rate to determine processing path (threshold check removed)
+        # This ensures 50/50 split regardless of claim amount
+        if random.random() < auto_approval_rate:
+            processing_path = 'ai_auto_approved'
+            auto_adjudicated = True
+            human_review_required = False
+            human_review_reason = None
         else:
-            # Above threshold - requires human review
             processing_path = 'ai_human_reviewed'
+            auto_adjudicated = False
             human_review_required = True
-            human_review_reason = 'high_value'
+            # Assign review reasons
+            if claim_amount > threshold:
+                human_review_reason = 'high_value'
+            else:
+                human_review_reason = random.choice(['customer_appeal', 'low_confidence', 'fraud_detected'])
     else:
         # Traditional processing (no AI)
         processing_path = 'traditional'
@@ -156,15 +161,15 @@ def generate_claim(claim_id, month_config):
     cost_estimated = claim_amount
     cost_actual = claim_amount * random.uniform(0.85, 1.15)  # ±15% variance
 
-    # cost_operational = operational cost to PROCESS the claim (not the claim payout)
+    # lae_operational = LAE (Loss Adjustment Expense) to PROCESS the claim (not the claim payout)
     if processing_path == 'ai_auto_approved':
-        cost_operational = COST_AI_AUTO_APPROVED + random.uniform(-2, 2)  # $32.50 ± $2
+        cost_operational = LAE_AI_AUTO_APPROVED + random.uniform(-2, 2)  # $35.75 ± $2
         cost_savings_factor = SAVINGS_FACTOR_AUTO  # 0.10 (90% savings)
     elif processing_path == 'ai_human_reviewed':
-        cost_operational = COST_AI_HUMAN_REVIEW + random.uniform(-3, 3)  # $48.75 ± $3
-        cost_savings_factor = SAVINGS_FACTOR_REVIEWED  # 0.15 (85% savings)
+        cost_operational = LAE_AI_HUMAN_REVIEW + random.uniform(-5, 5)  # $107.25 ± $5
+        cost_savings_factor = SAVINGS_FACTOR_REVIEWED  # 0.30 (70% savings)
     else:  # traditional
-        cost_operational = COST_TRADITIONAL + random.uniform(-25, 25)  # $325 ± $25
+        cost_operational = LAE_TRADITIONAL + random.uniform(-25, 25)  # $357.50 ± $25
         cost_savings_factor = SAVINGS_FACTOR_TRADITIONAL  # 1.0 (no savings)
 
     # Ensure positive costs

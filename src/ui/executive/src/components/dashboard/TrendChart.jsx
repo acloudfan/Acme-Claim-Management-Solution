@@ -23,7 +23,7 @@ export default function TrendChart({
   xAxisKey = 'period_label',
   yAxisKey = 'value',
   yAxisLabel,
-  showLine = true,
+  showLine = false,  // Changed default: line duplicates bar data
   showBar = true,
   color = 'blue',
   height = 300,

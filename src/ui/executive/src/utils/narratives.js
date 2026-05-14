@@ -33,14 +33,14 @@ Faster cycle time = higher customer satisfaction (NPS improvement), reduced adju
 This metric quantifies the direct operational cost savings from AI-enabled claims processing over the selected time period.
 
 **Cost Structure:**
-- **Traditional processing cost:** $325 per claim (fully loaded: adjuster time, overhead, systems)
-- **AI-enabled processing cost:** $40-$80 per claim (API costs, verification, exception handling)
-- **Net savings per claim:** $245-$285 depending on auto-adjudication rate
+- **Traditional processing LAE:** $357.50 per claim (Acme current state: ~10% above $325 industry avg)
+- **AI-enabled processing LAE:** $35.75-$107.25 per claim (auto-approved vs human review)
+- **Net savings per claim:** $250-$322 depending on auto-adjudication rate
 
 **Calculation Method:**
-Total Savings = (AI-enabled claims × $325 baseline) - (Actual AI operational costs)
+Total Savings = (AI-enabled claims × $357.50 baseline) - (Actual AI operational costs)
 
-The dashboard shows **$238,195** saved over 6 months across 4,500 sample claims (representing 1% of actual volume). Extrapolated to full production scale (450,000 claims), this projects to **$23.8M in annual operational savings**.
+The dashboard shows LAE savings over 6 months across 4,500 sample claims (representing 1% of actual volume). At full production scale (450,000 claims), this projects to approximately **$16M in annual LAE savings** (6-month cumulative with phased rollout). At Week 42 steady-state run-rate, annual savings reach **$26M**.
 
 **Why This Matters:**
 - Direct impact on loss adjustment expense (LAE) ratio
@@ -69,7 +69,7 @@ This metric measures the percentage of AI-enabled claims that are fully adjudica
 1. **AI Confidence Score** - Model must exceed 0.85 confidence threshold
 2. **Claim Amount** - Must fall below monthly threshold ($4K-$6.5K progression)
 3. **Fraud Risk** - Fraud detection score must be below 0.7
-4. **Customer Consent** - 80% of eligible customers have opted into AI processing
+4. **Customer Opt-In** - 50% of eligible customers have opted into AI processing (Pilot target)
 
 **Industry Comparison:**
 Leading insurers achieve 50-65% auto-adjudication for AI-eligible claims. This portfolio is performing **above industry benchmark**.
@@ -112,11 +112,11 @@ Body damage claims that receive AI assessment plus one adjuster review:
 - Triggered by: high value, low confidence, customer appeal
 - Average cycle time: 5-8 days (still 60% faster than traditional)
 
-**Why Only 28% AI Adoption?**
+**Why Only 17.5% AI Adoption?**
 Two key constraints limit AI eligibility:
 1. **Damage Type:** Only 35% of claims are body damage (industry data)
-2. **Customer Consent:** 80% opt-in rate among eligible customers
-3. **Result:** 35% × 80% = 28% maximum AI adoption rate
+2. **Customer Opt-In:** 50% opt-in rate among eligible customers (Pilot target)
+3. **Result:** 35% × 50% = 17.5% maximum AI adoption rate (Pilot)
 
 **Business Strategy:**
 Focus on maximizing auto-adjudication rate within the 28% eligible population rather than forcing AI onto ineligible claim types.`,

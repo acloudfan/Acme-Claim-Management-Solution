@@ -19,10 +19,6 @@ export default function SampleDataDistribution({
     ? (monthlyDistribution.reduce((sum, m) => sum + m.autoAdjPct, 0) / monthlyDistribution.length).toFixed(1)
     : 0;
 
-  const avgFraud = monthlyDistribution.length > 0
-    ? (monthlyDistribution.reduce((sum, m) => sum + m.fraudPct, 0) / monthlyDistribution.length).toFixed(1)
-    : 0;
-
   return (
     <Card id="sample-data-distribution" className="mt-8 border-t-2 border-blue-200 bg-white transition-all duration-300">
       {/* Header - Always Visible */}
@@ -85,6 +81,54 @@ export default function SampleDataDistribution({
             </div>
           </div>
 
+          {/* Processing Mix Distribution */}
+          <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-green-900 mb-3 flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              Processing Path Distribution (6-Month Average)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-gray-700 font-semibold">Traditional</span>
+                  <span className="text-2xl font-bold text-gray-900">88%</span>
+                </div>
+                <p className="text-xs text-gray-600">
+                  Not AI-eligible (internal damage) or customer declined AI processing
+                </p>
+              </div>
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-gray-700 font-semibold">AI Auto-Approved</span>
+                  <span className="text-2xl font-bold text-success-700">8%</span>
+                </div>
+                <p className="text-xs text-gray-600">
+                  Fully automated, zero human touchpoints (STP)
+                </p>
+              </div>
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-gray-700 font-semibold">AI + Human Review</span>
+                  <span className="text-2xl font-bold text-primary-700">4%</span>
+                </div>
+                <p className="text-xs text-gray-600">
+                  AI assessment with adjuster validation
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-green-200 text-xs text-green-900">
+              <p className="mb-2">
+                <strong>Auto-Adjudication Rate:</strong> 67% of AI-processed claims (8% auto / 12% total AI = 67%)
+              </p>
+              <p className="mb-2">
+                <strong>AI Adoption Ceiling:</strong> 35% of claims are body damage (AI-eligible) × 50% customer opt-in = 17.5% maximum
+              </p>
+              <p>
+                <strong>Auto-Approval Threshold:</strong> Fixed at $5,000 for all 6 months (consistent policy)
+              </p>
+            </div>
+          </div>
+
           {/* Monthly Distribution Table */}
           {monthlyDistribution.length > 0 && (
             <div className="mt-6">
@@ -106,9 +150,6 @@ export default function SampleDataDistribution({
                       </th>
                       <th className="px-4 py-3 text-right font-semibold text-gray-700 border-b border-gray-200">
                         AI Threshold
-                      </th>
-                      <th className="px-4 py-3 text-right font-semibold text-gray-700 border-b border-gray-200">
-                        Fraud Det %
                       </th>
                       <th className="px-4 py-3 text-right font-semibold text-gray-700 border-b border-gray-200">
                         Extrapolated
@@ -136,9 +177,6 @@ export default function SampleDataDistribution({
                         <td className="px-4 py-3 text-right text-gray-700 font-mono">
                           ${row.threshold.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-right text-gray-700">
-                          {row.fraudPct}%
-                        </td>
                         <td className="px-4 py-3 text-right text-gray-600 font-semibold">
                           {(row.claims * extrapolationFactor).toLocaleString()}
                         </td>
@@ -157,9 +195,6 @@ export default function SampleDataDistribution({
                       </td>
                       <td className="px-4 py-3 text-right text-gray-500 text-xs">
                         Progressive
-                      </td>
-                      <td className="px-4 py-3 text-right text-gray-900">
-                        {avgFraud}% avg
                       </td>
                       <td className="px-4 py-3 text-right text-gray-900">
                         {actualVolume.toLocaleString()}
@@ -186,17 +221,20 @@ export default function SampleDataDistribution({
             </div>
           </div>
 
-          {/* Progressive AI Adoption Callout */}
-          <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-400 rounded">
+          {/* AI Threshold Strategy Note */}
+          <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
             <div className="flex items-start gap-3">
-              <div className="text-2xl">📈</div>
-              <div className="text-sm text-green-900">
-                <p className="font-semibold mb-1">Progressive AI Adoption</p>
-                <p>
-                  The auto-adjudication threshold increases monthly (${monthlyDistribution[0]?.threshold.toLocaleString()} → ${monthlyDistribution[monthlyDistribution.length - 1]?.threshold.toLocaleString()}),
-                  demonstrating growing AI confidence and capability. This results in auto-adjudication rates
-                  improving from {monthlyDistribution[0]?.autoAdjPct}% to {monthlyDistribution[monthlyDistribution.length - 1]?.autoAdjPct}%
-                  over the 6-month period.
+              <div className="text-2xl">💡</div>
+              <div className="text-sm text-blue-900">
+                <p className="font-semibold mb-1">AI Threshold Strategy</p>
+                <p className="mb-2">
+                  <strong>Simulation Baseline:</strong> This synthetic dataset uses a fixed auto-adjudication threshold of <strong>${monthlyDistribution[0]?.threshold.toLocaleString()}</strong>
+                  to establish a consistent baseline for demonstrating AI performance and LAE savings potential.
+                </p>
+                <p className="text-xs bg-white border border-blue-200 rounded p-2 mt-2">
+                  <strong>Production Strategy (if pilot results are promising):</strong> In actual deployment, the threshold will be progressively increased
+                  to maximize LAE (Loss Adjustment Expense) savings. Higher thresholds = more AI-automated claims = greater operational cost reduction.
+                  Threshold adjustments will be based on AI accuracy performance, business risk tolerance, and regulatory requirements.
                 </p>
               </div>
             </div>

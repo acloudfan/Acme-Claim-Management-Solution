@@ -57,7 +57,7 @@ export default function DemoDataDisclaimer() {
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-semibold text-blue-900 mb-1">
-            Demo Dashboard - Synthetic Data
+            Demo Dashboard - Synthetic Data for Scenario Simulation
           </h3>
           <p className="text-sm text-blue-800 leading-relaxed">
             This dashboard is for <strong>demo purposes only</strong> and doesn't use real data.

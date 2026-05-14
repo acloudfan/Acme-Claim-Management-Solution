@@ -191,11 +191,12 @@ async def get_kpis(
     prev_ai_count = row[2] or 0
     prev_ai_cost = row[3] or 0
 
-    # Calculate savings (baseline $325/claim - actual AI cost)
-    ai_baseline_cost = ai_count * 325.0
+    # Calculate savings (baseline $357.50/claim - actual AI cost)
+    # SOW v5: Acme's baseline LAE is ~10% above $325 industry average
+    ai_baseline_cost = ai_count * 357.50
     current_savings = ai_baseline_cost - ai_cost
 
-    prev_baseline_cost = prev_ai_count * 325.0
+    prev_baseline_cost = prev_ai_count * 357.50
     prev_savings = prev_baseline_cost - prev_ai_cost
 
     savings_change = ((current_savings - prev_savings) / prev_savings * 100) if prev_savings else 0
@@ -212,6 +213,7 @@ async def get_kpis(
     )
 
     # Summary statistics including processing path breakdown
+    # Accuracy calculation: (AI claims within tolerance / Total AI claims) × 100
     cursor.execute("""
         SELECT
             COUNT(*) as total,
@@ -221,7 +223,7 @@ async def get_kpis(
             SUM(CASE WHEN processing_path = 'ai_human_reviewed' THEN 1 ELSE 0 END) as ai_reviewed_count,
             SUM(cost_operational) as total_operational_cost,
             SUM(CASE WHEN ai_enabled = 1 THEN cost_operational ELSE 0 END) as ai_operational_cost,
-            SUM(CASE WHEN within_tolerance = 1 THEN 1 ELSE 0 END) * 100.0 /
+            SUM(CASE WHEN ai_enabled = 1 AND within_tolerance = 1 THEN 1 ELSE 0 END) * 100.0 /
             NULLIF(SUM(CASE WHEN ai_enabled = 1 THEN 1 ELSE 0 END), 0) as accuracy
         FROM claims_warehouse
         WHERE fnol_date BETWEEN ? AND ?
@@ -237,21 +239,37 @@ async def get_kpis(
     ai_operational_cost = row[6] or 0
     accuracy = row[7] or 0
 
+    # ========================================================================
+    # QUICK STATS CALCULATIONS (displayed in FilterSidebar)
+    # ========================================================================
+    # 1. Total Claims: COUNT(*) = total rows in claims_warehouse
+    # 2. AI-Enabled: COUNT WHERE ai_enabled = 1
+    # 3. AI Adoption Rate: (ai_enabled / total_claims) × 100
+    # 4. Total Savings: (ai_claims × $357.50 baseline) - actual_ai_operational_cost
+    #    - Baseline LAE: $357.50 per claim (Acme's traditional cost, 10% above $325 industry avg)
+    #    - AI Operational Cost: sum of cost_operational for AI-enabled claims
+    #    - Savings = what we WOULD have paid - what we DID pay
+    # 5. Accuracy: (AI claims within tolerance / AI claims) × 100
+    #    - Only counts AI-enabled claims
+    #    - within_tolerance = 1 when AI decision matches human expert decision
+    # ========================================================================
+
     # Calculate savings (only AI-enabled claims generate savings)
-    # If AI claims were processed traditionally, they would cost: ai_claims × $325
+    # If AI claims were processed traditionally, they would cost: ai_claims × $357.50
     # Actual AI operational cost is less, so savings = difference
-    ai_traditional_baseline = ai_enabled_claims * 325.0
+    # SOW v5: Acme's baseline LAE is ~10% above $325 industry average
+    ai_traditional_baseline = ai_enabled_claims * 357.50
     total_savings = ai_traditional_baseline - ai_operational_cost
 
     summary = KPISummary(
-        total_claims=total_claims,
-        ai_enabled_claims=ai_enabled_claims,
-        traditional_claims=traditional_claims,
-        ai_auto_approved_claims=ai_auto_approved_claims,
-        ai_human_reviewed_claims=ai_human_reviewed_claims,
-        ai_adoption_rate=round((ai_enabled_claims / total_claims * 100) if total_claims else 0, 1),
-        total_savings=round(total_savings, 2),
-        accuracy_within_tolerance=round(accuracy, 1)
+        total_claims=total_claims,  # e.g., 4,500 (750/month × 6 months)
+        ai_enabled_claims=ai_enabled_claims,  # e.g., 523 (12% of 4,500)
+        traditional_claims=traditional_claims,  # e.g., 3,977 (88% still traditional)
+        ai_auto_approved_claims=ai_auto_approved_claims,  # e.g., ~360 (8% of total, 69% of AI)
+        ai_human_reviewed_claims=ai_human_reviewed_claims,  # e.g., ~163 (4% of total, 31% of AI)
+        ai_adoption_rate=round((ai_enabled_claims / total_claims * 100) if total_claims else 0, 1),  # e.g., 11.6%
+        total_savings=round(total_savings, 2),  # e.g., $156,591 = (523 × $357.50) - $30,431
+        accuracy_within_tolerance=round(accuracy, 1)  # e.g., 94.8% (AI matches human expert)
     )
 
     conn.close()
@@ -359,7 +377,7 @@ async def get_trends(
                 row = cursor.fetchone()
                 ai_count_period = row[0] or 0
                 ai_cost_period = row[1] or 0
-                baseline = ai_count_period * 325.0
+                baseline = ai_count_period * 357.50
                 value = baseline - ai_cost_period
 
             elif kpi_name == "auto_adjudication_rate":

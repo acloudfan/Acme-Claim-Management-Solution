@@ -152,6 +152,28 @@ export default function ProcessingMixChart({ summary, onShowNarrative }) {
           </div>
         </div>
       </div>
+
+      {/* Customer Adoption Rate */}
+      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-green-900">
+            <span className="font-semibold">Customer Adoption Rate:</span>
+            {' '}
+            <span className="text-lg font-bold text-green-700">
+              {(() => {
+                // Calculate: AI-enabled claims / (35% of total claims that are body damage)
+                const bodyDamageClaims = total * 0.35;
+                const aiEnabledClaims = summary.ai_auto_approved_claims + summary.ai_human_reviewed_claims;
+                const customerAdoptionRate = (aiEnabledClaims / bodyDamageClaims) * 100;
+                return customerAdoptionRate.toFixed(1);
+              })()}%
+            </span>
+          </div>
+        </div>
+        <div className="text-xs text-green-700 mt-1">
+          Of eligible customers (body damage claims), this % opted-in to AI processing
+        </div>
+      </div>
     </Card>
   );
 }

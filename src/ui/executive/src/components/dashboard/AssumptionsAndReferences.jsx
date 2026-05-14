@@ -1,6 +1,6 @@
 /**
  * AssumptionsAndReferences Component
- * Displays operational cost assumptions, industry benchmarks, and references
+ * Displays LAE (Loss Adjustment Expense) assumptions, industry benchmarks, and references
  */
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, Info, ExternalLink } from 'lucide-react';
@@ -37,11 +37,11 @@ export default function AssumptionsAndReferences() {
       {isExpanded && (
         <div className="px-6 pb-6 border-t border-gray-300">
 
-          {/* Operational Cost Assumptions */}
+          {/* LAE Assumptions */}
           <div className="mt-6">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Info className="w-4 h-4 text-blue-600" />
-              Operational Cost Assumptions (Cost to Process Claims)
+              LAE Assumptions (Loss Adjustment Expense - Claims Processing Cost)
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
@@ -51,7 +51,7 @@ export default function AssumptionsAndReferences() {
                       Processing Type
                     </th>
                     <th className="px-4 py-3 text-right font-semibold text-gray-700 border-b border-gray-200">
-                      Operational Cost
+                      LAE per Claim
                     </th>
                     <th className="px-4 py-3 text-right font-semibold text-gray-700 border-b border-gray-200">
                       Savings vs Traditional
@@ -67,13 +67,13 @@ export default function AssumptionsAndReferences() {
                       Traditional Processing
                     </td>
                     <td className="px-4 py-3 text-right text-gray-700 font-mono">
-                      $325.00
+                      $357.50
                     </td>
                     <td className="px-4 py-3 text-right text-gray-500">
                       —
                     </td>
                     <td className="px-4 py-3 text-gray-600 text-xs">
-                      Manual adjuster review, photos, shop visits, rental coordination
+                      Manual adjuster review, photos, shop visits, rental coordination (Acme current state: 10% above industry avg)
                     </td>
                   </tr>
                   <tr className="hover:bg-gray-50">
@@ -81,7 +81,7 @@ export default function AssumptionsAndReferences() {
                       AI Auto-Approved
                     </td>
                     <td className="px-4 py-3 text-right text-green-700 font-mono font-semibold">
-                      $32.50
+                      $35.75
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 font-semibold">
@@ -97,11 +97,11 @@ export default function AssumptionsAndReferences() {
                       AI + Human Review
                     </td>
                     <td className="px-4 py-3 text-right text-green-700 font-mono font-semibold">
-                      $48.75
+                      $107.25
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 font-semibold">
-                        85% cheaper
+                        70% cheaper
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-600 text-xs">
@@ -136,14 +136,14 @@ export default function AssumptionsAndReferences() {
                     <div className="text-xs text-gray-600">(Body damage only)</div>
                   </div>
                   <div className="p-3 bg-white rounded border border-blue-300">
-                    <div className="text-2xl font-bold text-blue-900">80%</div>
-                    <div className="text-xs text-blue-700 mt-1">Customer Adoption</div>
-                    <div className="text-xs text-gray-600">(Of eligible claims)</div>
+                    <div className="text-2xl font-bold text-blue-900">50%</div>
+                    <div className="text-xs text-blue-700 mt-1">Customer Opt-In</div>
+                    <div className="text-xs text-gray-600">(Pilot target)</div>
                   </div>
                   <div className="p-3 bg-white rounded border border-blue-300">
-                    <div className="text-2xl font-bold text-blue-900">28%</div>
+                    <div className="text-2xl font-bold text-blue-900">17.5%</div>
                     <div className="text-xs text-blue-700 mt-1">Max AI Usage</div>
-                    <div className="text-xs text-gray-600">(35% × 80%)</div>
+                    <div className="text-xs text-gray-600">(35% × 50%)</div>
                   </div>
                 </div>
               </div>
@@ -180,6 +180,33 @@ export default function AssumptionsAndReferences() {
             </div>
           </div>
 
+          {/* Acme's Production Scale */}
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Info className="w-4 h-4 text-blue-600" />
+              Acme's Production Scale
+            </h3>
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-6 bg-white border-2 border-purple-400 rounded-lg shadow-sm">
+                  <div className="text-xs text-purple-700 mb-2 text-center">ACME's Annual Auto Claims</div>
+                  <div className="text-4xl font-bold text-purple-900 text-center">~900K</div>
+                  <div className="text-sm text-purple-600 mt-2 text-center">claims/year (~75K/month)</div>
+                </div>
+              </div>
+              <div className="p-3 bg-white border border-purple-300 rounded text-xs text-gray-700">
+                <p className="mb-2">
+                  <strong>Pilot Scale:</strong> This dashboard shows a 6-month pilot with 4,500 sample claims (750/month = 1% of production volume).
+                  All financial projections extrapolate this 1% sample to full production scale (100×).
+                </p>
+                <p>
+                  <strong>At Scale Impact:</strong> With 11.6% AI adoption, Acme would process ~8,700 AI-enabled claims/month at production scale,
+                  generating ~$2.6M in monthly LAE savings ($31.3M annual).
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Actual Averages from Data */}
           <div className="mt-6">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -188,23 +215,23 @@ export default function AssumptionsAndReferences() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="text-xs text-blue-700 mb-1">Traditional Op Cost</div>
-                <div className="text-2xl font-bold text-blue-900">$324.96</div>
-                <div className="text-xs text-blue-600 mt-1">n = 1,477 claims</div>
+                <div className="text-xs text-blue-700 mb-1">Traditional LAE</div>
+                <div className="text-2xl font-bold text-blue-900">$357.71</div>
+                <div className="text-xs text-blue-600 mt-1">n = 3,956 claims</div>
               </div>
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="text-xs text-green-700 mb-1">AI Auto-Approved Op Cost</div>
-                <div className="text-2xl font-bold text-green-900">$32.53</div>
-                <div className="text-xs text-green-600 mt-1">n = 1,039 claims</div>
+                <div className="text-xs text-green-700 mb-1">AI Auto-Approved LAE</div>
+                <div className="text-2xl font-bold text-green-900">$35.84</div>
+                <div className="text-xs text-green-600 mt-1">n = 359 claims</div>
               </div>
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="text-xs text-green-700 mb-1">AI + Review Op Cost</div>
-                <div className="text-2xl font-bold text-green-900">$48.75</div>
-                <div className="text-xs text-green-600 mt-1">n = 1,984 claims</div>
+                <div className="text-xs text-green-700 mb-1">AI + Review LAE</div>
+                <div className="text-2xl font-bold text-green-900">$107.50</div>
+                <div className="text-xs text-green-600 mt-1">n = 185 claims</div>
               </div>
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="text-xs text-green-700 mb-1">AI Average Op Cost</div>
-                <div className="text-2xl font-bold text-green-900">$43.18</div>
+                <div className="text-xs text-green-700 mb-1">AI Average LAE</div>
+                <div className="text-2xl font-bold text-green-900">$48.52</div>
                 <div className="text-xs text-green-600 mt-1">Weighted average</div>
               </div>
             </div>
@@ -270,25 +297,25 @@ export default function AssumptionsAndReferences() {
 
               <div className="text-sm">
                 <div className="font-semibold text-gray-900 mb-1">
-                  [4] Operational Cost Benchmarks ($20-$450)
+                  [4] LAE Benchmarks ($20-$450)
                 </div>
                 <div className="text-xs text-gray-600">
-                  Industry standard ranges: STP &lt;$20, Standard collision $200-$450
+                  Industry average: $325. Acme current state: $357.50 (~10% above industry avg per SOW v5)
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Based on insurance industry operational cost studies
+                  Based on insurance industry LAE (Loss Adjustment Expense) studies. LAE = operational cost to process claims (adjustor labor, inspection, admin overhead, fraud investigation, customer service). Excludes claim payouts (indemnity).
                 </div>
               </div>
 
               <div className="text-sm">
                 <div className="font-semibold text-gray-900 mb-1">
-                  [5] AI Cost Reduction Factors (85-90%)
+                  [5] AI LAE Reduction Factors (70-90%)
                 </div>
                 <div className="text-xs text-gray-600">
-                  Derived from operational cost analysis: AI automation reduces processing costs by eliminating manual touchpoints
+                  Derived from LAE analysis: AI automation reduces Loss Adjustment Expense by eliminating manual touchpoints
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  STP: 0.10 × traditional ($325 → $32.50), With review: 0.15 × traditional ($325 → $48.75)
+                  STP: 0.10 × traditional ($357.50 → $35.75), With review: 0.30 × traditional ($357.50 → $107.25)
                 </div>
               </div>
             </div>
@@ -307,13 +334,13 @@ export default function AssumptionsAndReferences() {
                 <p className="mb-2">
                   <strong>AI Eligibility:</strong> Only 35% of claims (body damage) are eligible for AI processing.
                   Internal damage requires physical inspection and cannot be auto-adjudicated by AI.
-                  Of eligible claims, 80% of customers opt-in to AI processing, resulting in a maximum
-                  AI adoption rate of 28% (35% × 80%) of total claims.
+                  Of eligible claims, 50% of customers opt-in to AI processing (Pilot target), resulting in a maximum
+                  AI adoption rate of 17.5% (35% × 50%) of total claims.
                 </p>
                 <p>
-                  <strong>Operational costs</strong> represent the internal cost to process a claim and do not
-                  include the claim payout amount (average $6,000 per claim). <strong>Total savings</strong> are
-                  calculated by comparing AI operational costs against traditional processing baseline of $325/claim.
+                  <strong>LAE (Loss Adjustment Expense)</strong> represents the internal cost to process a claim and does not
+                  include the claim payout amount (average $6,000 per claim). <strong>LAE savings</strong> are
+                  calculated by comparing AI processing LAE against Acme's current baseline of $357.50/claim (~10% above $325 industry average per SOW v5).
                 </p>
               </div>
             </div>
