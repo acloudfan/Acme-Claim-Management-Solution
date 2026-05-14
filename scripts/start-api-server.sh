@@ -18,8 +18,8 @@ if [ "$CLEAN_MODE" = true ]; then
     echo ""
 
     # Run the seed-data.py --clean command
-    echo "Running: python scripts/seed-data.py --clean"
-    python scripts/seed-data.py --clean
+    echo "Running: uv run python scripts/seed-data.py --clean"
+    uv run python scripts/seed-data.py --clean
 
     echo ""
     echo "✅ Clean complete!"
@@ -67,7 +67,7 @@ echo ""
 # Seed database if clean mode was used
 if [ "$CLEAN_MODE" = true ]; then
     echo "Seeding database..."
-    python scripts/seed-data.py
+    uv run python scripts/seed-data.py
     echo ""
 fi
 
