@@ -794,7 +794,7 @@ Project Link: [https://github.com/acloudfan/Acme-Claim-Management-Solution](http
 [license-url]: https://github.com/rsakhuja/Acme-Claim-Management-Solution/blob/main/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/rsakhuja
-[product-screenshot]: docs/images/admin-portal.png
+[product-screenshot]: specifications/ui-sample-images/admin-portal.png
 [Python.org]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
 [Python-url]: https://python.org/
 [FastAPI.com]: https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white
