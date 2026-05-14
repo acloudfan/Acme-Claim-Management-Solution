@@ -47,6 +47,7 @@
   </li>
   <li><a href="#usage">Usage</a></li>
   <li><a href="#ai-enabled-claims-process-flow">AI Enabled Claims Process Flow</a></li>
+  <li><a href="#additional-capabilities-beyond-scope">Additional Capabilities Beyond Scope</a></li>
   <li><a href="#demo-scenarios">Demo Scenarios</a></li>
   <li>
     <a href="#executive-dashboard">Executive Dashboard</a>
@@ -271,6 +272,60 @@ https://github.com/user-attachments/assets/cdd8051c-33b3-4039-b17b-f691d5a69ba3
 
 
 [Checkout the flow on GitHub](./specifications/diagrams/claims-process-flow.mmd)
+
+
+<!-- ADDITIONAL CAPABILITIES BEYOND SCOPE -->
+## Additional Capabilities Beyond Scope
+
+While the primary focus of this prototype is the AI-enabled customer claims filing process, several additional capabilities were built to demonstrate a complete end-to-end claims management solution:
+
+### (a) Adjustor Workflow
+
+The Adjustor Portal provides a comprehensive workspace for insurance adjustors to review flagged claims, perform manual assessments, and override AI decisions when necessary.
+
+**Key Features:**
+- **Claims Review Queue** - Prioritized list of claims requiring human review (appeals, fraud signals, low confidence)
+- **Manual Damage Assessment** - Add or modify damage items with custom severity and repair actions
+- **Fraud Signal Analysis** - Detailed view of fraud detection signals with confidence scores and reasoning
+- **Cost Estimate Adjustments** - Override AI estimates with manual calculations and justifications
+- **SOP Reference Viewer** - Quick access to Standard Operating Procedures and policy guidelines
+- **Audit Trail** - Complete history of all adjustor actions and decisions
+
+This workflow demonstrates how AI augments rather than replaces human expertise, providing a safety net for edge cases and building trust through transparency.
+
+### (b) Executive Dashboard
+
+The Executive Dashboard provides leadership with comprehensive analytics and KPIs to monitor the business impact of AI-powered claims transformation.
+
+**Key Metrics:**
+- **Cycle Time Savings** - Track reduction from traditional (19 days) to AI-assisted (~3 days) processing
+- **LAE (Loss Adjustment Expense) Savings** - Monitor operational cost reductions and ROI
+- **Auto-Adjudication Rate** - Percentage of claims resolved without human intervention
+- **AI Adoption Rate** - Track customer opt-in rates and AI usage trends
+- **Processing Path Distribution** - Breakdown of traditional vs. AI-auto vs. AI+human review claims
+- **Sample Data Extrapolation** - Demonstrates 1% sample (4,500 claims) extrapolated to production scale (450K claims)
+
+**Important Note:** The Executive Dashboard uses **synthetic data for scenario simulation** generated through industry research to demonstrate analytics capabilities. This data represents realistic scenarios but does not reflect actual production claims.
+
+**Access:** http://localhost:5176/dashboard
+
+### (c) Langfuse Integration for Tracing & Evaluations
+
+[Langfuse](https://langfuse.com/) integration provides observability and analytics for LLM applications, enabling detailed tracing of AI agent interactions and performance monitoring.
+
+**Capabilities:**
+- **Agent Execution Tracing** - Track the complete flow of damage detection, fraud analysis, and cost estimation agents
+- **LLM Call Monitoring** - Capture prompts, responses, token usage, and latency for every Claude API call
+- **Multi-Agent Coordination** - Visualize how supervisor agents orchestrate specialized sub-agents
+- **Performance Analytics** - Identify bottlenecks, optimize prompts, and track accuracy improvements
+- **Cost Tracking** - Monitor LLM token consumption and associated costs per claim
+- **Evaluation Framework** - Foundation for building automated evals using human annotations or LLM-as-Judge
+
+**Setup:** See [Langfuse Integration](#langfuse-integration) section for local Docker setup or cloud configuration.
+
+These additional capabilities demonstrate how AI transformation extends beyond automation to provide comprehensive tools for operations, management, and continuous improvement.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 <!-- DEMO SCENARIOS -->
